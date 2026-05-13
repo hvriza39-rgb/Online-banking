@@ -6,7 +6,7 @@ import { Currency } from "@prisma/client";
 
 export async function POST(req: NextRequest) {
   try {
-    const body   = await req.json();
+    const body = await req.json();
     const parsed = registerSchema.safeParse(body);
 
     if (!parsed.success) {
@@ -31,6 +31,9 @@ export async function POST(req: NextRequest) {
 
     const passwordHash = await bcrypt.hash(password, 12);
 
+    const safeCurrency =
+      currency === "EUR" ? Currency.EUR : Currency.USD;
+
     await prisma.user.create({
       data: {
         name,
@@ -39,7 +42,7 @@ export async function POST(req: NextRequest) {
         account: {
           create: {
             balance: 0,
-            currency: currency as Currency,
+            currency: safeCurrency,
           },
         },
       },
@@ -47,7 +50,13 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ success: true }, { status: 201 });
   } catch (error) {
-    console.error("[POST /api/register]", error);
-    return NextResponse.json({ error: "Something went wrong" }, { status: 500 });
+    console.error("REGISTER ERROR FULL:", error);
+
+    return NextResponse.json(
+      {
+        error: error instanceof Error ? error.message : "Unknown error",
+      },
+      { status: 500 }
+    );
   }
 }

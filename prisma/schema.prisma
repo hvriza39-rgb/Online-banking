@@ -1,0 +1,103 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// ─── Enums ────────────────────────────────────────────────
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum Currency {
+  USD
+  EUR
+}
+
+enum TransactionType {
+  CREDIT      // Admin added funds
+  DEBIT       // Admin deducted funds
+  WITHDRAWAL  // User withdrawal (approved)
+}
+
+enum WithdrawalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+// ─── Models ───────────────────────────────────────────────
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  name         String
+  passwordHash String
+  role         Role     @default(USER)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  account              Account?
+  withdrawalRequests   WithdrawalRequest[]
+
+  @@map("users")
+}
+
+model Account {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Balance stored in cents (smallest unit) to avoid float errors
+  balance   Int      @default(0)
+  currency  Currency @default(USD)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  transactions Transaction[]
+
+  @@map("accounts")
+}
+
+model Transaction {
+  id           String          @id @default(cuid())
+  accountId    String
+  account      Account         @relation(fields: [accountId], references: [id], onDelete: Cascade)
+
+  type         TransactionType
+
+  // Amount in cents
+  amount       Int
+  balanceAfter Int
+
+  note         String?
+  createdAt    DateTime @default(now())
+
+  @@map("transactions")
+}
+
+model WithdrawalRequest {
+  id         String           @id @default(cuid())
+  userId     String
+  user       User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Amount in cents
+  amount     Int
+  currency   Currency
+  status     WithdrawalStatus @default(PENDING)
+
+  note       String?
+  adminNote  String?
+
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@map("withdrawal_requests")
+}

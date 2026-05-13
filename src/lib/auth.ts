@@ -7,12 +7,24 @@ import { loginSchema } from "@/lib/validators";
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   adapter: PrismaAdapter(prisma),
-  session: { strategy: "jwt" },
+
+  session: {
+    strategy: "jwt",
+  },
+
   pages: {
     signIn: "/login",
   },
+
   providers: [
     Credentials({
+      name: "Credentials",
+
+      credentials: {
+        email: { label: "Email", type: "text" },
+        password: { label: "Password", type: "password" },
+      },
+
       async authorize(credentials) {
         const parsed = loginSchema.safeParse(credentials);
         if (!parsed.success) return null;
@@ -20,7 +32,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         const { email, password } = parsed.data;
 
         const user = await prisma.user.findUnique({
-          where: { email: email.toLowerCase() },
+          where: {
+            email: email.trim().toLowerCase(),
+          },
         });
 
         if (!user) return null;
@@ -37,17 +51,19 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       },
     }),
   ],
+
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
-        token.id   = user.id as string;
+        token.id = (user as any).id;
         token.role = (user as any).role;
       }
       return token;
     },
+
     async session({ session, token }) {
-      if (token) {
-        session.user.id   = token.id as string;
+      if (session.user) {
+        session.user.id = token.id as string;
         session.user.role = token.role as string;
       }
       return session;

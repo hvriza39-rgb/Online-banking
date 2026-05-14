@@ -2,23 +2,93 @@
 @tailwind components;
 @tailwind utilities;
 
+@import url('https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
 @layer base {
   :root {
-    --font-sans: "Inter", system-ui, sans-serif;
+    --font-sans: 'Sora', system-ui, sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
   }
 
-  * {
-    @apply border-gray-200;
-  }
+  * { box-sizing: border-box; }
 
   body {
-    @apply bg-gray-50 text-gray-900 antialiased;
+    font-family: var(--font-sans);
+    background: #f0f2f8;
+    color: #0f172a;
+    -webkit-font-smoothing: antialiased;
   }
 }
 
 @layer utilities {
+  .font-mono-custom { font-family: var(--font-mono); }
+
   .money {
+    font-family: var(--font-mono);
     font-variant-numeric: tabular-nums;
-    letter-spacing: -0.01em;
+    letter-spacing: -0.02em;
+  }
+
+  .card {
+    background: #ffffff;
+    border: 1px solid rgba(15, 23, 42, 0.07);
+    border-radius: 20px;
+    box-shadow:
+      0 1px 2px rgba(15, 23, 42, 0.04),
+      0 4px 12px rgba(15, 23, 42, 0.03);
+  }
+
+  .card-interactive {
+    transition: box-shadow 0.2s ease, transform 0.18s ease, border-color 0.2s ease;
+  }
+  .card-interactive:hover {
+    box-shadow:
+      0 4px 16px rgba(15, 23, 42, 0.09),
+      0 1px 3px rgba(15, 23, 42, 0.05);
+    transform: translateY(-2px);
+    border-color: rgba(37, 99, 235, 0.2);
+  }
+
+  /* Staggered fade-up for page loads */
+  .fade-up {
+    opacity: 0;
+    animation: fadeUp 0.45s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  }
+  .delay-1 { animation-delay: 0.06s; }
+  .delay-2 { animation-delay: 0.12s; }
+  .delay-3 { animation-delay: 0.18s; }
+  .delay-4 { animation-delay: 0.24s; }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(14px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Pulse dot for live/pending indicators */
+  .pulse-dot::before {
+    content: '';
+    display: inline-block;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: currentColor;
+    margin-right: 6px;
+    animation: pulse 2s ease infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50%       { opacity: 0.5; transform: scale(0.85); }
+  }
+
+  /* Shimmer skeleton */
+  .shimmer {
+    background: linear-gradient(90deg, #e8edf5 25%, #d4dae6 50%, #e8edf5 75%);
+    background-size: 400% 100%;
+    animation: shimmer 1.6s ease infinite;
+    border-radius: 8px;
+  }
+  @keyframes shimmer {
+    0%   { background-position: 100% 0; }
+    100% { background-position: -100% 0; }
   }
 }

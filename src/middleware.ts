@@ -18,32 +18,33 @@ export default auth((req) => {
 
   const isPublicApi = pathname.startsWith("/api/auth");
 
-  // ✅ ALWAYS allow API routes (CRITICAL FIX)
   if (isApiRoute && !isPublicApi) {
     return NextResponse.next();
   }
 
-  // Allow NextAuth internal routes
   if (isPublicApi) {
     return NextResponse.next();
   }
 
-  // Redirect logged-in users away from auth pages
   if (isLoggedIn && isAuthPage) {
     return NextResponse.redirect(
       new URL(isAdmin ? "/admin" : "/dashboard", nextUrl)
     );
   }
 
-  // Redirect unauthenticated users only for pages (NOT API)
   if (!isLoggedIn && !isAuthPage) {
     return NextResponse.redirect(new URL("/login", nextUrl));
   }
 
-  // Protect admin pages
   if (isAdminPage && !isAdmin) {
     return NextResponse.redirect(new URL("/dashboard", nextUrl));
   }
 
   return NextResponse.next();
 });
+
+export const config = {
+  matcher: [
+    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)).*)",
+  ],
+};

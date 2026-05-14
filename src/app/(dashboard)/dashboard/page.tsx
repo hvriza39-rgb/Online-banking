@@ -39,8 +39,8 @@ export default async function DashboardPage() {
 
   if (!user || !user.account) redirect("/login");
 
-  const account = user.account;
-  const kycStatus = user.kycStatus;
+  const account    = user.account;
+  const kycStatus  = user.kycStatus;
 
   const pendingWithdrawal = await prisma.withdrawalRequest.findFirst({
     where: { userId: session.user.id, status: "PENDING" },
@@ -57,7 +57,6 @@ export default async function DashboardPage() {
 
   return (
     <div className="min-h-screen p-6 lg:p-8">
-      {/* Page header */}
       <div className="mb-7 fade-up">
         <p className="text-[#9aa0b0] text-sm font-medium mb-0.5">
           Good {new Date().getHours() < 12 ? "morning" : new Date().getHours() < 18 ? "afternoon" : "evening"},
@@ -67,7 +66,7 @@ export default async function DashboardPage() {
 
       <div className="max-w-4xl space-y-5">
 
-        {/* ── KYC Banner ───────────────────────────────────── */}
+        {/* KYC Banner */}
         {kycStatus === "NONE" && (
           <div className="fade-up flex items-start gap-4 p-5 rounded-2xl border border-amber-200 bg-gradient-to-r from-amber-50 to-orange-50">
             <div className="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center flex-shrink-0">
@@ -79,10 +78,9 @@ export default async function DashboardPage() {
                 Complete KYC verification to receive your account number and access full banking features.
               </p>
             </div>
-            <Link
-              href="/kyc"
-              className="flex-shrink-0 text-[12.5px] font-semibold bg-amber-500 hover:bg-amber-600 text-white px-4 py-2 rounded-xl transition-colors shadow-sm shadow-amber-200"
-            >
+            <Link href="/kyc"
+              className="flex-shrink-0 text-[12.5px] font-semibold text-white px-4 py-2 rounded-xl transition-colors shadow-sm"
+              style={{ background: "#c98a10" }}>
               Verify Now →
             </Link>
           </div>
@@ -116,24 +114,16 @@ export default async function DashboardPage() {
           </div>
         )}
 
-        {/* ── Balance hero card ──────────────────────────── */}
-        <div
-          className="fade-up delay-1 relative overflow-hidden rounded-2xl p-7"
+        {/* Balance hero card */}
+        <div className="fade-up delay-1 relative overflow-hidden rounded-2xl p-7"
           style={{
             background: "linear-gradient(135deg, #1a1c22 0%, #23262f 40%, #2c2f3a 70%, #1e2029 100%)",
             boxShadow: "0 20px 60px rgba(10,11,15,0.30), 0 4px 16px rgba(10,11,15,0.15)",
-          }}
-        >
-          {/* Decorative blobs */}
+          }}>
           <div className="absolute -top-12 -right-12 w-52 h-52 rounded-full bg-amber-400/[0.07] blur-2xl" />
           <div className="absolute -bottom-8 left-16 w-40 h-40 rounded-full bg-amber-500/[0.05] blur-xl" />
-          <div
-            className="absolute top-0 right-0 w-32 h-32 opacity-[0.04]"
-            style={{
-              backgroundImage: "radial-gradient(circle, #c98a10 1px, transparent 1px)",
-              backgroundSize: "12px 12px",
-            }}
-          />
+          <div className="absolute top-0 right-0 w-32 h-32 opacity-[0.04]"
+            style={{ backgroundImage: "radial-gradient(circle, #c98a10 1px, transparent 1px)", backgroundSize: "12px 12px" }} />
 
           <div className="relative">
             <div className="flex items-start justify-between mb-6">
@@ -149,25 +139,19 @@ export default async function DashboardPage() {
                 )}
               </div>
               <div className="bg-white/[0.08] backdrop-blur-sm rounded-xl px-3 py-1.5 border border-white/10">
-                <span className="text-white/80 text-xs font-semibold tracking-wider">
-                  {account.currency}
-                </span>
+                <span className="text-white/80 text-xs font-semibold tracking-wider">{account.currency}</span>
               </div>
             </div>
 
             <div className="flex items-center gap-3 flex-wrap">
-              <Link
-                href="/withdraw"
-                className="flex items-center gap-2 text-sm font-semibold px-4 py-2 rounded-xl transition-colors shadow-sm"
-                style={{ background: "#c98a10", color: "#fff", boxShadow: "0 2px 8px rgba(201,138,16,0.35)" }}
-              >
+              <Link href="/withdraw"
+                className="flex items-center gap-2 text-sm font-semibold px-4 py-2 rounded-xl"
+                style={{ background: "#c98a10", color: "#fff", boxShadow: "0 2px 8px rgba(201,138,16,0.35)" }}>
                 <ArrowUpRight className="w-4 h-4" />
                 Withdraw
               </Link>
-              <Link
-                href="/transactions"
-                className="flex items-center gap-2 bg-white/[0.08] border border-white/10 text-white text-sm font-medium px-4 py-2 rounded-xl hover:bg-white/[0.14] transition-colors backdrop-blur-sm"
-              >
+              <Link href="/transactions"
+                className="flex items-center gap-2 bg-white/[0.08] border border-white/10 text-white text-sm font-medium px-4 py-2 rounded-xl hover:bg-white/[0.14] transition-colors">
                 <ClipboardList className="w-4 h-4" />
                 History
               </Link>
@@ -180,27 +164,11 @@ export default async function DashboardPage() {
           </div>
         </div>
 
-        {/* ── Stats row ─────────────────────────────────── */}
+        {/* Stats row */}
         <div className="grid grid-cols-2 gap-4 fade-up delay-2">
           {[
-            {
-              label: "Total Credited",
-              value: totalCredited,
-              icon: TrendingUp,
-              iconBg: "bg-emerald-50",
-              iconColor: "text-emerald-600",
-              valueColor: "text-emerald-700",
-              border: "border-emerald-100/80",
-            },
-            {
-              label: "Total Withdrawn",
-              value: totalDebited,
-              icon: TrendingDown,
-              iconBg: "bg-rose-50",
-              iconColor: "text-rose-500",
-              valueColor: "text-[#111318]",
-              border: "border-rose-100/80",
-            },
+            { label: "Total Credited",  value: totalCredited, icon: TrendingUp,   iconBg: "bg-emerald-50", iconColor: "text-emerald-600", valueColor: "text-emerald-700", border: "border-emerald-100/80" },
+            { label: "Total Withdrawn", value: totalDebited,  icon: TrendingDown, iconBg: "bg-rose-50",    iconColor: "text-rose-500",    valueColor: "text-[#111318]",   border: "border-rose-100/80" },
           ].map((stat) => {
             const Icon = stat.icon;
             return (
@@ -217,17 +185,14 @@ export default async function DashboardPage() {
           })}
         </div>
 
-        {/* ── Recent transactions ───────────────────────── */}
+        {/* Recent transactions */}
         <div className="card fade-up delay-3">
           <div className="flex items-center justify-between px-6 py-4 border-b border-[rgba(17,19,24,0.06)]">
             <div className="flex items-center gap-2">
               <Sparkles className="w-4 h-4 text-amber-500" />
               <h2 className="text-[14px] font-semibold text-[#111318]">Recent Transactions</h2>
             </div>
-            <Link
-              href="/transactions"
-              className="text-[12px] font-medium text-amber-600 hover:text-amber-700 transition-colors"
-            >
+            <Link href="/transactions" className="text-[12px] font-medium text-amber-600 hover:text-amber-700 transition-colors">
               View all →
             </Link>
           </div>
@@ -243,14 +208,11 @@ export default async function DashboardPage() {
           ) : (
             <div className="divide-y divide-[rgba(17,19,24,0.04)]">
               {account.transactions.map((tx, i) => {
-                const cfg = TX_CONFIG[tx.type];
+                const cfg  = TX_CONFIG[tx.type];
                 const Icon = cfg.icon;
                 return (
-                  <div
-                    key={tx.id}
-                    className="flex items-center gap-4 px-6 py-4 hover:bg-[#f9f9fb] transition-colors"
-                    style={{ animationDelay: `${0.25 + i * 0.04}s` }}
-                  >
+                  <div key={tx.id} className="flex items-center gap-4 px-6 py-4 hover:bg-[#f9f9fb] transition-colors"
+                    style={{ animationDelay: `${0.25 + i * 0.04}s` }}>
                     <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0", cfg.bg)}>
                       <Icon className={cn("w-4 h-4", cfg.text)} strokeWidth={2.5} />
                     </div>

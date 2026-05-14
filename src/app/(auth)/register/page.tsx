@@ -7,10 +7,12 @@ export const metadata: Metadata = { title: "Create Account" };
 
 export default function RegisterPage() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-[#0f1e40] to-[#0d1525] flex items-center justify-center p-6">
+    <div className="min-h-screen flex items-center justify-center p-6"
+      style={{ background: "linear-gradient(135deg, #0d0f13 0%, #13151a 50%, #0d0f13 100%)" }}>
       <div className="w-full max-w-sm">
         <div className="flex items-center gap-2.5 mb-8">
-          <div className="w-9 h-9 bg-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-600/40">
+          <div className="w-9 h-9 rounded-xl flex items-center justify-center shadow-lg"
+            style={{ background: "linear-gradient(135deg, #c98a10, #e5a825)", boxShadow: "0 4px 12px rgba(201,138,16,0.35)" }}>
             <Wallet className="w-4.5 h-4.5 text-white" />
           </div>
           <span className="font-semibold text-white">NexaBank</span>
@@ -21,13 +23,14 @@ export default function RegisterPage() {
           <p className="text-slate-400 text-sm">Get started with NexaBank today</p>
         </div>
 
-        <div className="bg-white/[0.05] backdrop-blur-sm border border-white/[0.08] rounded-2xl p-7 shadow-xl">
+        <div className="rounded-2xl p-7 shadow-xl"
+          style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)" }}>
           <RegisterForm />
         </div>
 
         <p className="text-center text-sm text-slate-500 mt-6">
           Already have an account?{" "}
-          <Link href="/login" className="text-blue-400 hover:text-blue-300 font-medium transition-colors">
+          <Link href="/login" className="font-medium" style={{ color: "#c98a10" }}>
             Sign in
           </Link>
         </p>

@@ -7,11 +7,12 @@ export const metadata: Metadata = { title: "Sign In" };
 
 export default function LoginPage() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-[#0f1e40] to-[#0d1525] flex">
-      {/* Left panel — branding */}
-      <div className="hidden lg:flex flex-col justify-between w-[420px] flex-shrink-0 p-12 border-r border-white/[0.06]">
+    <div className="min-h-screen flex" style={{ background: "linear-gradient(135deg, #0d0f13 0%, #13151a 50%, #0d0f13 100%)" }}>
+      <div className="hidden lg:flex flex-col justify-between w-[420px] flex-shrink-0 p-12"
+        style={{ borderRight: "1px solid rgba(255,255,255,0.05)" }}>
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 bg-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-600/40">
+          <div className="w-9 h-9 rounded-xl flex items-center justify-center shadow-lg"
+            style={{ background: "linear-gradient(135deg, #c98a10, #e5a825)", boxShadow: "0 4px 12px rgba(201,138,16,0.35)" }}>
             <Wallet className="w-4.5 h-4.5 text-white" />
           </div>
           <span className="font-semibold text-white text-[15px]">NexaBank</span>
@@ -28,8 +29,9 @@ export default function LoginPage() {
               { icon: Wallet,      text: "USD and EUR support" },
             ].map(({ icon: Icon, text }) => (
               <div key={text} className="flex items-center gap-3">
-                <div className="w-7 h-7 rounded-lg bg-blue-600/20 border border-blue-500/30 flex items-center justify-center flex-shrink-0">
-                  <Icon className="w-3.5 h-3.5 text-blue-400" />
+                <div className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0"
+                  style={{ background: "rgba(201,138,16,0.15)", border: "1px solid rgba(201,138,16,0.25)" }}>
+                  <Icon className="w-3.5 h-3.5" style={{ color: "#c98a10" }} />
                 </div>
                 <span className="text-slate-400 text-sm">{text}</span>
               </div>
@@ -40,12 +42,11 @@ export default function LoginPage() {
         <p className="text-slate-600 text-xs">© 2025 NexaBank. All rights reserved.</p>
       </div>
 
-      {/* Right panel — form */}
       <div className="flex-1 flex items-center justify-center p-6">
         <div className="w-full max-w-sm">
-          {/* Mobile logo */}
           <div className="flex items-center gap-2.5 mb-8 lg:hidden">
-            <div className="w-8 h-8 bg-blue-600 rounded-xl flex items-center justify-center">
+            <div className="w-8 h-8 rounded-xl flex items-center justify-center"
+              style={{ background: "linear-gradient(135deg, #c98a10, #e5a825)" }}>
               <Wallet className="w-4 h-4 text-white" />
             </div>
             <span className="font-semibold text-white">NexaBank</span>
@@ -56,13 +57,14 @@ export default function LoginPage() {
             <p className="text-slate-400 text-sm">Sign in to your account</p>
           </div>
 
-          <div className="bg-white/[0.05] backdrop-blur-sm border border-white/[0.08] rounded-2xl p-7 shadow-xl">
+          <div className="rounded-2xl p-7 shadow-xl"
+            style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)" }}>
             <LoginForm />
           </div>
 
           <p className="text-center text-sm text-slate-500 mt-6">
             Don&apos;t have an account?{" "}
-            <Link href="/register" className="text-blue-400 hover:text-blue-300 font-medium transition-colors">
+            <Link href="/register" className="font-medium" style={{ color: "#c98a10" }}>
               Create one
             </Link>
           </p>

@@ -10,6 +10,7 @@ import {
   Users,
   LogOut,
   Wallet,
+  ShieldCheck,
 } from "lucide-react";
 import { cn, getInitials } from "@/lib/utils";
 
@@ -18,8 +19,8 @@ interface SidebarProps {
 }
 
 const userLinks = [
-  { href: "/dashboard",    label: "Dashboard",   icon: LayoutDashboard },
-  { href: "/withdraw",     label: "Withdraw",    icon: ArrowDownToLine },
+  { href: "/dashboard",    label: "Dashboard",    icon: LayoutDashboard },
+  { href: "/withdraw",     label: "Withdraw",     icon: ArrowDownToLine },
   { href: "/transactions", label: "Transactions", icon: ClipboardList },
 ];
 
@@ -30,58 +31,88 @@ const adminLinks = [
 ];
 
 export function Sidebar({ user }: SidebarProps) {
-  const pathname  = usePathname();
-  const isAdmin   = user.role === "ADMIN";
-  const links     = isAdmin ? adminLinks : userLinks;
+  const pathname = usePathname();
+  const isAdmin  = user.role === "ADMIN";
+  const links    = isAdmin ? adminLinks : userLinks;
+
+  const isActive = (href: string) =>
+    href === "/admin" || href === "/dashboard"
+      ? pathname === href
+      : pathname.startsWith(href);
 
   return (
-    <aside className="w-60 flex-shrink-0 flex flex-col bg-white border-r border-gray-100 h-screen">
+    <aside className="w-64 flex-shrink-0 flex flex-col h-screen bg-[#0d1421] text-slate-400 relative overflow-hidden">
+      {/* Subtle background texture */}
+      <div className="absolute inset-0 opacity-[0.03] pointer-events-none"
+        style={{ backgroundImage: "radial-gradient(circle at 1px 1px, white 1px, transparent 0)", backgroundSize: "24px 24px" }} />
+
       {/* Logo */}
-      <div className="flex items-center gap-2.5 px-5 h-16 border-b border-gray-100">
-        <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-          <Wallet className="w-4 h-4 text-white" />
+      <div className="relative flex items-center gap-3 px-6 h-[70px] border-b border-white/[0.06]">
+        <div className="w-9 h-9 bg-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-600/30">
+          <Wallet className="w-4.5 h-4.5 text-white" strokeWidth={2.5} />
         </div>
-        <span className="font-semibold text-gray-900">NexaBank</span>
+        <div>
+          <span className="font-semibold text-white text-[15px] tracking-tight">NexaBank</span>
+          {isAdmin && (
+            <div className="flex items-center gap-1 mt-0.5">
+              <ShieldCheck className="w-2.5 h-2.5 text-blue-400" />
+              <span className="text-[10px] text-blue-400 font-medium uppercase tracking-wider">Admin</span>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Nav */}
-      <nav className="flex-1 px-3 py-4 space-y-0.5">
+      <nav className="relative flex-1 px-3 py-5 space-y-0.5">
+        <p className="text-[10px] font-semibold uppercase tracking-widest text-slate-600 px-3 mb-3">
+          {isAdmin ? "Management" : "Banking"}
+        </p>
         {links.map(({ href, label, icon: Icon }) => {
-          const active = pathname === href || (href !== "/dashboard" && href !== "/admin" && pathname.startsWith(href));
+          const active = isActive(href);
           return (
             <Link
               key={href}
               href={href}
               className={cn(
-                "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
+                "flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13.5px] font-medium transition-all duration-150",
                 active
-                  ? "bg-blue-50 text-blue-700"
-                  : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                  ? "bg-blue-600/20 text-blue-300 shadow-sm"
+                  : "text-slate-400 hover:bg-white/[0.05] hover:text-slate-200"
               )}
             >
-              <Icon className="w-4 h-4 flex-shrink-0" />
+              <div className={cn(
+                "w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 transition-colors",
+                active ? "bg-blue-600/30 text-blue-300" : "text-slate-500"
+              )}>
+                <Icon className="w-4 h-4" strokeWidth={active ? 2.5 : 2} />
+              </div>
               {label}
+              {active && (
+                <div className="ml-auto w-1.5 h-1.5 rounded-full bg-blue-400" />
+              )}
             </Link>
           );
         })}
       </nav>
 
-      {/* User + sign out */}
-      <div className="px-3 py-4 border-t border-gray-100">
-        <div className="flex items-center gap-3 px-3 py-2 mb-1">
-          <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-xs font-semibold flex-shrink-0">
+      {/* User card */}
+      <div className="relative px-3 pb-4 border-t border-white/[0.06] pt-3">
+        <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl mb-1">
+          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center text-xs font-bold text-white flex-shrink-0 shadow-sm">
             {getInitials(user.name)}
           </div>
-          <div className="min-w-0">
-            <p className="text-sm font-medium text-gray-900 truncate">{user.name}</p>
-            <p className="text-xs text-gray-400 truncate">{user.email}</p>
+          <div className="min-w-0 flex-1">
+            <p className="text-[13px] font-medium text-slate-200 truncate">{user.name}</p>
+            <p className="text-[11px] text-slate-500 truncate">{user.email}</p>
           </div>
         </div>
         <button
           onClick={() => signOut({ callbackUrl: "/login" })}
-          className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-colors"
+          className="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-[13px] font-medium text-slate-500 hover:bg-white/[0.05] hover:text-red-400 transition-all group"
         >
-          <LogOut className="w-4 h-4" />
+          <div className="w-8 h-8 rounded-lg flex items-center justify-center group-hover:bg-red-500/10 transition-colors">
+            <LogOut className="w-3.5 h-3.5" />
+          </div>
           Sign out
         </button>
       </div>

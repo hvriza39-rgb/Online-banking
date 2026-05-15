@@ -1,207 +1,379 @@
-'use client' 
+'use client'
 
 import Link from "next/link";
-import { ShieldCheck, Zap, Globe, Monitor, BadgeCheck, BarChart2 } from "lucide-react";
+import { ShieldCheck } from "lucide-react";
 
 export default function LandingPage() {
-  const stats = [
-    { n: "Free",      l: "No monthly fees, ever" },
-    { n: "USD & EUR", l: "Two currencies, one account" },
-    { n: "Instant",   l: "Balance updates in real time" },
-    { n: "KYC once",  l: "Verify once, use forever" },
-  ];
-
-  const features = [
-    {
-      tag: "BALANCE",
-      title: "See exactly where you stand",
-      desc: "Your balance updates the moment a transaction hits. No delays, no confusion — just the real number, always.",
-      visual: (
-        <div className="bg-[#0c0e12] rounded-2xl p-6 relative overflow-hidden">
-          <div className="absolute -top-8 -right-8 w-32 h-32 rounded-full bg-[#1a9068]/10 pointer-events-none" />
-          <p className="text-[10px] font-bold text-[#636878] uppercase tracking-[0.1em] mb-2.5">Main Balance</p>
-          <p className="font-mono text-[36px] font-semibold text-white tracking-tight mb-4">$5,000.00</p>
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-[13px] font-semibold text-[#c0c4cc]">James Tester</p>
-              <p className="font-mono text-[11px] text-[#636878] mt-1">92182 69064</p>
-            </div>
-            <span className="text-[10px] font-bold uppercase tracking-[0.07em] bg-[#1a9068]/20 text-[#1a9068] px-3 py-1 rounded-full border border-[#1a9068]/30">
-              Active
-            </span>
-          </div>
-        </div>
-      ),
-    },
-    {
-      tag: "HISTORY",
-      title: "Every transaction, crystal clear",
-      desc: "Full logs with timestamps, notes, and a running balance after every credit and debit.",
-      visual: (
-        <div className="bg-white rounded-2xl border border-[#e2e5ea] overflow-hidden">
-          <div className="flex items-center justify-between px-5 py-4 border-b border-[#e2e5ea]">
-            <span className="text-[13px] font-bold text-[#0c0e12]">Recent Activity</span>
-            <span className="text-[12px] font-semibold text-[#1a9068]">View all</span>
-          </div>
-          {[
-            { l: "Credit",     t: "Today, 9:41 AM",      a: "+$5,000.00", green: true  },
-            { l: "Debit",      t: "Yesterday, 2:15 PM",  a: "−$120.00",   green: false },
-            { l: "Withdrawal", t: "Dec 12, 11:02 AM",    a: "−$50.00",    green: false },
-          ].map((tx, i) => (
-            <div key={i} className={`flex items-center gap-3 px-5 py-3 ${i < 2 ? "border-b border-[#f3f4f7]" : ""}`}>
-              <div className={`w-9 h-9 rounded-[10px] flex items-center justify-center text-sm flex-shrink-0 ${tx.green ? "bg-[#edf7f3] text-[#1a9068]" : "bg-[#f3f4f7] text-[#4b5262]"}`}>
-                {tx.green ? "↙" : "↗"}
-              </div>
-              <div className="flex-1">
-                <p className="text-[13px] font-semibold text-[#0c0e12]">{tx.l}</p>
-                <p className="text-[11px] text-[#9aa0ad] mt-0.5">{tx.t}</p>
-              </div>
-              <p className={`font-mono text-[13px] font-bold ${tx.green ? "text-[#1a9068]" : "text-[#0c0e12]"}`}>{tx.a}</p>
-            </div>
-          ))}
-        </div>
-      ),
-    },
-    {
-      tag: "SECURITY",
-      title: "Security you can actually feel",
-      desc: "KYC verification, 256-bit encryption, and real-time fraud monitoring protect every account.",
-      visual: (
-        <div className="bg-gradient-to-br from-[#0c0e12] to-[#1a1e26] rounded-2xl p-8 text-center">
-          <div className="w-14 h-14 rounded-full mx-auto mb-4 bg-[#1a9068]/20 border-2 border-[#1a9068]/40 flex items-center justify-center">
-            <ShieldCheck className="w-6 h-6 text-[#1a9068]" />
-          </div>
-          <p className="text-[15px] font-bold text-white mb-2">Verified &amp; Protected</p>
-          <p className="text-[12.5px] text-[#636878] leading-relaxed mb-5">
-            Your identity is verified once.<br />Transfers and your account number unlock instantly.
-          </p>
-          <div className="flex gap-2 justify-center flex-wrap">
-            {["256-bit SSL", "KYC Verified", "FDIC Partner"].map((t) => (
-              <span key={t} className="text-[10.5px] font-bold text-[#1a9068] bg-[#1a9068]/15 border border-[#1a9068]/25 px-2.5 py-1 rounded-full">
-                {t}
-              </span>
-            ))}
-          </div>
-        </div>
-      ),
-    },
-  ];
-
   return (
-    <div className="min-h-screen bg-[#f8f9fb] font-sans">
+    <div className="min-h-screen bg-[#F2EDE6] font-sans overflow-x-hidden" style={{ fontFamily: "'DM Sans', sans-serif" }}>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,700;0,900;1,700;1,900&display=swap');
+
+        * { box-sizing: border-box; }
+
+        .display { font-family: 'Playfair Display', Georgia, serif; }
+
+        @keyframes ticker {
+          0%   { transform: translateX(0); }
+          100% { transform: translateX(-50%); }
+        }
+
+        @keyframes fadeUp {
+          from { opacity: 0; transform: translateY(28px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes scaleIn {
+          from { opacity: 0; transform: scale(0.94); }
+          to   { opacity: 1; transform: scale(1); }
+        }
+
+        .fade-up { animation: fadeUp 0.8s cubic-bezier(.16,1,.3,1) both; }
+        .fade-up-1 { animation-delay: 0.1s; }
+        .fade-up-2 { animation-delay: 0.25s; }
+        .fade-up-3 { animation-delay: 0.4s; }
+        .fade-up-4 { animation-delay: 0.55s; }
+        .scale-in { animation: scaleIn 1s cubic-bezier(.16,1,.3,1) 0.3s both; }
+
+        .ticker-wrap {
+          overflow: hidden;
+          white-space: nowrap;
+        }
+        .ticker-inner {
+          display: inline-block;
+          animation: ticker 22s linear infinite;
+        }
+
+        .card-hover {
+          transition: transform 0.35s cubic-bezier(.16,1,.3,1), box-shadow 0.35s ease;
+        }
+        .card-hover:hover {
+          transform: translateY(-6px) rotate(-0.4deg);
+          box-shadow: 0 24px 60px rgba(0,0,0,0.13);
+        }
+
+        .btn-primary {
+          transition: all 0.22s cubic-bezier(.16,1,.3,1);
+        }
+        .btn-primary:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 12px 28px rgba(26, 60, 40, 0.28);
+        }
+
+        .link-underline {
+          background-image: linear-gradient(currentColor, currentColor);
+          background-size: 0% 1.5px;
+          background-position: 0 100%;
+          background-repeat: no-repeat;
+          transition: background-size 0.3s ease;
+        }
+        .link-underline:hover { background-size: 100% 1.5px; }
+
+        .feature-num {
+          font-family: 'Playfair Display', serif;
+          font-size: 120px;
+          font-weight: 900;
+          line-height: 1;
+          color: transparent;
+          -webkit-text-stroke: 1.5px #C8B89A;
+          user-select: none;
+          pointer-events: none;
+        }
+
+        .grain {
+          position: fixed;
+          top: -50%; left: -50%;
+          width: 200%; height: 200%;
+          background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='1'/%3E%3C/svg%3E");
+          opacity: 0.028;
+          pointer-events: none;
+          z-index: 9999;
+        }
+
+        .section-line {
+          width: 40px;
+          height: 2px;
+          background: #1A3C28;
+          margin-bottom: 20px;
+        }
+
+        .big-number {
+          font-family: 'Playfair Display', serif;
+          font-style: italic;
+        }
+
+        /* Noise overlay on dark section */
+        .dark-section {
+          background-color: #1A3C28;
+          position: relative;
+        }
+        .dark-section::before {
+          content: '';
+          position: absolute;
+          inset: 0;
+          background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+          opacity: 0.04;
+          pointer-events: none;
+        }
+      `}</style>
+
+      {/* Grain overlay */}
+      <div className="grain" aria-hidden="true" />
 
       {/* ── Nav ── */}
-      <nav className="sticky top-0 z-50 h-[60px] px-10 flex items-center justify-between bg-[#f8f9fb]/90 backdrop-blur-md border-b border-[#e2e5ea]">
+      <nav className="sticky top-0 z-50 h-[62px] px-8 md:px-14 flex items-center justify-between"
+           style={{ background: 'rgba(242,237,230,0.88)', backdropFilter: 'blur(12px)', borderBottom: '1px solid rgba(180,160,130,0.2)' }}>
         <NexaLogo />
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-3">
           <Link href="/login"
-            className="px-[18px] py-2 rounded-[9px] border border-[#e2e5ea] text-[#4b5262] text-[13.5px] font-semibold hover:border-[#0c0e12] hover:text-[#0c0e12] transition-all">
+            className="link-underline text-[13.5px] font-medium text-[#4A4035] px-1 py-1 tracking-wide">
             Sign in
           </Link>
           <Link href="/register"
-            className="px-[18px] py-2 rounded-[9px] bg-[#0c0e12] text-white text-[13.5px] font-bold hover:bg-[#1e2229] transition-colors">
+            className="btn-primary ml-3 px-5 py-[9px] rounded-full text-[13.5px] font-semibold text-[#F2EDE6] tracking-wide"
+            style={{ background: '#1A3C28' }}>
             Get started
           </Link>
         </div>
       </nav>
 
       {/* ── Hero ── */}
-      <section className="bg-gradient-to-br from-[#0c0e12] to-[#131720] px-10 pt-24 pb-20 text-center relative overflow-hidden">
-        <div className="absolute -top-24 left-1/4 w-[500px] h-[500px] rounded-full bg-[radial-gradient(circle,rgba(26,144,104,0.15)_0%,transparent_65%)] pointer-events-none" />
-        <div className="absolute -bottom-16 right-[10%] w-[350px] h-[350px] rounded-full bg-[radial-gradient(circle,rgba(59,110,245,0.08)_0%,transparent_65%)] pointer-events-none" />
+      <section className="relative px-8 md:px-14 pt-20 md:pt-28 pb-16 md:pb-24 overflow-hidden">
 
-        <div className="relative max-w-[760px] mx-auto">
-          <div className="inline-flex items-center gap-2 bg-[#1a9068]/[0.15] border border-[#1a9068]/30 rounded-full px-4 py-1.5 mb-8">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#1a9068] inline-block" />
-            <span className="text-[11.5px] font-bold text-[#1a9068] tracking-[0.06em]">PERSONAL BANKING · NOW OPEN</span>
+        {/* Decorative circle */}
+        <div className="absolute top-10 right-[-80px] w-[420px] h-[420px] rounded-full pointer-events-none"
+             style={{ background: 'radial-gradient(circle, rgba(26,60,40,0.07) 0%, transparent 70%)', border: '1px solid rgba(26,60,40,0.06)' }} />
+        <div className="absolute bottom-0 left-[10%] w-[260px] h-[260px] rounded-full pointer-events-none"
+             style={{ background: 'radial-gradient(circle, rgba(200,184,154,0.2) 0%, transparent 70%)' }} />
+
+        <div className="max-w-[1100px] mx-auto">
+          {/* Badge */}
+          <div className="fade-up fade-up-1 inline-flex items-center gap-2.5 mb-8 px-4 py-2 rounded-full"
+               style={{ border: '1px solid rgba(26,60,40,0.2)', background: 'rgba(26,60,40,0.05)' }}>
+            <span className="w-1.5 h-1.5 rounded-full inline-block" style={{ background: '#4DAA70' }} />
+            <span className="text-[11.5px] font-semibold tracking-[0.1em] text-[#1A3C28] uppercase">Personal Banking · Now Open</span>
           </div>
 
-          <h1 className="text-[clamp(42px,7vw,72px)] font-black text-white leading-[1.05] tracking-[-0.05em] mb-6">
-            Banking that gets<br />
-            <span className="bg-gradient-to-r from-[#1a9068] to-[#4ecda4] bg-clip-text text-transparent">
-              out of your way.
-            </span>
+          {/* Headline */}
+          <h1 className="display fade-up fade-up-2 text-[#1A1A14] leading-[1.04] mb-8"
+              style={{ fontSize: 'clamp(54px, 9vw, 104px)', fontWeight: 900, letterSpacing: '-0.03em' }}>
+            Banking that<br />
+            <span style={{ fontStyle: 'italic', color: '#1A3C28' }}>gets out</span><br />
+            of your way.
           </h1>
 
-          <p className="text-[clamp(15px,2.5vw,18px)] text-[#7a8494] leading-[1.7] max-w-[480px] mx-auto mb-11">
-            A personal account with real-time balance, secure transfers,
-            and complete transaction history — all in one clean dashboard.
-          </p>
+          <div className="flex flex-col md:flex-row gap-10 md:gap-16 items-start md:items-end">
+            <p className="fade-up fade-up-3 text-[17px] md:text-[18px] text-[#6B5F4E] leading-[1.75] max-w-[380px]" style={{ fontWeight: 300 }}>
+              A personal account with real‑time balance, secure transfers, and complete transaction history — in one clean dashboard.
+            </p>
 
-          {/* Email capture */}
-          <div className="flex max-w-[440px] mx-auto mb-5 bg-white/[0.06] border border-white/10 rounded-xl p-1.5 gap-2">
-            <input
-              type="email"
-              placeholder="Enter your email"
-              className="flex-1 bg-transparent border-none outline-none px-4 py-2.5 text-[14px] text-white placeholder:text-[#444c5a]"
-            />
-            <Link href="/register"
-              className="px-5 py-2.5 rounded-[8px] bg-[#1a9068] hover:bg-[#15755a] text-white text-[14px] font-bold transition-colors flex-shrink-0">
-              Open account →
-            </Link>
+            <div className="fade-up fade-up-4 flex flex-col sm:flex-row gap-3 flex-shrink-0">
+              <Link href="/register"
+                className="btn-primary px-8 py-4 rounded-full text-[15px] font-semibold text-[#F2EDE6] tracking-wide text-center"
+                style={{ background: '#1A3C28' }}>
+                Open free account →
+              </Link>
+              <Link href="/login"
+                className="px-8 py-4 rounded-full text-[15px] font-medium text-[#4A4035] text-center"
+                style={{ border: '1.5px solid rgba(74,64,53,0.25)', transition: 'border-color 0.2s' }}>
+                Sign in
+              </Link>
+            </div>
           </div>
-          <p className="text-[12.5px] text-[#444c5a]">Free to open · No credit check · Takes 2 minutes</p>
         </div>
       </section>
 
-      {/* ── Stats bar ── */}
-      <section className="bg-white border-b border-[#e2e5ea]">
-        <div className="max-w-[900px] mx-auto px-10 grid grid-cols-4">
-          {stats.map((s, i) => (
-            <div key={s.l} className={`py-7 text-center ${i < 3 ? "border-r border-[#e2e5ea]" : ""}`}>
-              <p className="text-[26px] font-black text-[#0c0e12] tracking-[-0.04em] mb-1">{s.n}</p>
-              <p className="text-[12.5px] text-[#9aa0ad]">{s.l}</p>
-            </div>
+      {/* ── Ticker ── */}
+      <div className="ticker-wrap py-4 border-y" style={{ borderColor: 'rgba(180,160,130,0.25)', background: 'rgba(26,60,40,0.04)' }}>
+        <div className="ticker-inner">
+          {Array(2).fill(null).map((_, i) => (
+            <span key={i} className="inline-flex gap-0">
+              {["Free to open", "Real-time balance", "256-bit encryption", "KYC verified", "USD & EUR", "No monthly fees", "Instant updates", "Secure transfers"].map((t) => (
+                <span key={t} className="inline-flex items-center gap-5 px-6">
+                  <span className="text-[12px] font-semibold tracking-[0.12em] text-[#6B5F4E] uppercase">{t}</span>
+                  <span style={{ color: '#C8B89A', fontSize: 18 }}>◆</span>
+                </span>
+              ))}
+            </span>
           ))}
+        </div>
+      </div>
+
+      {/* ── Numbers ── */}
+      <section className="px-8 md:px-14 py-20 md:py-28">
+        <div className="max-w-[1100px] mx-auto">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-px" style={{ background: 'rgba(180,160,130,0.2)', border: '1px solid rgba(180,160,130,0.2)', borderRadius: 20, overflow: 'hidden' }}>
+            {[
+              { n: "Free",      l: "No monthly fees, ever" },
+              { n: "2 min",     l: "Average setup time" },
+              { n: "USD & €",   l: "Two currencies, one account" },
+              { n: "1×",        l: "KYC verification, once" },
+            ].map((s) => (
+              <div key={s.l} className="py-10 px-8 text-center" style={{ background: '#F2EDE6' }}>
+                <p className="display big-number mb-2" style={{ fontSize: 'clamp(34px,5vw,52px)', color: '#1A3C28', fontWeight: 900 }}>{s.n}</p>
+                <p className="text-[13px] text-[#9A8C7E]" style={{ fontWeight: 300 }}>{s.l}</p>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
-      {/* ── Features (alternating) ── */}
-      <section className="max-w-[900px] mx-auto px-10 pt-24 pb-16">
-        <div className="text-center mb-[70px]">
-          <p className="text-[11px] font-extrabold text-[#1a9068] tracking-[0.1em] uppercase mb-3">HOW IT WORKS</p>
-          <h2 className="text-[clamp(28px,4vw,42px)] font-black text-[#0c0e12] tracking-[-0.04em] leading-[1.1]">
-            Everything you need,<br />nothing you don&apos;t.
-          </h2>
-        </div>
+      {/* ── Features ── */}
+      <section className="px-8 md:px-14 pb-24">
+        <div className="max-w-[1100px] mx-auto">
 
-        <div className="flex flex-col gap-20">
-          {features.map(({ tag, title, desc, visual }, i) => (
-            <div key={tag} className="grid grid-cols-2 gap-16 items-center">
-              <div className={i % 2 === 0 ? "order-0" : "order-1"}>
-                <p className="text-[11px] font-extrabold text-[#1a9068] tracking-[0.1em] mb-3.5">{tag}</p>
-                <h3 className="text-[clamp(22px,3vw,30px)] font-extrabold text-[#0c0e12] tracking-[-0.04em] leading-[1.2] mb-4">{title}</h3>
-                <p className="text-[15.5px] text-[#4b5262] leading-[1.7]">{desc}</p>
-                <Link href="/register"
-                  className="mt-6 inline-flex items-center gap-2 text-[14px] font-bold text-[#0c0e12] hover:opacity-60 transition-opacity">
-                  Get started →
-                </Link>
+          {/* Section header */}
+          <div className="mb-20">
+            <div className="section-line" />
+            <p className="text-[11.5px] font-semibold tracking-[0.12em] text-[#9A8C7E] uppercase mb-4">How it works</p>
+            <h2 className="display text-[#1A1A14]"
+                style={{ fontSize: 'clamp(32px,5vw,56px)', fontWeight: 900, letterSpacing: '-0.03em', lineHeight: 1.1 }}>
+              Everything you need,<br /><em>nothing you don't.</em>
+            </h2>
+          </div>
+
+          {/* Feature 01 */}
+          <div className="grid md:grid-cols-2 gap-8 mb-8">
+            <div className="card-hover rounded-2xl p-8 md:p-10 flex flex-col justify-between min-h-[360px]"
+                 style={{ background: '#1A3C28', border: '1px solid rgba(255,255,255,0.06)' }}>
+              <div>
+                <span className="feature-num">01</span>
+                <h3 className="display text-[#F2EDE6] mt-2 mb-4" style={{ fontSize: 'clamp(24px,3.5vw,38px)', fontWeight: 700, fontStyle: 'italic', lineHeight: 1.15 }}>
+                  See exactly where you stand
+                </h3>
               </div>
-              <div className={`${i % 2 === 0 ? "order-1" : "order-0"} animate-[float_5s_ease-in-out_infinite]`}>
-                {visual}
+              <div>
+                <p className="text-[15px] mb-6" style={{ color: 'rgba(242,237,230,0.6)', fontWeight: 300, lineHeight: 1.7 }}>
+                  Your balance updates the moment a transaction hits. No delays, no confusion — the real number, always.
+                </p>
+                {/* Mini balance card */}
+                <div className="rounded-xl p-5" style={{ background: 'rgba(242,237,230,0.06)', border: '1px solid rgba(242,237,230,0.1)' }}>
+                  <p className="text-[10px] font-semibold tracking-[0.12em] text-[#7DAE93] uppercase mb-1.5">Main Balance</p>
+                  <p className="font-mono text-[32px] font-bold text-[#F2EDE6] tracking-tight">$5,000.00</p>
+                  <div className="flex items-center justify-between mt-3">
+                    <div>
+                      <p className="text-[13px] font-medium text-[#C0C8BF]">James Tester</p>
+                      <p className="font-mono text-[11px] mt-0.5" style={{ color: 'rgba(242,237,230,0.3)' }}>92182 69064</p>
+                    </div>
+                    <span className="text-[10px] font-bold tracking-[0.07em] uppercase px-3 py-1 rounded-full"
+                          style={{ background: 'rgba(77,170,112,0.2)', color: '#4DAA70', border: '1px solid rgba(77,170,112,0.3)' }}>
+                      Active
+                    </span>
+                  </div>
+                </div>
               </div>
             </div>
-          ))}
+
+            <div className="card-hover rounded-2xl p-8 md:p-10 flex flex-col justify-between min-h-[360px]"
+                 style={{ background: '#EDEAE3', border: '1px solid rgba(180,160,130,0.2)' }}>
+              <div>
+                <span className="feature-num">02</span>
+                <h3 className="display text-[#1A1A14] mt-2 mb-4" style={{ fontSize: 'clamp(24px,3.5vw,38px)', fontWeight: 700, fontStyle: 'italic', lineHeight: 1.15 }}>
+                  Every transaction, crystal clear
+                </h3>
+              </div>
+              <div>
+                <p className="text-[15px] mb-6" style={{ color: '#6B5F4E', fontWeight: 300, lineHeight: 1.7 }}>
+                  Full logs with timestamps, notes, and a running balance after every credit and debit.
+                </p>
+                {/* Mini transaction list */}
+                <div className="rounded-xl overflow-hidden" style={{ border: '1px solid rgba(180,160,130,0.25)' }}>
+                  {[
+                    { l: "Credit",     t: "Today, 9:41 AM",      a: "+$5,000.00", green: true },
+                    { l: "Debit",      t: "Yesterday, 2:15 PM",  a: "−$120.00",  green: false },
+                    { l: "Withdrawal", t: "Dec 12, 11:02 AM",    a: "−$50.00",   green: false },
+                  ].map((tx, i) => (
+                    <div key={i} className={`flex items-center gap-3 px-4 py-3 ${i < 2 ? "" : ""}`}
+                         style={{ borderBottom: i < 2 ? '1px solid rgba(180,160,130,0.18)' : 'none', background: 'rgba(242,237,230,0.7)' }}>
+                      <div className="w-8 h-8 rounded-[9px] flex items-center justify-center text-sm flex-shrink-0"
+                           style={{ background: tx.green ? 'rgba(26,60,40,0.1)' : 'rgba(180,160,130,0.2)', color: tx.green ? '#1A3C28' : '#6B5F4E' }}>
+                        {tx.green ? "↙" : "↗"}
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-[13px] font-medium text-[#1A1A14]">{tx.l}</p>
+                        <p className="text-[11px] mt-0.5 text-[#9A8C7E]">{tx.t}</p>
+                      </div>
+                      <p className={`font-mono text-[13px] font-bold ${tx.green ? "text-[#1A3C28]" : "text-[#4A4035]"}`}>{tx.a}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Feature 03 — full width */}
+          <div className="card-hover rounded-2xl p-8 md:p-12 grid md:grid-cols-2 gap-10 items-center"
+               style={{ background: '#EDEAE3', border: '1px solid rgba(180,160,130,0.2)' }}>
+            <div>
+              <span className="feature-num">03</span>
+              <h3 className="display text-[#1A1A14] mt-2 mb-4" style={{ fontSize: 'clamp(24px,3.5vw,38px)', fontWeight: 700, fontStyle: 'italic', lineHeight: 1.15 }}>
+                Security you can<br />actually feel
+              </h3>
+              <p className="text-[15px]" style={{ color: '#6B5F4E', fontWeight: 300, lineHeight: 1.7 }}>
+                KYC verification, 256-bit encryption, and real-time fraud monitoring protect every account. Verify once — everything unlocks instantly.
+              </p>
+              <Link href="/register"
+                className="btn-primary mt-8 inline-flex items-center gap-2 px-7 py-3.5 rounded-full text-[14px] font-semibold text-[#F2EDE6]"
+                style={{ background: '#1A3C28' }}>
+                Open your account →
+              </Link>
+            </div>
+
+            <div className="flex flex-col gap-4">
+              {[
+                { icon: "🔒", label: "256-bit SSL encryption", sub: "Bank-grade data protection on every request" },
+                { icon: "✓", label: "KYC Verified", sub: "One-time identity check, valid forever" },
+                { icon: "⚡", label: "Real-time fraud monitoring", sub: "Suspicious activity flagged instantly" },
+              ].map((item) => (
+                <div key={item.label} className="flex items-start gap-4 p-4 rounded-xl"
+                     style={{ background: 'rgba(242,237,230,0.7)', border: '1px solid rgba(180,160,130,0.2)' }}>
+                  <div className="w-9 h-9 rounded-[10px] flex items-center justify-center text-[15px] flex-shrink-0"
+                       style={{ background: 'rgba(26,60,40,0.1)', border: '1px solid rgba(26,60,40,0.1)' }}>
+                    {item.icon}
+                  </div>
+                  <div>
+                    <p className="text-[13.5px] font-semibold text-[#1A1A14]">{item.label}</p>
+                    <p className="text-[12px] mt-0.5 text-[#9A8C7E]">{item.sub}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       </section>
 
       {/* ── Testimonials ── */}
-      <section className="bg-white border-y border-[#e2e5ea] py-[72px] px-10">
-        <div className="max-w-[840px] mx-auto">
-          <p className="text-[11px] font-extrabold text-[#1a9068] tracking-[0.1em] uppercase mb-3 text-center">WHAT PEOPLE SAY</p>
-          <h2 className="text-[clamp(24px,3.5vw,36px)] font-black text-[#0c0e12] tracking-[-0.04em] text-center mb-12">
-            Trusted by thousands
-          </h2>
-          <div className="grid grid-cols-3 gap-5">
+      <section className="dark-section px-8 md:px-14 py-24 md:py-32">
+        <div className="relative max-w-[1100px] mx-auto">
+          <div className="mb-14">
+            <p className="text-[11.5px] font-semibold tracking-[0.12em] uppercase mb-4" style={{ color: 'rgba(242,237,230,0.35)' }}>What people say</p>
+            <h2 className="display text-[#F2EDE6]"
+                style={{ fontSize: 'clamp(32px,5vw,60px)', fontWeight: 900, letterSpacing: '-0.03em', lineHeight: 1.05, fontStyle: 'italic' }}>
+              Trusted by<br />thousands.
+            </h2>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-5">
             {[
               { q: "Finally a banking app that doesn't feel like it was built in 2008.", name: "Sarah K.", role: "Freelance designer" },
               { q: "Verification took 4 minutes. Account was active immediately after.", name: "Marcus T.", role: "Software engineer" },
               { q: "The transaction history is exactly what I needed to track my spending.", name: "Priya M.", role: "Product manager" },
             ].map(({ q, name, role }) => (
-              <div key={name} className="bg-[#f8f9fb] border border-[#e2e5ea] rounded-2xl p-5">
-                <p className="text-[14px] text-[#4b5262] leading-[1.65] mb-4 italic">&ldquo;{q}&rdquo;</p>
-                <p className="text-[13px] font-bold text-[#0c0e12]">{name}</p>
-                <p className="text-[12px] text-[#9aa0ad] mt-0.5">{role}</p>
+              <div key={name} className="card-hover rounded-2xl p-7"
+                   style={{ background: 'rgba(242,237,230,0.05)', border: '1px solid rgba(242,237,230,0.08)' }}>
+                <p className="text-[15px] leading-[1.7] mb-6 display" style={{ color: 'rgba(242,237,230,0.75)', fontStyle: 'italic', fontWeight: 400 }}>
+                  "{q}"
+                </p>
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full flex items-center justify-center text-[12px] font-bold text-[#1A3C28]"
+                       style={{ background: '#4DAA70' }}>
+                    {name[0]}
+                  </div>
+                  <div>
+                    <p className="text-[13.5px] font-semibold text-[#F2EDE6]">{name}</p>
+                    <p className="text-[12px] mt-0.5" style={{ color: 'rgba(242,237,230,0.35)' }}>{role}</p>
+                  </div>
+                </div>
               </div>
             ))}
           </div>
@@ -209,61 +381,69 @@ export default function LandingPage() {
       </section>
 
       {/* ── CTA ── */}
-      <section className="bg-[#0c0e12] px-10 py-24 text-center relative overflow-hidden">
-        <div className="absolute -top-20 left-[30%] w-[400px] h-[400px] rounded-full bg-[radial-gradient(circle,rgba(26,144,104,0.12)_0%,transparent_65%)] pointer-events-none" />
-        <div className="relative max-w-[560px] mx-auto">
-          <h2 className="text-[clamp(30px,5vw,52px)] font-black text-white tracking-[-0.05em] leading-[1.1] mb-4">
-            Open your account<br />today.
+      <section className="px-8 md:px-14 py-24 md:py-36">
+        <div className="max-w-[1100px] mx-auto text-center">
+          <p className="text-[11.5px] font-semibold tracking-[0.12em] text-[#9A8C7E] uppercase mb-6">Ready?</p>
+          <h2 className="display text-[#1A1A14] mb-8"
+              style={{ fontSize: 'clamp(44px,8vw,96px)', fontWeight: 900, letterSpacing: '-0.04em', lineHeight: 1.03 }}>
+            Open your account<br /><em style={{ color: '#1A3C28' }}>today.</em>
           </h2>
-          <p className="text-[16px] text-[#525c6a] mb-9">Free, fast, and secure. Set up in under two minutes.</p>
-          <div className="flex gap-3 justify-center">
+          <p className="text-[17px] text-[#6B5F4E] mb-12 max-w-[400px] mx-auto" style={{ fontWeight: 300, lineHeight: 1.7 }}>
+            Free, fast, and secure. Set up in under two minutes.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <Link href="/register"
-              className="px-8 py-3.5 rounded-[11px] bg-white text-[#0c0e12] text-[15px] font-extrabold tracking-[-0.02em] hover:opacity-90 transition-opacity">
+              className="btn-primary px-10 py-4 rounded-full text-[15px] font-semibold text-[#F2EDE6] tracking-wide"
+              style={{ background: '#1A3C28' }}>
               Create free account →
             </Link>
             <Link href="/login"
-              className="px-7 py-3.5 rounded-[11px] border border-white/15 text-[#7a8494] text-[15px] font-semibold hover:border-white/35 hover:text-white transition-all">
+              className="px-10 py-4 rounded-full text-[15px] font-medium text-[#4A4035] tracking-wide"
+              style={{ border: '1.5px solid rgba(74,64,53,0.25)', transition: 'border-color 0.2s' }}>
               Sign in
             </Link>
           </div>
+          <p className="mt-6 text-[12.5px] text-[#B0A090]">No credit check · No monthly fees · Takes 2 minutes</p>
         </div>
       </section>
 
       {/* ── Footer ── */}
-      <footer className="bg-[#0c0e12] border-t border-[#272b33] px-10 py-7 flex items-center justify-between flex-wrap gap-3">
-        <NexaLogo light />
+      <footer className="px-8 md:px-14 py-7 flex items-center justify-between flex-wrap gap-4"
+              style={{ borderTop: '1px solid rgba(180,160,130,0.25)' }}>
+        <NexaLogo />
         <div className="flex gap-7">
           {["Privacy", "Terms", "Security", "Contact"].map((l) => (
-            <span key={l} className="text-[13px] text-[#363d47] hover:text-[#7a8494] cursor-pointer transition-colors">{l}</span>
+            <span key={l} className="link-underline text-[13px] cursor-pointer" style={{ color: '#9A8C7E', fontWeight: 400 }}>{l}</span>
           ))}
         </div>
-        <p className="text-[12px] text-[#2a3038]">© 2025 NexaBank</p>
+        <p className="text-[12px] text-[#C0B5A5]">© 2025 NexaBank</p>
       </footer>
-
-      <style>{`
-        @keyframes float {
-          0%, 100% { transform: translateY(0); }
-          50%       { transform: translateY(-9px); }
-        }
-      `}</style>
     </div>
   );
 }
 
 function NexaLogo({ light = false }: { light?: boolean }) {
   return (
-    <div className="flex items-center gap-2">
-      <div className={`w-[26px] h-[26px] rounded-[7px] flex items-center justify-center flex-shrink-0 ${light ? "bg-white" : "bg-[#0c0e12]"}`}>
+    <div className="flex items-center gap-2.5">
+      <div className="w-7 h-7 rounded-[8px] flex items-center justify-center flex-shrink-0"
+           style={{ background: light ? 'rgba(242,237,230,0.1)' : '#1A3C28' }}>
         <svg width="15" height="15" viewBox="0 0 16 16" fill="none">
-          <rect x="2" y="2" width="5" height="5" rx="1.3" fill="#1a9068" />
-          <rect x="9" y="2" width="5" height="5" rx="1.3" fill={light ? "#0c0e12" : "white"} opacity=".4" />
-          <rect x="2" y="9" width="5" height="5" rx="1.3" fill={light ? "#0c0e12" : "white"} opacity=".4" />
-          <rect x="9" y="9" width="5" height="5" rx="1.3" fill="#1a9068" opacity=".6" />
+          <rect x="2" y="2" width="5" height="5" rx="1.3" fill={light ? "#F2EDE6" : "#F2EDE6"} />
+          <rect x="9" y="2" width="5" height="5" rx="1.3" fill={light ? "#F2EDE6" : "#F2EDE6"} opacity=".35" />
+          <rect x="2" y="9" width="5" height="5" rx="1.3" fill={light ? "#F2EDE6" : "#F2EDE6"} opacity=".35" />
+          <rect x="9" y="9" width="5" height="5" rx="1.3" fill={light ? "#F2EDE6" : "#F2EDE6"} opacity=".7" />
         </svg>
       </div>
-      <span className={`text-[16px] font-extrabold tracking-[-0.035em] ${light ? "text-white" : "text-[#0c0e12]"}`}>
+      <span style={{
+        fontFamily: "'Playfair Display', serif",
+        fontSize: 18,
+        fontWeight: 700,
+        letterSpacing: '-0.02em',
+        color: light ? '#F2EDE6' : '#1A1A14'
+      }}>
         NexaBank
       </span>
     </div>
   );
 }
+ 

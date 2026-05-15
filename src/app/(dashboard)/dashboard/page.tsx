@@ -11,15 +11,15 @@ import {
 import { TransactionType } from "@prisma/client";
 import Link from "next/link";
 
-export const metadata: Metadata = { title: "Dashboard" };
+export const metadata: Metadata = { title: "Account Overview" };
 
 const TX_CONFIG: Record<TransactionType, {
   label: string; icon: React.ElementType;
   bg: string; text: string; sign: string;
 }> = {
-  CREDIT:     { label: "Credit",     icon: ArrowDownLeft, bg: "bg-[#e6f7f3]", text: "text-[#5ec8b0]", sign: "+" },
-  DEBIT:      { label: "Debit",      icon: ArrowUpRight,  bg: "bg-rose-50",   text: "text-rose-400",  sign: "−" },
-  WITHDRAWAL: { label: "Withdrawal", icon: ArrowUpRight,  bg: "bg-rose-50",   text: "text-rose-400",  sign: "−" },
+  CREDIT:     { label: "Credit",  icon: ArrowDownLeft, bg: "bg-[#e6f7f3]", text: "text-[#5ec8b0]", sign: "+" },
+  DEBIT:      { label: "Debit",   icon: ArrowUpRight,  bg: "bg-rose-50",   text: "text-rose-400",  sign: "−" },
+  WITHDRAWAL: { label: "Debit",   icon: ArrowUpRight,  bg: "bg-rose-50",   text: "text-rose-400",  sign: "−" },
 };
 
 export default async function DashboardPage() {
@@ -61,7 +61,7 @@ export default async function DashboardPage() {
       {/* ── Top bar ─────────────────────────────────── */}
       <div className="flex items-center justify-between">
         <h1 className="text-xl sm:text-2xl font-extrabold tracking-tight text-[#1a1d27]">
-          Dashboard
+          Account Overview
         </h1>
         <div className="flex items-center gap-3">
           {/* Greeting chip */}
@@ -88,7 +88,7 @@ export default async function DashboardPage() {
           <div className="flex-1 min-w-0">
             <p className="text-[14px] font-bold text-amber-900">Verify your identity to activate your account</p>
             <p className="text-[12px] text-amber-700 mt-0.5 leading-relaxed">
-              Complete KYC verification to get your account number and unlock withdrawals.
+              Complete KYC verification to get your account number and unlock transfers.
             </p>
           </div>
           <div className="hidden sm:flex items-center gap-1.5 bg-amber-400 text-white text-[12px] font-bold px-4 py-2.5 rounded-xl flex-shrink-0 shadow-sm shadow-amber-200">
@@ -114,10 +114,21 @@ export default async function DashboardPage() {
 
           <div className="relative">
             <p className="text-[12px] font-semibold text-white/75 tracking-wide mb-1.5">Main Balance</p>
-            <p className="font-mono text-[42px] font-semibold leading-none tracking-tight mb-1">
+            <p className="font-mono text-[42px] font-semibold leading-none tracking-tight mb-3">
               {formatMoney(account.balance, account.currency)}
             </p>
-            <p className="text-[12px] text-white/60">{account.currency} · NexaBank</p>
+
+            {/* Account holder name */}
+            <p className="text-[13px] font-semibold text-white/90 leading-none mb-1">
+              {session.user.name}
+            </p>
+
+            {/* Account number */}
+            <p className="font-mono text-[13px] text-white/70 tracking-[0.06em]">
+              {isVerified && account.accountNumber
+                ? `${account.accountNumber.slice(0, 5)} ${account.accountNumber.slice(5)}`
+                : "— Pending KYC —"}
+            </p>
           </div>
 
           {/* Quick actions */}
@@ -128,11 +139,11 @@ export default async function DashboardPage() {
               <Link href="/withdraw"
                 className="flex items-center justify-center gap-2 bg-white/90 text-[#5b8dee] font-bold text-[13.5px] py-3 rounded-[13px] hover:bg-white transition-all active:scale-[0.98]"
               >
-                <ArrowUpRight className="w-4 h-4" /> Withdraw
+                <ArrowUpRight className="w-4 h-4" /> Send
               </Link>
             ) : (
               <span className="flex items-center justify-center gap-2 bg-white/25 text-white/60 font-semibold text-[13.5px] py-3 rounded-[13px] cursor-not-allowed">
-                <ArrowUpRight className="w-4 h-4" /> Withdraw
+                <ArrowUpRight className="w-4 h-4" /> Send
               </span>
             )}
 
@@ -167,7 +178,7 @@ export default async function DashboardPage() {
               </p>
             </div>
             <div className="bg-white rounded-2xl border border-[#e8ecf4] p-5 shadow-sm">
-              <p className="text-[11px] font-semibold text-[#9ca3af] uppercase tracking-wider mb-2">Withdrawn</p>
+              <p className="text-[11px] font-semibold text-[#9ca3af] uppercase tracking-wider mb-2">Debited</p>
               <p className="font-mono text-[22px] font-extrabold text-[#1a1d27] tracking-tight leading-none">
                 {formatMoney(totalDebited, account.currency)}
               </p>
@@ -212,8 +223,8 @@ export default async function DashboardPage() {
               {/* Legend */}
               <div className="flex flex-col gap-3 flex-1">
                 {[
-                  { color: "#5b8dee", label: "Credits",     val: totalCredited },
-                  { color: "#5ec8b0", label: "Withdrawals", val: totalDebited  },
+                  { color: "#5b8dee", label: "Credits", val: totalCredited },
+                  { color: "#5ec8b0", label: "Debits",  val: totalDebited  },
                 ].map(({ color, label, val }) => (
                   <div key={label} className="flex items-center gap-2.5">
                     <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: color }} />
@@ -265,7 +276,7 @@ export default async function DashboardPage() {
             </div>
           </div>
 
-          {/* Recent credits & debits summary */}
+          {/* Recent activity */}
           <div className="bg-white rounded-2xl border border-[#e8ecf4] shadow-sm overflow-hidden flex-1">
             <div className="flex items-center justify-between px-5 py-4 border-b border-[#f0f3f8]">
               <p className="text-[14px] font-bold text-[#1a1d27]">Recent Activity</p>

@@ -55,7 +55,7 @@ export function Sidebar({ user, kycStatus }: SidebarProps) {
 
   const sidebarContent = (
     <aside className={cn(
-      "w-64 flex-shrink-0 flex flex-col h-screen bg-[#0d1421] text-slate-400 relative overflow-hidden",
+      "w-64 flex-shrink-0 flex flex-col h-screen bg-[#0d1421] text-slate-400 relative overflow-y-auto",
       // On mobile it's fixed and slides in; on lg+ it's static in the layout
       "fixed inset-y-0 left-0 z-50 transition-transform duration-300 ease-in-out",
       "lg:static lg:translate-x-0 lg:z-auto",

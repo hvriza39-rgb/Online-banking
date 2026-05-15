@@ -6,7 +6,7 @@ import { signOut } from "next-auth/react";
 import { useEffect, useState } from "react";
 import {
   LayoutDashboard, ArrowDownToLine, ClipboardList,
-  Users, LogOut, Wallet, ShieldCheck, ShieldAlert, Clock, Menu, X,
+  Users, LogOut, Wallet, ShieldCheck, ShieldAlert, Clock,MessageSquare, Menu, X,
 } from "lucide-react";
 import { cn, getInitials } from "@/lib/utils";
 

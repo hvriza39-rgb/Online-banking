@@ -146,8 +146,8 @@ model SupportTicket {
 model SupportMessage {
   id        String   @id @default(cuid())
   ticketId  String
-  senderId  String
-  content   String
+  sender    String
+  body      String
   createdAt DateTime @default(now())
 
   ticket    SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)

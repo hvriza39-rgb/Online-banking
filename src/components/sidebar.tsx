@@ -38,9 +38,9 @@ export function Sidebar({ user, kycStatus }: SidebarProps) {
   }, [open]);
 
   const userLinks = [
-    { href: "/dashboard",    label: "Account Overview", icon: LayoutDashboard, locked: false,       highlight: false, pending: false },
+    { href: "/dashboard",    label: "Overview", icon: LayoutDashboard, locked: false,       highlight: false, pending: false },
     { href: "/withdraw",     label: "Send",              icon: ArrowDownToLine, locked: !isVerified, highlight: false, pending: false },
-    { href: "/transactions", label: "Transactions",      icon: ClipboardList,   locked: false,       highlight: false, pending: false },
+    { href: "/transactions", label: "History",      icon: ClipboardList,   locked: false,       highlight: false, pending: false },
     ...(!isVerified && !isPending
       ? [{ href: "/kyc", label: "Verify Identity",     icon: ShieldAlert, locked: false, highlight: true,  pending: false }]
       : []

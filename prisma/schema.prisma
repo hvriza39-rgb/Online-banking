@@ -8,8 +8,6 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
-// ─── Enums ────────────────────────────────────────────────
-
 enum Role {
   USER
   ADMIN
@@ -20,10 +18,23 @@ enum Currency {
   EUR
 }
 
+enum KycStatus {
+  PENDING
+  SUBMITTED
+  VERIFIED
+  REJECTED
+}
+
+enum IdType {
+  PASSPORT
+  NATIONAL_ID
+  DRIVERS_LICENSE
+}
+
 enum TransactionType {
-  CREDIT      // Admin added funds
-  DEBIT       // Admin deducted funds
-  WITHDRAWAL  // User withdrawal (approved)
+  CREDIT
+  DEBIT
+  WITHDRAWAL
 }
 
 enum WithdrawalStatus {
@@ -32,34 +43,47 @@ enum WithdrawalStatus {
   REJECTED
 }
 
-// ─── Models ───────────────────────────────────────────────
-
 model User {
-  id           String   @id @default(cuid())
-  email        String   @unique
+  id           String    @id @default(cuid())
+  email        String    @unique
   name         String
   passwordHash String
-  role         Role     @default(USER)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  role         Role      @default(USER)
+  kycStatus    KycStatus @default(PENDING)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
 
-  account              Account?
-  withdrawalRequests   WithdrawalRequest[]
+  account            Account?
+  kyc                Kyc?
+  withdrawalRequests WithdrawalRequest[]
 
   @@map("users")
 }
 
+model Kyc {
+  id          String   @id @default(cuid())
+  userId      String   @unique
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  fullName    String
+  dateOfBirth DateTime
+  address     String
+  idType      IdType
+  idNumber    String
+  submittedAt DateTime @default(now())
+  verifiedAt  DateTime?
+
+  @@map("kyc_submissions")
+}
+
 model Account {
-  id        String   @id @default(cuid())
-  userId    String   @unique
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  // Balance stored in cents (smallest unit) to avoid float errors
-  balance   Int      @default(0)
-  currency  Currency @default(USD)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id            String   @id @default(cuid())
+  userId        String   @unique
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accountNumber String?  @unique
+  balance       Int      @default(0)
+  currency      Currency @default(USD)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
   transactions Transaction[]
 
@@ -70,34 +94,26 @@ model Transaction {
   id           String          @id @default(cuid())
   accountId    String
   account      Account         @relation(fields: [accountId], references: [id], onDelete: Cascade)
-
   type         TransactionType
-
-  // Amount in cents
   amount       Int
   balanceAfter Int
-
   note         String?
-  createdAt    DateTime @default(now())
+  createdAt    DateTime        @default(now())
 
   @@map("transactions")
 }
 
 model WithdrawalRequest {
-  id         String           @id @default(cuid())
-  userId     String
-  user       User             @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  // Amount in cents
-  amount     Int
-  currency   Currency
-  status     WithdrawalStatus @default(PENDING)
-
-  note       String?
-  adminNote  String?
-
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  id        String           @id @default(cuid())
+  userId    String
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  amount    Int
+  currency  Currency
+  status    WithdrawalStatus @default(PENDING)
+  note      String?
+  adminNote String?
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
 
   @@map("withdrawal_requests")
 }

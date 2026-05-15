@@ -30,6 +30,21 @@ export const withdrawalRequestSchema = z.object({
   amount: z
     .number({ invalid_type_error: "Enter a valid amount" })
     .positive("Amount must be greater than 0"),
+  sendType: z.enum(["LOCAL", "INTERNATIONAL"], {
+    errorMap: () => ({ message: "Select a transfer type" }),
+  }),
+  recipientAccountNumber: z
+    .string()
+    .min(1, "Recipient account number is required")
+    .max(34, "Account number is too long"),
+  recipientName: z
+    .string()
+    .min(2, "Recipient name is required")
+    .max(100, "Name is too long"),
+  routingCode: z
+    .string()
+    .min(1, "Routing number / sort code is required")
+    .max(20, "Routing code is too long"),
   note: z.string().max(200).optional(),
 });
 
@@ -38,8 +53,8 @@ export const withdrawalActionSchema = z.object({
   adminNote: z.string().max(200).optional(),
 });
 
-export type LoginInput            = z.infer<typeof loginSchema>;
-export type RegisterInput         = z.infer<typeof registerSchema>;
-export type FundAccountInput      = z.infer<typeof fundAccountSchema>;
+export type LoginInput             = z.infer<typeof loginSchema>;
+export type RegisterInput          = z.infer<typeof registerSchema>;
+export type FundAccountInput       = z.infer<typeof fundAccountSchema>;
 export type WithdrawalRequestInput = z.infer<typeof withdrawalRequestSchema>;
 export type WithdrawalActionInput  = z.infer<typeof withdrawalActionSchema>;

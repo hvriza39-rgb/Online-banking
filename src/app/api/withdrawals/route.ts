@@ -24,8 +24,8 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { amount, note } = parsed.data;
-    const amountCents      = majorToCents(amount);
+    const { amount, note, sendType, recipientAccountNumber, recipientName, routingCode } = parsed.data;
+    const amountCents = majorToCents(amount);
 
     const account = await prisma.account.findUnique({
       where: { userId: session.user.id },
@@ -53,10 +53,14 @@ export async function POST(req: NextRequest) {
 
     await prisma.withdrawalRequest.create({
       data: {
-        userId:   session.user.id,
-        amount:   amountCents,
-        currency: account.currency,
-        note:     note ?? null,
+        userId:                session.user.id,
+        amount:                amountCents,
+        currency:              account.currency,
+        sendType,
+        recipientAccountNumber,
+        recipientName,
+        routingCode,
+        note:                  note ?? null,
       },
     });
 

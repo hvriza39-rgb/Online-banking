@@ -43,7 +43,7 @@ export function Sidebar({ user, kycStatus }: SidebarProps) {
 
   { href: "/transactions", label: "History",             icon: ClipboardList,   locked: false,       highlight: false, pending: false },
 
-  { href: "/dashboard/support", label: "Support",        icon: MessageSquare,   locked: false,       highlight: false, pending: false },
+  { href: "/support", label: "Support",        icon: MessageSquare,   locked: false,       highlight: false, pending: false },
 
   ...(!isVerified && !isPending
     ? [{ href: "/kyc", label: "Verify Identity",      icon: ShieldAlert, locked: false, highlight: true,  pending: false }]

@@ -5,8 +5,7 @@ import { redirect } from "next/navigation";
 import { formatMoney, formatDateTime, cn } from "@/lib/utils";
 import {
   ArrowDownLeft, ArrowUpRight, ClipboardList,
-  TrendingUp, TrendingDown, ShieldAlert,
-  ArrowRight, CreditCard, Wallet,
+  ShieldAlert, ArrowRight, CreditCard, Wallet, BarChart2,
 } from "lucide-react";
 import { TransactionType } from "@prisma/client";
 import Link from "next/link";
@@ -48,7 +47,6 @@ export default async function DashboardPage() {
     .filter((t) => t.type !== "CREDIT")
     .reduce((s, t) => s + t.amount, 0);
 
-  // Donut chart segments (percentages out of 251.2 = full circumference of r=40)
   const total = totalCredited + totalDebited || 1;
   const creditPct = (totalCredited / total) * 251.2;
   const debitPct  = (totalDebited  / total) * 251.2;
@@ -96,26 +94,21 @@ export default async function DashboardPage() {
       {/* ── Main grid ───────────────────────────────── */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
 
-        {/* ── Left column: card + actions ───────────── */}
+        {/* ── LEFT: balance card + actions + account details ── */}
         <div className="lg:col-span-1 flex flex-col gap-3">
 
-          {/* Balance card — compact, near-white */}
+          {/* Balance card */}
           <div className="bg-[#f9fafb] border border-[#e4e7ef] rounded-[18px] p-5 shadow-sm relative overflow-hidden">
-            {/* Subtle green tint in corner */}
             <div className="absolute -top-8 -right-8 w-28 h-28 rounded-full bg-[#16a37f]/[0.06] pointer-events-none" />
-
             <p className="text-[11px] font-semibold text-[#9ca3af] uppercase tracking-widest mb-1.5">
               Main Balance
             </p>
             <p className="font-mono text-[36px] font-semibold leading-none tracking-tight text-[#0f1117] mb-4">
               {formatMoney(account.balance, account.currency)}
             </p>
-
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-[13px] font-semibold text-[#1a1d27] leading-none">
-                  {session.user.name}
-                </p>
+                <p className="text-[13px] font-semibold text-[#1a1d27] leading-none">{session.user.name}</p>
                 <p className="font-mono text-[12px] text-[#9ca3af] tracking-[0.05em] mt-1">
                   {isVerified && account.accountNumber
                     ? `${account.accountNumber.slice(0, 5)} ${account.accountNumber.slice(5)}`
@@ -134,7 +127,7 @@ export default async function DashboardPage() {
             </div>
           </div>
 
-          {/* Quick actions — outside the card */}
+          {/* Quick actions */}
           <div className="grid grid-cols-2 gap-2.5">
             {isVerified ? (
               <Link
@@ -148,7 +141,6 @@ export default async function DashboardPage() {
                 <ArrowUpRight className="w-4 h-4" /> Send
               </span>
             )}
-
             <Link
               href="/transactions"
               className="flex items-center justify-center gap-2 bg-[#16a37f] text-white font-semibold text-[13.5px] py-3 rounded-[13px] shadow-sm shadow-[#16a37f]/20 hover:bg-[#13946f] transition-all active:scale-[0.98]"
@@ -157,7 +149,7 @@ export default async function DashboardPage() {
             </Link>
           </div>
 
-          {/* KYC action button (unverified only) */}
+          {/* KYC action (unverified only) */}
           {!isVerified && (
             <Link
               href="/kyc"
@@ -166,32 +158,67 @@ export default async function DashboardPage() {
               <ShieldAlert className="w-4 h-4" /> Verify KYC
             </Link>
           )}
-        </div>
 
-        {/* ── Center column ─────────────────────── */}
-        <div className="lg:col-span-1 flex flex-col gap-5">
-
-          {/* Mini stats */}
-          <div className="grid grid-cols-2 gap-4">
-            <div className="bg-white rounded-2xl border border-[#e8ecf4] p-5 shadow-sm">
-              <p className="text-[11px] font-semibold text-[#9ca3af] uppercase tracking-wider mb-2">Credited</p>
-              <p className="font-mono text-[22px] font-extrabold text-[#16a37f] tracking-tight leading-none">
-                {formatMoney(totalCredited, account.currency)}
-              </p>
-              <p className="text-[11px] text-[#9ca3af] mt-2 flex items-center gap-1">
-                <TrendingUp className="w-3 h-3 text-[#16a37f]" /> All time
-              </p>
+          {/* Account details */}
+          <div className="bg-white rounded-2xl border border-[#e8ecf4] shadow-sm p-5 mt-1">
+            <p className="text-[14px] font-bold text-[#1a1d27] mb-4">Account Details</p>
+            <div className="bg-[#f4f6fb] rounded-[13px] p-4 mb-3">
+              <p className="text-[10px] font-bold text-[#9ca3af] uppercase tracking-widest mb-1.5">Account Number</p>
+              {isVerified && account.accountNumber ? (
+                <p className="font-mono text-[17px] font-semibold text-[#1a1d27] tracking-[0.06em]">
+                  {account.accountNumber.slice(0, 5)} {account.accountNumber.slice(5)}
+                </p>
+              ) : (
+                <p className="font-mono text-[14px] text-[#9ca3af]">— Pending KYC —</p>
+              )}
             </div>
-            <div className="bg-white rounded-2xl border border-[#e8ecf4] p-5 shadow-sm">
-              <p className="text-[11px] font-semibold text-[#9ca3af] uppercase tracking-wider mb-2">Debited</p>
-              <p className="font-mono text-[22px] font-extrabold text-[#1a1d27] tracking-tight leading-none">
-                {formatMoney(totalDebited, account.currency)}
-              </p>
-              <p className="text-[11px] text-[#9ca3af] mt-2 flex items-center gap-1">
-                <TrendingDown className="w-3 h-3 text-rose-400" /> All time
-              </p>
+            <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5 bg-[#f0f4ff] rounded-lg px-3 py-1.5">
+                <Wallet className="w-3.5 h-3.5 text-[#3b82f6]" />
+                <span className="text-[12px] font-bold text-[#3b82f6]">{account.currency}</span>
+              </div>
+              {isVerified ? (
+                <div className="flex items-center gap-1.5 bg-[#e6f7f3] rounded-lg px-3 py-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#16a37f]" />
+                  <span className="text-[12px] font-bold text-[#16a37f]">Active</span>
+                </div>
+              ) : (
+                <div className="flex items-center gap-1.5 bg-amber-50 border border-amber-200 rounded-lg px-3 py-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+                  <span className="text-[12px] font-bold text-amber-600">Unverified</span>
+                </div>
+              )}
             </div>
           </div>
+        </div>
+
+        {/* ── CENTER: transaction summary button + spending overview ── */}
+        <div className="lg:col-span-1 flex flex-col gap-5">
+
+          {/* Transaction summary — replaces credit/debit stat tiles */}
+          <Link
+            href="/transactions"
+            className="bg-white rounded-2xl border border-[#e8ecf4] shadow-sm p-5 flex items-center justify-between hover:border-[#16a37f]/30 hover:shadow-md transition-all active:scale-[0.99] group"
+          >
+            <div className="flex items-center gap-4">
+              <div className="w-11 h-11 bg-[#e6f7f3] rounded-[14px] flex items-center justify-center flex-shrink-0">
+                <BarChart2 className="w-5 h-5 text-[#16a37f]" />
+              </div>
+              <div>
+                <p className="text-[14px] font-bold text-[#1a1d27]">Transaction Summary</p>
+                <div className="flex items-center gap-3 mt-1">
+                  <span className="text-[12px] text-[#6b7280]">
+                    In: <span className="font-mono font-semibold text-[#16a37f]">{formatMoney(totalCredited, account.currency)}</span>
+                  </span>
+                  <span className="text-[#e4e7ef]">·</span>
+                  <span className="text-[12px] text-[#6b7280]">
+                    Out: <span className="font-mono font-semibold text-[#1a1d27]">{formatMoney(totalDebited, account.currency)}</span>
+                  </span>
+                </div>
+              </div>
+            </div>
+            <ArrowRight className="w-4 h-4 text-[#c4c9d4] group-hover:text-[#16a37f] transition-colors flex-shrink-0" />
+          </Link>
 
           {/* Spending donut */}
           <div className="bg-white rounded-2xl border border-[#e8ecf4] shadow-sm overflow-hidden flex-1">
@@ -223,7 +250,6 @@ export default async function DashboardPage() {
                 </text>
                 <text x="55" y="63" textAnchor="middle" fontSize="9" fill="#9ca3af">balance</text>
               </svg>
-
               <div className="flex flex-col gap-3 flex-1">
                 {[
                   { color: "#3b82f6", label: "Credits", val: totalCredited },
@@ -242,44 +268,8 @@ export default async function DashboardPage() {
           </div>
         </div>
 
-        {/* ── Right column ──────────────────────── */}
+        {/* ── RIGHT: recent activity ── */}
         <div className="lg:col-span-1 flex flex-col gap-5">
-
-          {/* Account details */}
-          <div className="bg-white rounded-2xl border border-[#e8ecf4] shadow-sm p-5">
-            <p className="text-[14px] font-bold text-[#1a1d27] mb-4">Account Details</p>
-
-            <div className="bg-[#f4f6fb] rounded-[13px] p-4 mb-3">
-              <p className="text-[10px] font-bold text-[#9ca3af] uppercase tracking-widest mb-1.5">Account Number</p>
-              {isVerified && account.accountNumber ? (
-                <p className="font-mono text-[17px] font-semibold text-[#1a1d27] tracking-[0.06em]">
-                  {account.accountNumber.slice(0, 5)} {account.accountNumber.slice(5)}
-                </p>
-              ) : (
-                <p className="font-mono text-[14px] text-[#9ca3af]">— Pending KYC —</p>
-              )}
-            </div>
-
-            <div className="flex items-center gap-2">
-              <div className="flex items-center gap-1.5 bg-[#f0f4ff] rounded-lg px-3 py-1.5">
-                <Wallet className="w-3.5 h-3.5 text-[#3b82f6]" />
-                <span className="text-[12px] font-bold text-[#3b82f6]">{account.currency}</span>
-              </div>
-              {isVerified ? (
-                <div className="flex items-center gap-1.5 bg-[#e6f7f3] rounded-lg px-3 py-1.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#16a37f]" />
-                  <span className="text-[12px] font-bold text-[#16a37f]">Active</span>
-                </div>
-              ) : (
-                <div className="flex items-center gap-1.5 bg-amber-50 border border-amber-200 rounded-lg px-3 py-1.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
-                  <span className="text-[12px] font-bold text-amber-600">Unverified</span>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Recent activity */}
           <div className="bg-white rounded-2xl border border-[#e8ecf4] shadow-sm overflow-hidden flex-1">
             <div className="flex items-center justify-between px-5 py-4 border-b border-[#f0f3f8]">
               <p className="text-[14px] font-bold text-[#1a1d27]">Recent Activity</p>

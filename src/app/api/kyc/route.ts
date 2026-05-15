@@ -109,10 +109,12 @@ export async function POST(req: NextRequest) {
         data:  { kycStatus: KycStatus.PENDING },
       }),
 
-      // Assign account number now — it will become visible after admin approves
-      prisma.account.update({
-        where: { userId },
-        data:  { accountNumber },
+      // FIX: upsert instead of update — new users have no account row yet,
+      // so update() would throw "record not found" and roll back the transaction.
+      prisma.account.upsert({
+        where:  { userId },
+        update: { accountNumber },
+        create: { userId, accountNumber },
       }),
     ]);
 

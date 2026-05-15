@@ -6,7 +6,7 @@ import { signOut } from "next-auth/react";
 import { useEffect, useState } from "react";
 import {
   LayoutDashboard, ArrowDownToLine, ClipboardList,
-  Users, LogOut, Wallet, ShieldCheck, ShieldAlert, Menu, X,
+  Users, LogOut, Wallet, ShieldCheck, ShieldAlert, Clock, Menu, X,
 } from "lucide-react";
 import { cn, getInitials } from "@/lib/utils";
 
@@ -16,15 +16,16 @@ interface SidebarProps {
 }
 
 const adminLinks = [
-  { href: "/admin",             label: "Overview",    icon: LayoutDashboard, locked: false, highlight: false },
-  { href: "/admin/users",       label: "Users",       icon: Users,           locked: false, highlight: false },
-  { href: "/admin/withdrawals", label: "Withdrawals", icon: ArrowDownToLine, locked: false, highlight: false },
+  { href: "/admin",             label: "Overview",    icon: LayoutDashboard, locked: false, highlight: false, pending: false },
+  { href: "/admin/users",       label: "Users",       icon: Users,           locked: false, highlight: false, pending: false },
+  { href: "/admin/withdrawals", label: "Withdrawals", icon: ArrowDownToLine, locked: false, highlight: false, pending: false },
 ];
 
 export function Sidebar({ user, kycStatus }: SidebarProps) {
   const pathname   = usePathname();
   const isAdmin    = user.role === "ADMIN";
   const isVerified = kycStatus === "VERIFIED";
+  const isPending  = kycStatus === "PENDING";
   const [open, setOpen] = useState(false);
 
   // Close on route change
@@ -37,11 +38,15 @@ export function Sidebar({ user, kycStatus }: SidebarProps) {
   }, [open]);
 
   const userLinks = [
-    { href: "/dashboard",    label: "Dashboard",       icon: LayoutDashboard, locked: false,       highlight: false },
-    { href: "/withdraw",     label: "Withdraw",         icon: ArrowDownToLine, locked: !isVerified, highlight: false },
-    { href: "/transactions", label: "Transactions",     icon: ClipboardList,   locked: false,       highlight: false },
-    ...(!isVerified
-      ? [{ href: "/kyc", label: "Verify Identity", icon: ShieldAlert, locked: false, highlight: true }]
+    { href: "/dashboard",    label: "Account Overview", icon: LayoutDashboard, locked: false,       highlight: false, pending: false },
+    { href: "/withdraw",     label: "Send",              icon: ArrowDownToLine, locked: !isVerified, highlight: false, pending: false },
+    { href: "/transactions", label: "Transactions",      icon: ClipboardList,   locked: false,       highlight: false, pending: false },
+    ...(!isVerified && !isPending
+      ? [{ href: "/kyc", label: "Verify Identity",     icon: ShieldAlert, locked: false, highlight: true,  pending: false }]
+      : []
+    ),
+    ...(isPending
+      ? [{ href: "/kyc", label: "Pending Verification", icon: Clock,       locked: false, highlight: false, pending: true  }]
       : []
     ),
   ];
@@ -56,7 +61,6 @@ export function Sidebar({ user, kycStatus }: SidebarProps) {
   const sidebarContent = (
     <aside className={cn(
       "w-64 flex-shrink-0 flex flex-col h-screen bg-[#0d1421] text-slate-400 relative overflow-y-auto",
-      // On mobile it's fixed and slides in; on lg+ it's static in the layout
       "fixed inset-y-0 left-0 z-50 transition-transform duration-300 ease-in-out",
       "lg:static lg:translate-x-0 lg:z-auto",
       open ? "translate-x-0" : "-translate-x-full lg:translate-x-0",
@@ -68,15 +72,15 @@ export function Sidebar({ user, kycStatus }: SidebarProps) {
       {/* Logo */}
       <div className="relative flex items-center justify-between gap-3 px-6 h-[70px] border-b border-white/[0.06]">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 bg-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-600/30">
+          <div className="w-9 h-9 bg-white/10 rounded-xl flex items-center justify-center shadow-lg shadow-black/20">
             <Wallet className="w-[18px] h-[18px] text-white" strokeWidth={2.5} />
           </div>
           <div>
             <span className="font-semibold text-white text-[15px] tracking-tight">NexaBank</span>
             {isAdmin && (
               <div className="flex items-center gap-1 mt-0.5">
-                <ShieldCheck className="w-2.5 h-2.5 text-blue-400" />
-                <span className="text-[10px] text-blue-400 font-medium uppercase tracking-wider">Admin</span>
+                <ShieldCheck className="w-2.5 h-2.5 text-slate-400" />
+                <span className="text-[10px] text-slate-400 font-medium uppercase tracking-wider">Admin</span>
               </div>
             )}
           </div>
@@ -98,7 +102,7 @@ export function Sidebar({ user, kycStatus }: SidebarProps) {
           {isAdmin ? "Management" : "Banking"}
         </p>
 
-        {links.map(({ href, label, icon: Icon, locked, highlight }) => {
+        {links.map(({ href, label, icon: Icon, locked, highlight, pending }) => {
           const active = isActive(href);
 
           if (locked) {
@@ -117,19 +121,32 @@ export function Sidebar({ user, kycStatus }: SidebarProps) {
             );
           }
 
+          if (pending) {
+            return (
+              <Link key={href} href={href}
+                className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13.5px] font-medium text-amber-400/80 hover:bg-amber-500/10 hover:text-amber-300 transition-all duration-150">
+                <div className="w-8 h-8 rounded-lg flex items-center justify-center text-amber-400/80">
+                  <Icon className="w-4 h-4" strokeWidth={2} />
+                </div>
+                {label}
+                <span className="ml-auto w-2 h-2 rounded-full bg-amber-400 animate-pulse flex-shrink-0" />
+              </Link>
+            );
+          }
+
           return (
             <Link key={href} href={href}
               className={cn(
                 "flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13.5px] font-medium transition-all duration-150",
                 active
-                  ? "bg-blue-600/20 text-blue-300"
+                  ? "bg-white/10 text-white"
                   : highlight
                   ? "text-amber-400 hover:bg-amber-500/10 hover:text-amber-300"
                   : "text-slate-400 hover:bg-white/[0.05] hover:text-slate-200"
               )}>
               <div className={cn(
                 "w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 transition-colors",
-                active     ? "bg-blue-600/30 text-blue-300"
+                active      ? "bg-white/10 text-white"
                 : highlight ? "text-amber-400"
                 : "text-slate-500"
               )}>
@@ -140,7 +157,7 @@ export function Sidebar({ user, kycStatus }: SidebarProps) {
                 <span className="ml-auto w-2 h-2 rounded-full bg-amber-400 animate-pulse flex-shrink-0" />
               )}
               {active && !highlight && (
-                <div className="ml-auto w-1.5 h-1.5 rounded-full bg-blue-400 flex-shrink-0" />
+                <div className="ml-auto w-1.5 h-1.5 rounded-full bg-white/60 flex-shrink-0" />
               )}
             </Link>
           );
@@ -154,17 +171,21 @@ export function Sidebar({ user, kycStatus }: SidebarProps) {
             "flex items-center gap-2 mx-3 mb-2 px-2.5 py-1.5 rounded-lg text-[11px] font-semibold",
             isVerified
               ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+              : isPending
+              ? "bg-amber-500/10 text-amber-400 border border-amber-500/20"
               : "bg-amber-500/10 text-amber-400 border border-amber-500/20"
           )}>
             {isVerified
               ? <><ShieldCheck className="w-3 h-3" /> Identity Verified</>
+              : isPending
+              ? <><Clock className="w-3 h-3" /> Pending Verification</>
               : <><ShieldAlert className="w-3 h-3" /> KYC Required</>
             }
           </div>
         )}
 
         <div className="flex items-center gap-3 px-3 py-2">
-          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center text-xs font-bold text-white flex-shrink-0 shadow-sm">
+          <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-xs font-bold text-white flex-shrink-0 shadow-sm">
             {getInitials(user.name)}
           </div>
           <div className="min-w-0 flex-1">
@@ -197,7 +218,7 @@ export function Sidebar({ user, kycStatus }: SidebarProps) {
           <Menu className="w-5 h-5" />
         </button>
         <div className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded-lg bg-blue-600 flex items-center justify-center shadow-md shadow-blue-600/30">
+          <div className="w-7 h-7 rounded-lg bg-white/10 flex items-center justify-center shadow-md shadow-black/20">
             <Wallet className="w-[15px] h-[15px] text-white" strokeWidth={2.5} />
           </div>
           <span className="font-semibold text-white text-[15px] tracking-tight">NexaBank</span>

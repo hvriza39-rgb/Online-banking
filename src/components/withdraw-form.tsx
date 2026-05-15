@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { withdrawalRequestSchema, type WithdrawalRequestInput } from "@/lib/validators";
-import { Loader2, AlertCircle, Clock } from "lucide-react";
+import { Loader2, AlertCircle, Clock, ArrowUpRight } from "lucide-react";
 import { cn, currencySymbol } from "@/lib/utils";
 import { Currency } from "@prisma/client";
 
@@ -41,7 +41,7 @@ export function WithdrawForm({ maxAmount, currency, hasPending }: WithdrawFormPr
         <div>
           <p className="text-sm font-medium text-amber-800">Pending request active</p>
           <p className="text-xs text-amber-600 mt-0.5">
-            You already have a pending withdrawal. Please wait for admin approval before submitting another.
+            You already have a pending send request. Please wait for admin approval before submitting another.
           </p>
         </div>
       </div>
@@ -68,7 +68,7 @@ export function WithdrawForm({ maxAmount, currency, hasPending }: WithdrawFormPr
             placeholder="0.00"
             className={cn(
               "w-full pl-8 pr-4 py-3 rounded-xl border text-sm outline-none transition-all money",
-              "focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500",
+              "focus:ring-2 focus:ring-slate-300 focus:border-slate-400",
               errors.amount ? "border-rose-300 bg-rose-50" : "border-slate-200 bg-white"
             )}
           />
@@ -86,8 +86,8 @@ export function WithdrawForm({ maxAmount, currency, hasPending }: WithdrawFormPr
         </label>
         <input
           {...register("note")}
-          placeholder="Reason for withdrawal"
-          className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white text-sm outline-none transition-all focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+          placeholder="Reason for sending"
+          className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white text-sm outline-none transition-all focus:ring-2 focus:ring-slate-300 focus:border-slate-400"
         />
       </div>
 
@@ -100,10 +100,12 @@ export function WithdrawForm({ maxAmount, currency, hasPending }: WithdrawFormPr
       <button
         type="submit"
         disabled={isSubmitting}
-        className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-xl transition-all disabled:opacity-50 flex items-center justify-center gap-2 shadow-sm shadow-blue-200"
+        className="w-full py-3 bg-[#1a1d27] hover:bg-[#23273a] text-white text-sm font-semibold rounded-xl transition-all disabled:opacity-50 flex items-center justify-center gap-2 shadow-sm"
       >
-        {isSubmitting && <Loader2 className="w-4 h-4 animate-spin" />}
-        {isSubmitting ? "Submitting…" : "Submit Withdrawal Request"}
+        {isSubmitting
+          ? <><Loader2 className="w-4 h-4 animate-spin" />Submitting…</>
+          : <><ArrowUpRight className="w-4 h-4" />Submit Send Request</>
+        }
       </button>
     </form>
   );

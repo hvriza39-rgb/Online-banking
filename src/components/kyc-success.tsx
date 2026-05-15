@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { CheckCircle2, Copy, Check, ArrowRight } from "lucide-react";
+import { Clock, Copy, Check, ArrowRight, ShieldAlert, CheckCircle2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface KycSuccessProps {
@@ -30,24 +30,25 @@ export function KycSuccess({ accountNumber, onContinue }: KycSuccessProps) {
       "flex flex-col items-center text-center py-10 px-6 transition-all duration-500",
       visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
     )}>
-      {/* Success icon */}
+      {/* Pending icon */}
       <div className="relative mb-6">
-        <div className="absolute inset-0 rounded-full bg-emerald-400/20 animate-ping" style={{ animationDuration: "2s" }} />
-        <div className="relative w-20 h-20 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-full flex items-center justify-center shadow-xl shadow-emerald-200">
-          <CheckCircle2 className="w-10 h-10 text-white" strokeWidth={2} />
+        <div className="absolute inset-0 rounded-full bg-amber-400/20 animate-ping" style={{ animationDuration: "2s" }} />
+        <div className="relative w-20 h-20 bg-gradient-to-br from-amber-400 to-amber-500 rounded-full flex items-center justify-center shadow-xl shadow-amber-200">
+          <Clock className="w-10 h-10 text-white" strokeWidth={2} />
         </div>
       </div>
 
       {/* Title */}
       <h2 className="text-2xl font-semibold text-slate-900 mb-1">
-        Identity Verified! 🎉
+        Submission Received!
       </h2>
       <p className="text-slate-400 text-sm mb-8 max-w-xs leading-relaxed">
-        Your account has been activated. Here's your unique account number — keep it safe.
+        Your account number has been generated and your details are under review.
+        You'll get full access once an admin approves your verification.
       </p>
 
       {/* Account number display */}
-      <div className="w-full max-w-xs mb-8">
+      <div className="w-full max-w-xs mb-6">
         <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
           Your Account Number
         </p>
@@ -79,14 +80,23 @@ export function KycSuccess({ accountNumber, onContinue }: KycSuccessProps) {
         )}
       </div>
 
-      {/* What's next */}
+      {/* Pending status badge */}
+      <div className="w-full max-w-xs flex items-center gap-2.5 bg-amber-50 border border-amber-200 rounded-2xl px-4 py-3 mb-6">
+        <ShieldAlert className="w-4 h-4 text-amber-500 flex-shrink-0" />
+        <p className="text-xs font-semibold text-amber-700 text-left">
+          Pending admin verification — withdrawals and sends are locked until approved.
+        </p>
+      </div>
+
+      {/* What happens next */}
       <div className="w-full max-w-xs bg-blue-50 border border-blue-100 rounded-2xl p-4 mb-7 text-left">
-        <p className="text-xs font-semibold text-blue-700 mb-2">What's next?</p>
+        <p className="text-xs font-semibold text-blue-700 mb-2">What happens next?</p>
         <ul className="space-y-1.5">
           {[
-            "Your balance is ready to receive funds",
-            "You can now make withdrawal requests",
-            "Share your account number to receive credits",
+            "Your details are queued for admin review",
+            "You'll be notified once your account is approved",
+            "Sends and withdrawals unlock after approval",
+            "You can already receive credits to your account number",
           ].map((item) => (
             <li key={item} className="flex items-start gap-2 text-xs text-blue-600">
               <CheckCircle2 className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
@@ -101,7 +111,7 @@ export function KycSuccess({ accountNumber, onContinue }: KycSuccessProps) {
         onClick={onContinue}
         className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-6 py-3 rounded-xl transition-all shadow-md shadow-blue-200"
       >
-        Go to Dashboard
+        Go to Account Overview
         <ArrowRight className="w-4 h-4" />
       </button>
     </div>

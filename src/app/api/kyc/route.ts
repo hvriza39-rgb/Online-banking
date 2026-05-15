@@ -1,6 +1,6 @@
 // POST /api/kyc
-// Accepts KYC form data, verifies atomically, generates account number.
-// In production you'd add manual review — here we auto-verify for demo purposes.
+// Accepts KYC form data, generates account number, sets status to PENDING.
+// Account is activated only after admin approval.
 
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
@@ -49,6 +49,11 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "KYC already verified" }, { status: 409 });
     }
 
+    // Prevent resubmission if already pending
+    if (user.kycStatus === KycStatus.PENDING) {
+      return NextResponse.json({ error: "KYC already submitted and pending review" }, { status: 409 });
+    }
+
     // Validate input
     const body   = await req.json();
     const parsed = kycSchema.safeParse(body);
@@ -74,7 +79,8 @@ export async function POST(req: NextRequest) {
 
     const accountNumber = await generateUniqueAccountNumber();
 
-    // Atomic: create/update KYC + set user verified + assign account number
+    // Atomic: create/update KYC record + set status to PENDING + assign account number
+    // verifiedAt is NOT set here — admin sets it on approval
     await prisma.$transaction([
       // Upsert KYC record
       prisma.kyc.upsert({
@@ -85,7 +91,7 @@ export async function POST(req: NextRequest) {
           address,
           idType,
           idNumber,
-          verifiedAt: new Date(),
+          verifiedAt: null,
         },
         create: {
           userId,
@@ -94,17 +100,16 @@ export async function POST(req: NextRequest) {
           address,
           idType,
           idNumber,
-          verifiedAt: new Date(),
         },
       }),
 
-      // Mark user as verified
+      // Set user KYC status to PENDING (awaiting admin approval)
       prisma.user.update({
         where: { id: userId },
-        data:  { kycStatus: KycStatus.VERIFIED },
+        data:  { kycStatus: KycStatus.PENDING },
       }),
 
-      // Assign account number
+      // Assign account number now — it will become visible after admin approves
       prisma.account.update({
         where: { userId },
         data:  { accountNumber },

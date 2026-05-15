@@ -60,7 +60,7 @@ export function Sidebar({ user, kycStatus }: SidebarProps) {
 
   const sidebarContent = (
     <aside className={cn(
-      "w-64 flex-shrink-0 flex flex-col h-screen bg-white border-r border-[#e4e7ef] text-[#6b7280]",
+      "w-64 flex-shrink-0 flex flex-col h-screen [height:100dvh] bg-white border-r border-[#e4e7ef] text-[#6b7280]",
       "fixed inset-y-0 left-0 z-50 transition-transform duration-300 ease-in-out",
       "lg:static lg:translate-x-0 lg:z-auto",
       open ? "translate-x-0" : "-translate-x-full lg:translate-x-0",

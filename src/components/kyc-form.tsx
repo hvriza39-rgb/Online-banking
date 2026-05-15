@@ -24,9 +24,9 @@ interface KycFormProps {
 
 export function KycForm({ userName }: KycFormProps) {
   const router = useRouter();
-  const [step, setStep]                 = useState<"form" | "loading" | "success">("form");
+  const [step, setStep]                   = useState<"form" | "loading" | "success">("form");
   const [accountNumber, setAccountNumber] = useState<string>("");
-  const [serverError, setServerError]   = useState<string | null>(null);
+  const [serverError, setServerError]     = useState<string | null>(null);
 
   const {
     register,
@@ -52,7 +52,7 @@ export function KycForm({ userName }: KycFormProps) {
 
     if (!res.ok) {
       setStep("form");
-      setServerError(json.error ?? "Verification failed. Please try again.");
+      setServerError(json.error ?? "Submission failed. Please try again.");
       return;
     }
 
@@ -65,7 +65,7 @@ export function KycForm({ userName }: KycFormProps) {
     return <KycLoadingScreen />;
   }
 
-  // ── Success screen ──────────────────────────────────────
+  // ── Success / pending screen ────────────────────────────
   if (step === "success") {
     return <KycSuccess accountNumber={accountNumber} onContinue={() => router.push("/dashboard")} />;
   }
@@ -226,7 +226,7 @@ export function KycForm({ userName }: KycFormProps) {
       >
         {isSubmitting
           ? <><Loader2 className="w-4 h-4 animate-spin" />Processing…</>
-          : <><ChevronRight className="w-4 h-4" />Submit & Verify Identity</>
+          : <><ChevronRight className="w-4 h-4" />Submit for Verification</>
         }
       </button>
     </form>
@@ -270,13 +270,13 @@ function KycLoadingScreen() {
         Generating your account number
       </h2>
       <p className="text-slate-400 text-sm max-w-xs leading-relaxed">
-        We're verifying your identity and setting up your account. This will only take a moment.
+        We're processing your details and reserving your account number.
       </p>
 
       {/* Progress steps */}
       <div className="mt-8 space-y-2 w-full max-w-xs text-left">
         {[
-          "Verifying identity details…",
+          "Validating submitted details…",
           "Running security checks…",
           "Generating account number…",
         ].map((label, i) => (

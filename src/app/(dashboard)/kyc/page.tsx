@@ -3,7 +3,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import { KycForm } from "@/components/kyc-form";
-import { ShieldCheck, FileText, User, MapPin } from "lucide-react";
+import { ShieldCheck, FileText, User, MapPin, Clock, ShieldAlert } from "lucide-react";
 
 export const metadata: Metadata = { title: "Verify Identity" };
 
@@ -19,6 +19,43 @@ export default async function KycPage() {
   // Already verified — redirect to dashboard
   if (user?.kycStatus === "VERIFIED") redirect("/dashboard");
 
+  // Already submitted — show pending state instead of the form
+  if (user?.kycStatus === "PENDING") {
+    return (
+      <div className="min-h-screen p-6 lg:p-8">
+        <div className="max-w-2xl mx-auto">
+          <div className="card p-10 flex flex-col items-center text-center">
+
+            {/* Pending icon */}
+            <div className="relative mb-6">
+              <div className="absolute inset-0 rounded-full bg-amber-400/20 animate-ping"
+                style={{ animationDuration: "2s" }} />
+              <div className="relative w-20 h-20 bg-gradient-to-br from-amber-400 to-amber-500 rounded-full flex items-center justify-center shadow-xl shadow-amber-200">
+                <Clock className="w-10 h-10 text-white" strokeWidth={2} />
+              </div>
+            </div>
+
+            <h1 className="text-2xl font-semibold text-slate-900 mb-2">
+              Verification Pending
+            </h1>
+            <p className="text-slate-400 text-sm max-w-sm leading-relaxed mb-6">
+              Your KYC details have been submitted and are currently under review.
+              An admin will approve your account shortly.
+            </p>
+
+            <div className="flex items-center gap-2.5 bg-amber-50 border border-amber-200 rounded-2xl px-4 py-3 w-full max-w-xs">
+              <ShieldAlert className="w-4 h-4 text-amber-500 flex-shrink-0" />
+              <p className="text-xs font-semibold text-amber-700 text-left">
+                Your account number has been reserved. Full access unlocks after approval.
+              </p>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen p-6 lg:p-8">
       <div className="max-w-2xl mx-auto">
@@ -32,7 +69,7 @@ export default async function KycPage() {
           <h1 className="text-2xl font-semibold text-slate-900">Verify your identity</h1>
           <p className="text-slate-400 text-sm mt-1.5 leading-relaxed">
             We need to verify who you are before activating your account.
-            This takes less than 2 minutes and your account number will be generated instantly.
+            Submit your details and an admin will review and approve your account.
           </p>
         </div>
 

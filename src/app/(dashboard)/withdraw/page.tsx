@@ -1,242 +1,111 @@
-"use client";
+import { Metadata } from "next";
+import { auth } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
+import { redirect } from "next/navigation";
+import { WithdrawForm } from "@/components/withdraw-form";
+import { formatMoney, formatDateTime, cn } from "@/lib/utils";
+import { Clock, CheckCircle2, XCircle, Info } from "lucide-react";
+import { WithdrawalStatus } from "@prisma/client";
 
-import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { signOut } from "next-auth/react";
-import { useEffect, useState } from "react";
-import {
-  LayoutDashboard, ArrowDownToLine, ClipboardList,
-  Users, LogOut, Wallet, ShieldCheck, ShieldAlert, Clock, Menu, X,
-} from "lucide-react";
-import { cn, getInitials } from "@/lib/utils";
+export const metadata: Metadata = { title: "Send Funds" };
 
-interface SidebarProps {
-  user:       { name: string; email: string; role: string };
-  kycStatus?: string;
-}
+const STATUS_CONFIG: Record<WithdrawalStatus, {
+  label: string; icon: React.ElementType;
+  bg: string; border: string; text: string;
+}> = {
+  PENDING:  { label: "Pending",  icon: Clock,        bg: "bg-amber-50",   border: "border-amber-100",  text: "text-amber-700"  },
+  APPROVED: { label: "Approved", icon: CheckCircle2, bg: "bg-emerald-50", border: "border-emerald-100", text: "text-emerald-700" },
+  REJECTED: { label: "Rejected", icon: XCircle,      bg: "bg-rose-50",    border: "border-rose-100",   text: "text-rose-600"   },
+};
 
-const adminLinks = [
-  { href: "/admin",             label: "Overview",    icon: LayoutDashboard, locked: false, highlight: false, pending: false },
-  { href: "/admin/users",       label: "Users",       icon: Users,           locked: false, highlight: false, pending: false },
-  { href: "/admin/withdrawals", label: "Withdrawals", icon: ArrowDownToLine, locked: false, highlight: false, pending: false },
-];
+export default async function WithdrawPage() {
+  const session = await auth();
+  if (!session?.user) redirect("/login");
 
-export function Sidebar({ user, kycStatus }: SidebarProps) {
-  const pathname   = usePathname();
-  const isAdmin    = user.role === "ADMIN";
-  const isVerified = kycStatus === "VERIFIED";
-  const isPending  = kycStatus === "PENDING";
-  const [open, setOpen] = useState(false);
+  const account = await prisma.account.findUnique({ where: { userId: session.user.id } });
+  if (!account) redirect("/login");
 
-  // Close on route change
-  useEffect(() => { setOpen(false); }, [pathname]);
+  const hasPending = !!(await prisma.withdrawalRequest.findFirst({
+    where: { userId: session.user.id, status: "PENDING" },
+  }));
 
-  // Lock body scroll while drawer is open
-  useEffect(() => {
-    document.body.style.overflow = open ? "hidden" : "";
-    return () => { document.body.style.overflow = ""; };
-  }, [open]);
-
-  const userLinks = [
-    { href: "/dashboard",    label: "Account Overview", icon: LayoutDashboard, locked: false,       highlight: false, pending: false },
-    { href: "/withdraw",     label: "Send",              icon: ArrowDownToLine, locked: !isVerified, highlight: false, pending: false },
-    { href: "/transactions", label: "Transactions",      icon: ClipboardList,   locked: false,       highlight: false, pending: false },
-    ...(!isVerified && !isPending
-      ? [{ href: "/kyc", label: "Verify Identity",     icon: ShieldAlert, locked: false, highlight: true,  pending: false }]
-      : []
-    ),
-    ...(isPending
-      ? [{ href: "/kyc", label: "Pending Verification", icon: Clock,       locked: false, highlight: false, pending: true  }]
-      : []
-    ),
-  ];
-
-  const links = isAdmin ? adminLinks : userLinks;
-
-  const isActive = (href: string) =>
-    href === "/admin" || href === "/dashboard"
-      ? pathname === href
-      : pathname.startsWith(href);
-
-  const sidebarContent = (
-    <aside className={cn(
-      "w-64 flex-shrink-0 flex flex-col h-screen bg-[#0d1421] text-slate-400 relative overflow-y-auto",
-      "fixed inset-y-0 left-0 z-50 transition-transform duration-300 ease-in-out",
-      "lg:static lg:translate-x-0 lg:z-auto",
-      open ? "translate-x-0" : "-translate-x-full lg:translate-x-0",
-    )}>
-      {/* Subtle dot-grid texture */}
-      <div className="absolute inset-0 opacity-[0.03] pointer-events-none"
-        style={{ backgroundImage: "radial-gradient(circle at 1px 1px, white 1px, transparent 0)", backgroundSize: "24px 24px" }} />
-
-      {/* Logo */}
-      <div className="relative flex items-center justify-between gap-3 px-6 h-[70px] border-b border-white/[0.06]">
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 bg-white/10 rounded-xl flex items-center justify-center shadow-lg shadow-black/20">
-            <Wallet className="w-[18px] h-[18px] text-white" strokeWidth={2.5} />
-          </div>
-          <div>
-            <span className="font-semibold text-white text-[15px] tracking-tight">NexaBank</span>
-            {isAdmin && (
-              <div className="flex items-center gap-1 mt-0.5">
-                <ShieldCheck className="w-2.5 h-2.5 text-slate-400" />
-                <span className="text-[10px] text-slate-400 font-medium uppercase tracking-wider">Admin</span>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Close button — mobile only */}
-        <button
-          onClick={() => setOpen(false)}
-          className="lg:hidden p-1.5 rounded-lg text-slate-500 hover:text-white hover:bg-white/10 transition-colors"
-          aria-label="Close menu"
-        >
-          <X className="w-5 h-5" />
-        </button>
-      </div>
-
-      {/* Nav links */}
-      <nav className="relative flex-1 px-3 py-5 space-y-0.5">
-        <p className="text-[10px] font-semibold uppercase tracking-widest text-slate-600 px-3 mb-3">
-          {isAdmin ? "Management" : "Banking"}
-        </p>
-
-        {links.map(({ href, label, icon: Icon, locked, highlight, pending }) => {
-          const active = isActive(href);
-
-          if (locked) {
-            return (
-              <div key={href}
-                title="Complete KYC verification to unlock"
-                className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13.5px] font-medium text-slate-600 cursor-not-allowed opacity-40 select-none">
-                <div className="w-8 h-8 rounded-lg flex items-center justify-center">
-                  <Icon className="w-4 h-4" strokeWidth={2} />
-                </div>
-                {label}
-                <span className="ml-auto text-[9px] bg-slate-800 text-slate-600 px-1.5 py-0.5 rounded font-bold uppercase tracking-wider border border-slate-700">
-                  Locked
-                </span>
-              </div>
-            );
-          }
-
-          if (pending) {
-            return (
-              <Link key={href} href={href}
-                className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13.5px] font-medium text-amber-400/80 hover:bg-amber-500/10 hover:text-amber-300 transition-all duration-150">
-                <div className="w-8 h-8 rounded-lg flex items-center justify-center text-amber-400/80">
-                  <Icon className="w-4 h-4" strokeWidth={2} />
-                </div>
-                {label}
-                <span className="ml-auto w-2 h-2 rounded-full bg-amber-400 animate-pulse flex-shrink-0" />
-              </Link>
-            );
-          }
-
-          return (
-            <Link key={href} href={href}
-              className={cn(
-                "flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13.5px] font-medium transition-all duration-150",
-                active
-                  ? "bg-white/10 text-white"
-                  : highlight
-                  ? "text-amber-400 hover:bg-amber-500/10 hover:text-amber-300"
-                  : "text-slate-400 hover:bg-white/[0.05] hover:text-slate-200"
-              )}>
-              <div className={cn(
-                "w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 transition-colors",
-                active      ? "bg-white/10 text-white"
-                : highlight ? "text-amber-400"
-                : "text-slate-500"
-              )}>
-                <Icon className="w-4 h-4" strokeWidth={active ? 2.5 : 2} />
-              </div>
-              {label}
-              {highlight && (
-                <span className="ml-auto w-2 h-2 rounded-full bg-amber-400 animate-pulse flex-shrink-0" />
-              )}
-              {active && !highlight && (
-                <div className="ml-auto w-1.5 h-1.5 rounded-full bg-white/60 flex-shrink-0" />
-              )}
-            </Link>
-          );
-        })}
-      </nav>
-
-      {/* User footer */}
-      <div className="relative px-3 pb-5 border-t border-white/[0.06] pt-3 space-y-1">
-        {!isAdmin && (
-          <div className={cn(
-            "flex items-center gap-2 mx-3 mb-2 px-2.5 py-1.5 rounded-lg text-[11px] font-semibold",
-            isVerified
-              ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
-              : isPending
-              ? "bg-amber-500/10 text-amber-400 border border-amber-500/20"
-              : "bg-amber-500/10 text-amber-400 border border-amber-500/20"
-          )}>
-            {isVerified
-              ? <><ShieldCheck className="w-3 h-3" /> Identity Verified</>
-              : isPending
-              ? <><Clock className="w-3 h-3" /> Pending Verification</>
-              : <><ShieldAlert className="w-3 h-3" /> KYC Required</>
-            }
-          </div>
-        )}
-
-        <div className="flex items-center gap-3 px-3 py-2">
-          <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-xs font-bold text-white flex-shrink-0 shadow-sm">
-            {getInitials(user.name)}
-          </div>
-          <div className="min-w-0 flex-1">
-            <p className="text-[13px] font-medium text-slate-200 truncate">{user.name}</p>
-            <p className="text-[11px] text-slate-500 truncate">{user.email}</p>
-          </div>
-        </div>
-
-        <button
-          onClick={() => signOut({ callbackUrl: "/login" })}
-          className="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-[13px] font-medium text-slate-500 hover:bg-white/[0.05] hover:text-red-400 transition-all group">
-          <div className="w-8 h-8 rounded-lg flex items-center justify-center group-hover:bg-red-500/10 transition-colors">
-            <LogOut className="w-3.5 h-3.5" />
-          </div>
-          Sign out
-        </button>
-      </div>
-    </aside>
-  );
+  const requests = await prisma.withdrawalRequest.findMany({
+    where:   { userId: session.user.id },
+    orderBy: { createdAt: "desc" },
+    take: 10,
+  });
 
   return (
-    <>
-      {/* ── Mobile top bar ─────────────────────────────── */}
-      <header className="lg:hidden fixed top-0 inset-x-0 z-40 flex items-center gap-3 px-4 h-14 bg-[#0d1421] border-b border-white/[0.06]">
-        <button
-          onClick={() => setOpen(true)}
-          className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/10 transition-colors"
-          aria-label="Open menu"
-        >
-          <Menu className="w-5 h-5" />
-        </button>
-        <div className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded-lg bg-white/10 flex items-center justify-center shadow-md shadow-black/20">
-            <Wallet className="w-[15px] h-[15px] text-white" strokeWidth={2.5} />
-          </div>
-          <span className="font-semibold text-white text-[15px] tracking-tight">NexaBank</span>
+    <div className="min-h-screen p-6 lg:p-8">
+      <div className="max-w-2xl">
+        {/* Header */}
+        <div className="mb-7 fade-up">
+          <h1 className="text-2xl font-semibold text-slate-900">Send Funds</h1>
+          <p className="text-slate-400 text-sm mt-1">Submit a request — admin will review and approve</p>
         </div>
-      </header>
 
-      {/* ── Backdrop ───────────────────────────────────── */}
-      <div
-        onClick={() => setOpen(false)}
-        aria-hidden="true"
-        className={cn(
-          "lg:hidden fixed inset-0 z-40 bg-black/60 backdrop-blur-sm transition-opacity duration-300",
-          open ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
+        {/* Balance display */}
+        <div className="fade-up delay-1 mb-5 rounded-2xl p-5 border border-slate-200 bg-gradient-to-br from-slate-50 to-white">
+          <p className="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-1">Available Balance</p>
+          <p className="text-3xl font-semibold text-slate-900 money tracking-tight">
+            {formatMoney(account.balance, account.currency)}
+          </p>
+          <p className="text-xs text-slate-400 mt-1">{account.currency} Account</p>
+        </div>
+
+        {/* Info banner */}
+        <div className="fade-up delay-2 flex items-start gap-3 p-4 rounded-xl bg-slate-50 border border-slate-100 mb-5">
+          <Info className="w-4 h-4 text-slate-400 flex-shrink-0 mt-0.5" />
+          <p className="text-xs text-slate-500 leading-relaxed">
+            Send requests are reviewed by an admin. You can only have one pending request at a time.
+            Once approved, funds will be deducted from your account.
+          </p>
+        </div>
+
+        {/* Form card */}
+        <div className="card p-6 fade-up delay-2">
+          <h2 className="text-[14px] font-semibold text-slate-800 mb-5">New Request</h2>
+          <WithdrawForm
+            maxAmount={account.balance / 100}
+            currency={account.currency}
+            hasPending={hasPending}
+          />
+        </div>
+
+        {/* Request history */}
+        {requests.length > 0 && (
+          <div className="card mt-5 fade-up delay-3">
+            <div className="px-6 py-4 border-b border-slate-100">
+              <h2 className="text-[14px] font-semibold text-slate-800">Request History</h2>
+            </div>
+            <div className="divide-y divide-slate-50">
+              {requests.map((r) => {
+                const cfg  = STATUS_CONFIG[r.status];
+                const Icon = cfg.icon;
+                return (
+                  <div key={r.id} className="flex items-center gap-4 px-6 py-4">
+                    <div className={cn("w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 border", cfg.bg, cfg.border)}>
+                      <Icon className={cn("w-4 h-4", cfg.text)} strokeWidth={2} />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[13px] font-semibold text-slate-800 money">
+                        {formatMoney(r.amount, r.currency)}
+                      </p>
+                      <p className="text-[11px] text-slate-400 mt-0.5">{formatDateTime(r.createdAt)}</p>
+                      {r.adminNote && (
+                        <p className="text-[11px] text-slate-500 italic mt-0.5">"{r.adminNote}"</p>
+                      )}
+                    </div>
+                    <span className={cn("text-[11px] font-semibold px-2.5 py-1 rounded-full border", cfg.bg, cfg.border, cfg.text)}>
+                      {cfg.label}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
         )}
-      />
-
-      {/* ── Sidebar ────────────────────────────────────── */}
-      {sidebarContent}
-    </>
+      </div>
+    </div>
   );
 }

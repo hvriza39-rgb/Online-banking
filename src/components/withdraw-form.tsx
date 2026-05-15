@@ -19,7 +19,7 @@ interface WithdrawFormProps {
 }
 
 const SEND_TYPES = [
-  { value: "LOCAL",         label: "Local",         sub: "Within the US", icon: MapPin  },
+  { value: "LOCAL",         label: "Local",         sub: "Within the US",    icon: MapPin },
   { value: "INTERNATIONAL", label: "International", sub: "Overseas transfer", icon: Globe },
 ];
 
@@ -34,12 +34,17 @@ const labelClass = "block text-xs font-semibold text-slate-500 uppercase trackin
 
 export function WithdrawForm({ maxAmount, currency, hasPending }: WithdrawFormProps) {
   const router = useRouter();
-  const [error, setError]           = useState<string | null>(null);
-  const [sendType, setSendType]     = useState<"LOCAL" | "INTERNATIONAL">("LOCAL");
+  const [error, setError]             = useState<string | null>(null);
   const [showSupport, setShowSupport] = useState(false);
 
-  const { register, handleSubmit, formState: { errors, isSubmitting } } =
-    useForm<WithdrawalRequestInput>({ resolver: zodResolver(withdrawalRequestSchema) });
+  const { register, handleSubmit, setValue, watch, formState: { errors, isSubmitting } } =
+    useForm<WithdrawalRequestInput>({
+      resolver:      zodResolver(withdrawalRequestSchema),
+      defaultValues: { sendType: "LOCAL" },
+    });
+
+  // sendType is now watched from RHF state, not useState
+  const sendType = watch("sendType");
 
   const onSubmit = async (data: WithdrawalRequestInput) => {
     setError(null);
@@ -47,7 +52,7 @@ export function WithdrawForm({ maxAmount, currency, hasPending }: WithdrawFormPr
     const res  = await fetch("/api/withdrawals", {
       method:  "POST",
       headers: { "Content-Type": "application/json" },
-      body:    JSON.stringify({ ...data, sendType }),
+      body:    JSON.stringify(data),
     });
     const json = await res.json();
     if (!res.ok) { setError(json.error ?? "Request failed"); return; }
@@ -73,7 +78,7 @@ export function WithdrawForm({ maxAmount, currency, hasPending }: WithdrawFormPr
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
 
-      {/* Send type */}
+      {/* Send type — uses setValue to keep it inside RHF */}
       <div>
         <label className={labelClass}>Transfer Type</label>
         <div className="grid grid-cols-2 gap-2">
@@ -81,7 +86,7 @@ export function WithdrawForm({ maxAmount, currency, hasPending }: WithdrawFormPr
             <button
               key={value}
               type="button"
-              onClick={() => setSendType(value as "LOCAL" | "INTERNATIONAL")}
+              onClick={() => setValue("sendType", value as "LOCAL" | "INTERNATIONAL", { shouldValidate: true })}
               className={cn(
                 "flex items-center gap-3 px-4 py-3 rounded-xl border text-left transition-all",
                 sendType === value
@@ -163,7 +168,6 @@ export function WithdrawForm({ maxAmount, currency, hasPending }: WithdrawFormPr
           </p>
         )}
 
-        {/* Support callout */}
         {showSupport && (
           <div className="mt-3 flex items-start gap-3 p-4 bg-blue-50 border border-blue-100 rounded-xl">
             <MessageCircle className="w-4 h-4 text-blue-500 flex-shrink-0 mt-0.5" />

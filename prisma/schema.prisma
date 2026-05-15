@@ -44,6 +44,11 @@ enum WithdrawalStatus {
   REJECTED
 }
 
+enum SendType {
+  LOCAL
+  INTERNATIONAL
+}
+
 model User {
   id           String    @id @default(cuid())
   email        String    @unique
@@ -62,15 +67,15 @@ model User {
 }
 
 model Kyc {
-  id          String    @id @default(cuid())
-  userId      String    @unique
-  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id          String   @id @default(cuid())
+  userId      String   @unique
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   fullName    String
   dateOfBirth DateTime
   address     String
   idType      IdType
   idNumber    String
-  submittedAt DateTime  @default(now())
+  submittedAt DateTime @default(now())
   verifiedAt  DateTime?
 
   @@map("kyc_submissions")
@@ -105,16 +110,20 @@ model Transaction {
 }
 
 model WithdrawalRequest {
-  id        String           @id @default(cuid())
-  userId    String
-  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
-  amount    Int
-  currency  Currency
-  status    WithdrawalStatus @default(PENDING)
-  note      String?
-  adminNote String?
-  createdAt DateTime         @default(now())
-  updatedAt DateTime         @updatedAt
+  id                     String           @id @default(cuid())
+  userId                 String
+  user                   User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  amount                 Int
+  currency               Currency
+  sendType               SendType         @default(LOCAL)
+  recipientAccountNumber String
+  recipientName          String
+  routingCode            String
+  status                 WithdrawalStatus @default(PENDING)
+  note                   String?
+  adminNote              String?
+  createdAt              DateTime         @default(now())
+  updatedAt              DateTime         @updatedAt
 
   @@map("withdrawal_requests")
 }

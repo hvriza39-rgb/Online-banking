@@ -6,7 +6,7 @@ import { signOut } from "next-auth/react";
 import { useEffect, useState } from "react";
 import {
   LayoutDashboard, ArrowDownToLine, ClipboardList,
-  Users, LogOut, Wallet, ShieldCheck, ShieldAlert, Clock,MessageSquare, Menu, X,
+  Users, LogOut, Wallet, ShieldCheck, ShieldAlert, Clock, MessageSquare, Menu, X,
 } from "lucide-react";
 import { cn, getInitials } from "@/lib/utils";
 
@@ -19,6 +19,7 @@ const adminLinks = [
   { href: "/admin",             label: "Overview",    icon: LayoutDashboard, locked: false, highlight: false, pending: false },
   { href: "/admin/users",       label: "Users",       icon: Users,           locked: false, highlight: false, pending: false },
   { href: "/admin/withdrawals", label: "Withdrawals", icon: ArrowDownToLine, locked: false, highlight: false, pending: false },
+  { href: "/admin/support",     label: "Support",     icon: MessageSquare,   locked: false, highlight: false, pending: false },
 ];
 
 export function Sidebar({ user, kycStatus }: SidebarProps) {
@@ -35,26 +36,20 @@ export function Sidebar({ user, kycStatus }: SidebarProps) {
     return () => { document.body.style.overflow = ""; };
   }, [open]);
 
-  
   const userLinks = [
-  { href: "/dashboard",    label: "Overview",            icon: LayoutDashboard, locked: false,       highlight: false, pending: false },
-
-  { href: "/withdraw",     label: "Send",                icon: ArrowDownToLine, locked: !isVerified, highlight: false, pending: false },
-
-  { href: "/transactions", label: "History",             icon: ClipboardList,   locked: false,       highlight: false, pending: false },
-
-  { href: "/support", label: "Support",        icon: MessageSquare,   locked: false,       highlight: false, pending: false },
-
-  ...(!isVerified && !isPending
-    ? [{ href: "/kyc", label: "Verify Identity",      icon: ShieldAlert, locked: false, highlight: true,  pending: false }]
-    : []
-  ),
-
-  ...(isPending
-    ? [{ href: "/kyc", label: "Pending Verification", icon: Clock,       locked: false, highlight: false, pending: true }]
-    : []
-  ),
-];
+    { href: "/dashboard",    label: "Overview",            icon: LayoutDashboard, locked: false,       highlight: false, pending: false },
+    { href: "/withdraw",     label: "Send",                icon: ArrowDownToLine, locked: !isVerified, highlight: false, pending: false },
+    { href: "/transactions", label: "History",             icon: ClipboardList,   locked: false,       highlight: false, pending: false },
+    { href: "/support",      label: "Support",             icon: MessageSquare,   locked: false,       highlight: false, pending: false },
+    ...(!isVerified && !isPending
+      ? [{ href: "/kyc", label: "Verify Identity",      icon: ShieldAlert, locked: false, highlight: true,  pending: false }]
+      : []
+    ),
+    ...(isPending
+      ? [{ href: "/kyc", label: "Pending Verification", icon: Clock,       locked: false, highlight: false, pending: true  }]
+      : []
+    ),
+  ];
 
   const links = isAdmin ? adminLinks : userLinks;
 
@@ -65,14 +60,14 @@ export function Sidebar({ user, kycStatus }: SidebarProps) {
 
   const sidebarContent = (
     <aside className={cn(
-      "w-64 flex-shrink-0 flex flex-col h-screen bg-white border-r border-[#e4e7ef] text-[#6b7280] relative overflow-y-auto",
+      "w-64 flex-shrink-0 flex flex-col h-screen bg-white border-r border-[#e4e7ef] text-[#6b7280]",
       "fixed inset-y-0 left-0 z-50 transition-transform duration-300 ease-in-out",
       "lg:static lg:translate-x-0 lg:z-auto",
       open ? "translate-x-0" : "-translate-x-full lg:translate-x-0",
     )}>
 
-      {/* Logo */}
-      <div className="flex items-center justify-between gap-3 px-5 h-[70px] border-b border-[#e4e7ef]">
+      {/* Logo — flex-shrink-0 keeps it from being squeezed */}
+      <div className="flex-shrink-0 flex items-center justify-between gap-3 px-5 h-[70px] border-b border-[#e4e7ef]">
         <div className="flex items-center gap-3">
           <div className="w-9 h-9 bg-[#0f1117] rounded-xl flex items-center justify-center">
             <Wallet className="w-[18px] h-[18px] text-white" strokeWidth={2.5} />
@@ -87,7 +82,6 @@ export function Sidebar({ user, kycStatus }: SidebarProps) {
             )}
           </div>
         </div>
-
         <button
           onClick={() => setOpen(false)}
           className="lg:hidden p-1.5 rounded-lg text-[#9ca3af] hover:text-[#0f1117] hover:bg-[#f4f6fb] transition-colors"
@@ -97,8 +91,8 @@ export function Sidebar({ user, kycStatus }: SidebarProps) {
         </button>
       </div>
 
-      {/* Nav links */}
-      <nav className="flex-1 px-3 py-5 space-y-0.5">
+      {/* Nav — flex-1 + overflow-y-auto: scrolls internally, never pushes footer down */}
+      <nav className="flex-1 min-h-0 overflow-y-auto px-3 py-5 space-y-0.5">
         <p className="text-[10px] font-semibold uppercase tracking-widest text-[#c4c9d4] px-3 mb-3">
           {isAdmin ? "Management" : "Banking"}
         </p>
@@ -165,8 +159,8 @@ export function Sidebar({ user, kycStatus }: SidebarProps) {
         })}
       </nav>
 
-      {/* User footer */}
-      <div className="px-3 pb-5 border-t border-[#e4e7ef] pt-3 space-y-1">
+      {/* Footer — flex-shrink-0 keeps it pinned at the bottom always */}
+      <div className="flex-shrink-0 px-3 pb-5 border-t border-[#e4e7ef] pt-3 space-y-1">
         {!isAdmin && (
           <div className={cn(
             "flex items-center gap-2 mx-3 mb-2 px-2.5 py-1.5 rounded-lg text-[11px] font-semibold",

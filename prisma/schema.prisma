@@ -19,6 +19,7 @@ enum Currency {
 }
 
 enum KycStatus {
+  NONE
   PENDING
   SUBMITTED
   VERIFIED
@@ -49,7 +50,7 @@ model User {
   name         String
   passwordHash String
   role         Role      @default(USER)
-  kycStatus    KycStatus @default(PENDING)
+  kycStatus    KycStatus @default(NONE)
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
 
@@ -61,15 +62,15 @@ model User {
 }
 
 model Kyc {
-  id          String   @id @default(cuid())
-  userId      String   @unique
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id          String    @id @default(cuid())
+  userId      String    @unique
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   fullName    String
   dateOfBirth DateTime
   address     String
   idType      IdType
   idNumber    String
-  submittedAt DateTime @default(now())
+  submittedAt DateTime  @default(now())
   verifiedAt  DateTime?
 
   @@map("kyc_submissions")

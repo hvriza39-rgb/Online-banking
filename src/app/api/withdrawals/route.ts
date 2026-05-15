@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { withdrawalRequestSchema } from "@/lib/validators";
 import { majorToCents } from "@/lib/utils";
 
-// POST /api/withdrawals — user submits a withdrawal request
+// POST /api/withdrawals — user submits a send request
 export async function POST(req: NextRequest) {
   try {
     const session = await auth();
@@ -12,7 +12,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
     if (session.user.role === "ADMIN") {
-      return NextResponse.json({ error: "Admins cannot request withdrawals" }, { status: 403 });
+      return NextResponse.json({ error: "Admins cannot submit send requests" }, { status: 403 });
     }
 
     const body   = await req.json();
@@ -46,7 +46,7 @@ export async function POST(req: NextRequest) {
 
     if (pending) {
       return NextResponse.json(
-        { error: "You already have a pending withdrawal request" },
+        { error: "You already have a pending send request" },
         { status: 400 }
       );
     }

@@ -41,7 +41,6 @@ export async function PATCH(
     }
 
     if (action === "APPROVED") {
-      // Fetch current account balance
       const account = await prisma.account.findUnique({
         where: { userId: request.userId },
       });
@@ -52,7 +51,7 @@ export async function PATCH(
 
       if (account.balance < request.amount) {
         return NextResponse.json(
-          { error: "User has insufficient balance to fulfill this withdrawal" },
+          { error: "User has insufficient balance to fulfill this request" },
           { status: 400 }
         );
       }
@@ -71,7 +70,7 @@ export async function PATCH(
             type:         "WITHDRAWAL",
             amount:       request.amount,
             balanceAfter: newBalance,
-            note:         `Withdrawal approved${adminNote ? `: ${adminNote}` : ""}`,
+            note:         `Send approved${adminNote ? `: ${adminNote}` : ""}`,
           },
         }),
         prisma.withdrawalRequest.update({

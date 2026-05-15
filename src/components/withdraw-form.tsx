@@ -5,7 +5,10 @@ import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { withdrawalRequestSchema, type WithdrawalRequestInput } from "@/lib/validators";
-import { Loader2, AlertCircle, Clock, ArrowUpRight } from "lucide-react";
+import {
+  Loader2, AlertCircle, Clock, ArrowUpRight,
+  Globe, MapPin, HelpCircle, MessageCircle,
+} from "lucide-react";
 import { cn, currencySymbol } from "@/lib/utils";
 import { Currency } from "@prisma/client";
 
@@ -15,9 +18,25 @@ interface WithdrawFormProps {
   hasPending: boolean;
 }
 
+const SEND_TYPES = [
+  { value: "LOCAL",         label: "Local",         sub: "Within the US", icon: MapPin  },
+  { value: "INTERNATIONAL", label: "International", sub: "Overseas transfer", icon: Globe },
+];
+
+const inputClass = (hasError: boolean) =>
+  cn(
+    "w-full px-4 py-3 rounded-xl border text-sm outline-none transition-all",
+    "focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 bg-white",
+    hasError ? "border-rose-300 bg-rose-50" : "border-slate-200"
+  );
+
+const labelClass = "block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2";
+
 export function WithdrawForm({ maxAmount, currency, hasPending }: WithdrawFormProps) {
   const router = useRouter();
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError]           = useState<string | null>(null);
+  const [sendType, setSendType]     = useState<"LOCAL" | "INTERNATIONAL">("LOCAL");
+  const [showSupport, setShowSupport] = useState(false);
 
   const { register, handleSubmit, formState: { errors, isSubmitting } } =
     useForm<WithdrawalRequestInput>({ resolver: zodResolver(withdrawalRequestSchema) });
@@ -26,8 +45,9 @@ export function WithdrawForm({ maxAmount, currency, hasPending }: WithdrawFormPr
     setError(null);
     if (data.amount > maxAmount) { setError("Amount exceeds available balance"); return; }
     const res  = await fetch("/api/withdrawals", {
-      method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data),
+      method:  "POST",
+      headers: { "Content-Type": "application/json" },
+      body:    JSON.stringify({ ...data, sendType }),
     });
     const json = await res.json();
     if (!res.ok) { setError(json.error ?? "Request failed"); return; }
@@ -39,9 +59,9 @@ export function WithdrawForm({ maxAmount, currency, hasPending }: WithdrawFormPr
       <div className="flex items-start gap-3 p-4 bg-amber-50 border border-amber-100 rounded-xl">
         <Clock className="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" />
         <div>
-          <p className="text-sm font-medium text-amber-800">Pending request active</p>
+          <p className="text-sm font-medium text-amber-800">Transfer pending</p>
           <p className="text-xs text-amber-600 mt-0.5">
-            You already have a pending send request. Please wait for admin approval before submitting another.
+            You already have a pending transfer. Please wait for it to be processed before submitting another.
           </p>
         </div>
       </div>
@@ -51,12 +71,123 @@ export function WithdrawForm({ maxAmount, currency, hasPending }: WithdrawFormPr
   const sym = currencySymbol(currency);
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+
+      {/* Send type */}
+      <div>
+        <label className={labelClass}>Transfer Type</label>
+        <div className="grid grid-cols-2 gap-2">
+          {SEND_TYPES.map(({ value, label, sub, icon: Icon }) => (
+            <button
+              key={value}
+              type="button"
+              onClick={() => setSendType(value as "LOCAL" | "INTERNATIONAL")}
+              className={cn(
+                "flex items-center gap-3 px-4 py-3 rounded-xl border text-left transition-all",
+                sendType === value
+                  ? "border-blue-500 bg-blue-50"
+                  : "border-slate-200 bg-white hover:border-slate-300"
+              )}
+            >
+              <div className={cn(
+                "w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0",
+                sendType === value ? "bg-blue-100" : "bg-slate-100"
+              )}>
+                <Icon className={cn("w-4 h-4", sendType === value ? "text-blue-600" : "text-slate-400")} />
+              </div>
+              <div>
+                <p className={cn("text-[13px] font-semibold", sendType === value ? "text-blue-700" : "text-slate-700")}>
+                  {label}
+                </p>
+                <p className="text-[11px] text-slate-400">{sub}</p>
+              </div>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Recipient account number */}
+      <div>
+        <label className={labelClass}>Recipient Account Number</label>
+        <input
+          {...register("recipientAccountNumber")}
+          placeholder="e.g. 12345678"
+          className={cn(inputClass(!!errors.recipientAccountNumber), "font-mono tracking-wider")}
+        />
+        {errors.recipientAccountNumber && (
+          <p className="mt-1.5 text-xs text-rose-500 flex items-center gap-1">
+            <AlertCircle className="w-3 h-3" />{errors.recipientAccountNumber.message}
+          </p>
+        )}
+      </div>
+
+      {/* Recipient full name */}
+      <div>
+        <label className={labelClass}>Recipient Full Name</label>
+        <input
+          {...register("recipientName")}
+          placeholder="As it appears on their account"
+          className={inputClass(!!errors.recipientName)}
+        />
+        {errors.recipientName && (
+          <p className="mt-1.5 text-xs text-rose-500 flex items-center gap-1">
+            <AlertCircle className="w-3 h-3" />{errors.recipientName.message}
+          </p>
+        )}
+      </div>
+
+      {/* Routing / Sort code */}
+      <div>
+        <div className="flex items-center justify-between mb-2">
+          <label className={cn(labelClass, "mb-0")}>
+            {sendType === "LOCAL" ? "Routing Number" : "Sort Code"}
+          </label>
+          <button
+            type="button"
+            onClick={() => setShowSupport((v) => !v)}
+            className="flex items-center gap-1 text-[11px] text-slate-400 hover:text-blue-500 transition-colors"
+          >
+            <HelpCircle className="w-3 h-3" />
+            Don't have a {sendType === "LOCAL" ? "routing number" : "sort code"}?
+          </button>
+        </div>
+
+        <input
+          {...register("routingCode")}
+          placeholder={sendType === "LOCAL" ? "e.g. 021000021" : "e.g. 20-00-00"}
+          className={cn(inputClass(!!errors.routingCode), "font-mono tracking-wider")}
+        />
+        {errors.routingCode && (
+          <p className="mt-1.5 text-xs text-rose-500 flex items-center gap-1">
+            <AlertCircle className="w-3 h-3" />{errors.routingCode.message}
+          </p>
+        )}
+
+        {/* Support callout */}
+        {showSupport && (
+          <div className="mt-3 flex items-start gap-3 p-4 bg-blue-50 border border-blue-100 rounded-xl">
+            <MessageCircle className="w-4 h-4 text-blue-500 flex-shrink-0 mt-0.5" />
+            <div className="flex-1">
+              <p className="text-[12px] font-semibold text-blue-800 mb-0.5">Need help?</p>
+              <p className="text-[11px] text-blue-600 leading-relaxed mb-2">
+                You can find your {sendType === "LOCAL" ? "routing number" : "sort code"} on your bank statement or by contacting your bank.
+                Our support team can also help you locate it.
+              </p>
+              <a
+                href="/support"
+                className="inline-flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white text-[11px] font-semibold px-3 py-1.5 rounded-lg transition-all"
+              >
+                <MessageCircle className="w-3 h-3" />
+                Contact Support
+              </a>
+            </div>
+          </div>
+        )}
+      </div>
+
       {/* Amount */}
       <div>
-        <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">
-          Amount ({currency})
-        </label>
+        <label className={labelClass}>Amount ({currency})</label>
         <div className="relative">
           <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm font-medium">{sym}</span>
           <input
@@ -68,7 +199,7 @@ export function WithdrawForm({ maxAmount, currency, hasPending }: WithdrawFormPr
             placeholder="0.00"
             className={cn(
               "w-full pl-8 pr-4 py-3 rounded-xl border text-sm outline-none transition-all money",
-              "focus:ring-2 focus:ring-slate-300 focus:border-slate-400",
+              "focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500",
               errors.amount ? "border-rose-300 bg-rose-50" : "border-slate-200 bg-white"
             )}
           />
@@ -81,13 +212,13 @@ export function WithdrawForm({ maxAmount, currency, hasPending }: WithdrawFormPr
 
       {/* Note */}
       <div>
-        <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">
+        <label className={labelClass}>
           Note <span className="text-slate-300 normal-case font-normal">(optional)</span>
         </label>
         <input
           {...register("note")}
-          placeholder="Reason for sending"
-          className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white text-sm outline-none transition-all focus:ring-2 focus:ring-slate-300 focus:border-slate-400"
+          placeholder="Reason for transfer"
+          className={inputClass(false)}
         />
       </div>
 
@@ -104,7 +235,7 @@ export function WithdrawForm({ maxAmount, currency, hasPending }: WithdrawFormPr
       >
         {isSubmitting
           ? <><Loader2 className="w-4 h-4 animate-spin" />Submitting…</>
-          : <><ArrowUpRight className="w-4 h-4" />Submit Send Request</>
+          : <><ArrowUpRight className="w-4 h-4" />Submit Transfer</>
         }
       </button>
     </form>

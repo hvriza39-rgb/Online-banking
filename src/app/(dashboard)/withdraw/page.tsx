@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import { WithdrawForm } from "@/components/withdraw-form";
 import { formatMoney, formatDateTime, cn } from "@/lib/utils";
-import { Clock, CheckCircle2, XCircle, Info } from "lucide-react";
+import { Clock, CheckCircle2, XCircle } from "lucide-react";
 import { WithdrawalStatus } from "@prisma/client";
 
 export const metadata: Metadata = { title: "Send Funds" };
@@ -38,10 +38,11 @@ export default async function WithdrawPage() {
   return (
     <div className="min-h-screen p-6 lg:p-8">
       <div className="max-w-2xl">
+
         {/* Header */}
         <div className="mb-7 fade-up">
           <h1 className="text-2xl font-semibold text-slate-900">Send Funds</h1>
-          <p className="text-slate-400 text-sm mt-1">Submit a request — admin will review and approve</p>
+          <p className="text-slate-400 text-sm mt-1">Transfer funds to a local or international account</p>
         </div>
 
         {/* Balance display */}
@@ -53,18 +54,9 @@ export default async function WithdrawPage() {
           <p className="text-xs text-slate-400 mt-1">{account.currency} Account</p>
         </div>
 
-        {/* Info banner */}
-        <div className="fade-up delay-2 flex items-start gap-3 p-4 rounded-xl bg-slate-50 border border-slate-100 mb-5">
-          <Info className="w-4 h-4 text-slate-400 flex-shrink-0 mt-0.5" />
-          <p className="text-xs text-slate-500 leading-relaxed">
-            Send requests are reviewed by an admin. You can only have one pending request at a time.
-            Once approved, funds will be deducted from your account.
-          </p>
-        </div>
-
         {/* Form card */}
         <div className="card p-6 fade-up delay-2">
-          <h2 className="text-[14px] font-semibold text-slate-800 mb-5">New Request</h2>
+          <h2 className="text-[14px] font-semibold text-slate-800 mb-5">New Transfer</h2>
           <WithdrawForm
             maxAmount={account.balance / 100}
             currency={account.currency}
@@ -76,7 +68,7 @@ export default async function WithdrawPage() {
         {requests.length > 0 && (
           <div className="card mt-5 fade-up delay-3">
             <div className="px-6 py-4 border-b border-slate-100">
-              <h2 className="text-[14px] font-semibold text-slate-800">Request History</h2>
+              <h2 className="text-[14px] font-semibold text-slate-800">Transfer History</h2>
             </div>
             <div className="divide-y divide-slate-50">
               {requests.map((r) => {
@@ -92,8 +84,8 @@ export default async function WithdrawPage() {
                         {formatMoney(r.amount, r.currency)}
                       </p>
                       <p className="text-[11px] text-slate-400 mt-0.5">{formatDateTime(r.createdAt)}</p>
-                      {r.adminNote && (
-                        <p className="text-[11px] text-slate-500 italic mt-0.5">"{r.adminNote}"</p>
+                      {r.note && (
+                        <p className="text-[11px] text-slate-500 italic mt-0.5">"{r.note}"</p>
                       )}
                     </div>
                     <span className={cn("text-[11px] font-semibold px-2.5 py-1 rounded-full border", cfg.bg, cfg.border, cfg.text)}>
@@ -105,6 +97,7 @@ export default async function WithdrawPage() {
             </div>
           </div>
         )}
+
       </div>
     </div>
   );

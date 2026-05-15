@@ -35,19 +35,26 @@ export function Sidebar({ user, kycStatus }: SidebarProps) {
     return () => { document.body.style.overflow = ""; };
   }, [open]);
 
+  
   const userLinks = [
-    { href: "/dashboard",    label: "Overview",            icon: LayoutDashboard, locked: false,       highlight: false, pending: false },
-    { href: "/withdraw",     label: "Send",                icon: ArrowDownToLine, locked: !isVerified, highlight: false, pending: false },
-    { href: "/transactions", label: "History",             icon: ClipboardList,   locked: false,       highlight: false, pending: false },
-    ...(!isVerified && !isPending
-      ? [{ href: "/kyc", label: "Verify Identity",      icon: ShieldAlert, locked: false, highlight: true,  pending: false }]
-      : []
-    ),
-    ...(isPending
-      ? [{ href: "/kyc", label: "Pending Verification", icon: Clock,       locked: false, highlight: false, pending: true  }]
-      : []
-    ),
-  ];
+  { href: "/dashboard",    label: "Overview",            icon: LayoutDashboard, locked: false,       highlight: false, pending: false },
+
+  { href: "/withdraw",     label: "Send",                icon: ArrowDownToLine, locked: !isVerified, highlight: false, pending: false },
+
+  { href: "/transactions", label: "History",             icon: ClipboardList,   locked: false,       highlight: false, pending: false },
+
+  { href: "/dashboard/support", label: "Support",        icon: MessageSquare,   locked: false,       highlight: false, pending: false },
+
+  ...(!isVerified && !isPending
+    ? [{ href: "/kyc", label: "Verify Identity",      icon: ShieldAlert, locked: false, highlight: true,  pending: false }]
+    : []
+  ),
+
+  ...(isPending
+    ? [{ href: "/kyc", label: "Pending Verification", icon: Clock,       locked: false, highlight: false, pending: true }]
+    : []
+  ),
+];
 
   const links = isAdmin ? adminLinks : userLinks;
 

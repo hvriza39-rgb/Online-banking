@@ -4,8 +4,6 @@ import { formatMoney, formatDateTime, cn } from "@/lib/utils";
 import {
   Users,
   ArrowUpToLine,
-  Clock,
-  CheckCircle2,
   Activity,
   ShieldAlert,
   MessageSquare,
@@ -42,7 +40,6 @@ export default async function AdminPage() {
       label: "Support",
       badge: pendingKyc > 0 ? pendingKyc : null,
       badgeBg: "bg-blue-500",
-      active: false,
     },
     {
       href: "/admin/users",
@@ -50,7 +47,6 @@ export default async function AdminPage() {
       label: "Users",
       badge: totalUsers > 0 ? totalUsers : null,
       badgeBg: "bg-violet-500",
-      active: false,
     },
     {
       href: "/admin/withdrawals",
@@ -58,40 +54,12 @@ export default async function AdminPage() {
       label: "Withdrawals",
       badge: pendingWithdrawals > 0 ? pendingWithdrawals : null,
       badgeBg: "bg-orange-400",
-      active: false,
-    },
-  ];
-
-  const stats = [
-    {
-      label: "Total Users",
-      value: String(totalUsers),
-      icon: Users,
-      bg: "bg-blue-50",
-      iconColor: "text-blue-600",
-      sub: "registered accounts",
-    },
-    {
-      label: "Pending Withdrawals",
-      value: String(pendingWithdrawals),
-      icon: Clock,
-      bg: "bg-amber-50",
-      iconColor: "text-amber-600",
-      sub: "awaiting review",
-    },
-    {
-      label: "Approved Today",
-      value: String(approvedToday),
-      icon: CheckCircle2,
-      bg: "bg-emerald-50",
-      iconColor: "text-emerald-600",
-      sub: "processed today",
     },
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50/60 p-4 lg:p-8">
-      <div className="max-w-2xl mx-auto lg:max-w-5xl">
+    <div className="min-h-screen bg-gray-50 p-4 lg:p-8">
+      <div className="max-w-lg mx-auto lg:max-w-5xl">
 
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
@@ -111,21 +79,19 @@ export default async function AdminPage() {
           </div>
         </div>
 
-        {/* Nav cards — full-width tiles like the screenshot */}
+        {/* Nav cards — 3 equal columns */}
         <div className="grid grid-cols-3 gap-3 mb-5">
           {navCards.map(({ href, icon: Icon, label, badge, badgeBg }) => (
             <Link
               key={href}
               href={href}
-              className="relative bg-white rounded-2xl border border-slate-100 shadow-sm p-4 flex flex-col items-center justify-center gap-2 hover:shadow-md active:scale-[0.97] transition-all min-h-[90px]"
+              className="relative bg-white rounded-2xl border border-slate-100 shadow-sm flex flex-col items-center justify-center gap-2 py-5 hover:shadow-md active:scale-[0.97] transition-all"
             >
               {badge !== null && (
-                <span
-                  className={cn(
-                    "absolute top-2.5 right-2.5 min-w-[20px] h-5 px-1.5 rounded-full text-white text-[10px] font-bold flex items-center justify-center",
-                    badgeBg
-                  )}
-                >
+                <span className={cn(
+                  "absolute top-2.5 right-2.5 min-w-[20px] h-5 px-1.5 rounded-full text-white text-[10px] font-bold flex items-center justify-center",
+                  badgeBg
+                )}>
                   {badge}
                 </span>
               )}
@@ -135,24 +101,28 @@ export default async function AdminPage() {
           ))}
         </div>
 
-        {/* Stats row */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-5">
-          {stats.map((s) => {
+        {/* Stats — stacked on mobile, 3-col on desktop */}
+        <div className="flex flex-col lg:grid lg:grid-cols-3 gap-3 mb-5">
+          {[
+            { label: "Total Users",         value: totalUsers,         icon: Users,        bg: "bg-blue-50",    iconColor: "text-blue-600",    sub: "registered accounts" },
+            { label: "Pending Withdrawals", value: pendingWithdrawals, icon: ArrowUpToLine, bg: "bg-amber-50",  iconColor: "text-amber-600",   sub: "awaiting review" },
+            { label: "Approved Today",      value: approvedToday,      icon: Activity,     bg: "bg-emerald-50", iconColor: "text-emerald-600", sub: "processed today" },
+          ].map((s) => {
             const Icon = s.icon;
             return (
-              <div key={s.label} className="bg-white rounded-2xl border border-slate-100 shadow-sm p-4">
+              <div key={s.label} className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
                 <div className={cn("w-9 h-9 rounded-xl flex items-center justify-center mb-3", s.bg)}>
                   <Icon className={cn("w-4 h-4", s.iconColor)} strokeWidth={2} />
                 </div>
-                <p className="text-2xl font-bold text-slate-900 tabular-nums">{s.value}</p>
-                <p className="text-[12px] font-medium text-slate-700 mt-0.5">{s.label}</p>
-                <p className="text-[11px] text-slate-400">{s.sub}</p>
+                <p className="text-3xl font-bold text-slate-900 tabular-nums">{s.value}</p>
+                <p className="text-[13px] font-semibold text-slate-700 mt-1">{s.label}</p>
+                <p className="text-[11px] text-slate-400 mt-0.5">{s.sub}</p>
               </div>
             );
           })}
         </div>
 
-        {/* Recent transactions — list style like the screenshot */}
+        {/* Recent Transactions */}
         <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
           <div className="flex items-center gap-2.5 px-5 py-4 border-b border-slate-100">
             <Activity className="w-4 h-4 text-blue-500" />
@@ -166,59 +136,40 @@ export default async function AdminPage() {
               {recentTransactions.map((tx) => {
                 const isCredit = tx.type === "CREDIT";
                 const initials = tx.account.user.name
-                  ? tx.account.user.name
-                      .split(" ")
-                      .map((n: string) => n[0])
-                      .slice(0, 2)
-                      .join("")
-                      .toUpperCase()
+                  ? tx.account.user.name.split(" ").map((n: string) => n[0]).slice(0, 2).join("").toUpperCase()
                   : "?";
 
                 return (
-                  <div
-                    key={tx.id}
-                    className="flex items-center gap-3.5 px-5 py-3.5 hover:bg-slate-50/60 transition-colors"
-                  >
+                  <div key={tx.id} className="flex items-center gap-3.5 px-5 py-4 hover:bg-slate-50/60 transition-colors">
                     {/* Avatar */}
                     <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center flex-shrink-0">
-                      <span className="text-[13px] font-bold text-slate-600">{initials}</span>
+                      <span className="text-[12px] font-bold text-slate-500">{initials}</span>
                     </div>
 
-                    {/* Name + note */}
+                    {/* Name + details */}
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <p className="text-[13.5px] font-semibold text-slate-800 truncate">
-                          {tx.account.user.name}
-                        </p>
-                        <span
-                          className={cn(
-                            "text-[10px] font-semibold px-1.5 py-0.5 rounded-full flex-shrink-0",
-                            isCredit
-                              ? "bg-emerald-100 text-emerald-700"
-                              : "bg-rose-100 text-rose-600"
-                          )}
-                        >
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <p className="text-[13.5px] font-semibold text-slate-800">{tx.account.user.name}</p>
+                        <span className={cn(
+                          "text-[10px] font-bold px-2 py-0.5 rounded-full",
+                          isCredit ? "bg-emerald-100 text-emerald-700" : "bg-rose-100 text-rose-600"
+                        )}>
                           {isCredit ? "CREDIT" : "DEBIT"}
                         </span>
                       </div>
-                      <p className="text-[11px] text-slate-400 truncate mt-0.5">
+                      <p className="text-[11px] text-slate-400 mt-0.5 truncate">
                         {tx.note ?? tx.type.replace("_", " ")}
                       </p>
-                      <p className="text-[11px] text-slate-300 truncate">
-                        {formatDateTime(tx.createdAt)}
-                      </p>
+                      <p className="text-[11px] text-slate-300">{formatDateTime(tx.createdAt)}</p>
                     </div>
 
-                    {/* Amount + chevron */}
-                    <div className="flex items-center gap-2 flex-shrink-0">
-                      <p
-                        className={cn(
-                          "text-[13.5px] font-bold tabular-nums",
-                          isCredit ? "text-emerald-600" : "text-slate-700"
-                        )}
-                      >
-                        {isCredit ? "+" : "−"}
-                        {formatMoney(tx.amount, tx.account.currency)}
+                    {/* Amount */}
+                    <div className="flex items-center gap-1.5 flex-shrink-0">
+                      <p className={cn(
+                        "text-[13.5px] font-bold tabular-nums",
+                        isCredit ? "text-emerald-600" : "text-slate-700"
+                      )}>
+                        {isCredit ? "+" : "−"}{formatMoney(tx.amount, tx.account.currency)}
                       </p>
                       <ChevronRight className="w-4 h-4 text-slate-300" />
                     </div>

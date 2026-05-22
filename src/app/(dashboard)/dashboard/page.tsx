@@ -6,8 +6,10 @@ import { formatMoney, formatDateTime, cn } from "@/lib/utils";
 import {
   ArrowDownLeft, ArrowUpRight, ShieldAlert, ArrowRight,
   Wallet, BarChart2, Bell, Send, ClipboardList,
-  RefreshCw, MoreHorizontal, CreditCard,
+  MoreHorizontal, CreditCard, Home, LayoutGrid, User,
 } from "lucide-react";
+import ReceiveSheet from "./ReceiveSheet";
+import MoreSheet from "./MoreSheet";
 import { TransactionType } from "@prisma/client";
 import Link from "next/link";
 
@@ -160,51 +162,50 @@ export default async function DashboardPage() {
 
           {/* ── Quick actions ── */}
           <div className="grid grid-cols-4 gap-2.5">
-            {[
-              {
-                label: "Send",
-                icon: Send,
-                href: isVerified ? "/withdraw" : null,
-                iconBg: "bg-[#111827]/[0.07]",
-                iconColor: "text-[#111827]",
-              },
-              {
-                label: "Receive",
-                icon: ArrowDownLeft,
-                href: "/deposit",
-                iconBg: "bg-[#f0fdf9]",
-                iconColor: "text-[#0d9488]",
-              },
-              {
-                label: "History",
-                icon: ClipboardList,
-                href: "/transactions",
-                iconBg: "bg-[#f3f4f6]",
-                iconColor: "text-[#6b7280]",
-              },
-              {
-                label: "More",
-                icon: MoreHorizontal,
-                href: "/settings",
-                iconBg: "bg-[#f3f4f6]",
-                iconColor: "text-[#6b7280]",
-              },
-            ].map(({ label, icon: Icon, href, iconBg, iconColor }) => {
-              const base = "flex flex-col items-center gap-2 py-3 px-1 rounded-[12px] bg-white border border-[#e4e7ec] shadow-sm transition-all active:scale-[0.97]";
-              const inner = (
-                <>
-                  <div className={cn("w-9 h-9 rounded-full flex items-center justify-center", iconBg)}>
-                    <Icon className={cn("w-4 h-4", iconColor)} strokeWidth={1.8} />
-                  </div>
-                  <span className="text-[9px] font-semibold tracking-[0.08em] uppercase text-[#6b7280]">{label}</span>
-                </>
-              );
-              return href ? (
-                <Link key={label} href={href} className={cn(base, "hover:border-[#d1d5db]")}>{inner}</Link>
-              ) : (
-                <span key={label} className={cn(base, "cursor-not-allowed opacity-50")}>{inner}</span>
-              );
-            })}
+
+            {/* Send → /withdraw (disabled if unverified) */}
+            {isVerified ? (
+              <Link
+                href="/withdraw"
+                className="flex flex-col items-center gap-2 py-3 px-1 rounded-[12px] bg-white border border-[#e4e7ec] shadow-sm hover:border-[#d1d5db] transition-all active:scale-[0.97]"
+              >
+                <div className="w-9 h-9 rounded-full bg-[#111827]/[0.07] flex items-center justify-center">
+                  <Send className="w-4 h-4 text-[#111827]" strokeWidth={1.8} />
+                </div>
+                <span className="text-[9px] font-semibold tracking-[0.08em] uppercase text-[#6b7280]">Send</span>
+              </Link>
+            ) : (
+              <span className="flex flex-col items-center gap-2 py-3 px-1 rounded-[12px] bg-white border border-[#e4e7ec] shadow-sm cursor-not-allowed opacity-40 select-none">
+                <div className="w-9 h-9 rounded-full bg-[#111827]/[0.07] flex items-center justify-center">
+                  <Send className="w-4 h-4 text-[#111827]" strokeWidth={1.8} />
+                </div>
+                <span className="text-[9px] font-semibold tracking-[0.08em] uppercase text-[#6b7280]">Send</span>
+              </span>
+            )}
+
+            {/* Receive → bottom sheet with account number, sort code, name */}
+            <ReceiveSheet
+              name={session.user.name}
+              accountNumber={isVerified && account.accountNumber ? fmtAcctNum(account.accountNumber) : null}
+              sortCode="20 — 14 — 53"
+              currency={account.currency}
+              isVerified={isVerified}
+            />
+
+            {/* History → /transactions */}
+            <Link
+              href="/transactions"
+              className="flex flex-col items-center gap-2 py-3 px-1 rounded-[12px] bg-white border border-[#e4e7ec] shadow-sm hover:border-[#d1d5db] transition-all active:scale-[0.97]"
+            >
+              <div className="w-9 h-9 rounded-full bg-[#f3f4f6] flex items-center justify-center">
+                <ClipboardList className="w-4 h-4 text-[#6b7280]" strokeWidth={1.8} />
+              </div>
+              <span className="text-[9px] font-semibold tracking-[0.08em] uppercase text-[#6b7280]">History</span>
+            </Link>
+
+            {/* More → settings sheet */}
+            <MoreSheet />
+
           </div>
 
           {/* ── Account details ── */}
@@ -490,6 +491,34 @@ export default async function DashboardPage() {
           </div>
         </div>
       )}
+
+      {/* ── Bottom nav (mobile) ─────────────────────── */}
+      <nav className="lg:hidden fixed bottom-0 inset-x-0 z-30 bg-white border-t border-[#e4e7ec] shadow-[0_-4px_16px_rgba(0,0,0,0.06)]">
+        <div className="grid grid-cols-5 pb-safe">
+          {[
+            { label: "Home",      icon: Home,         href: "/dashboard",    active: true  },
+            { label: "Accounts",  icon: LayoutGrid,   href: "/accounts",     active: false },
+            { label: "Transfer",  icon: ArrowUpRight, href: isVerified ? "/send" : null, active: false },
+            { label: "Analytics", icon: BarChart2,    href: "/transactions", active: false },
+            { label: "Profile",   icon: User,         href: "/profile",      active: false },
+          ].map(({ label, icon: Icon, href, active }) => {
+            const cls = `flex flex-col items-center gap-1 py-3 px-1 transition-colors ${
+              active ? "text-[#0d9488]" : "text-[#9ca3af] hover:text-[#6b7280]"
+            }`;
+            const inner = (
+              <>
+                <Icon className="w-[18px] h-[18px]" strokeWidth={1.5} />
+                <span className="text-[9px] font-semibold tracking-[0.08em] uppercase">{label}</span>
+              </>
+            );
+            return href ? (
+              <Link key={label} href={href} className={cls}>{inner}</Link>
+            ) : (
+              <span key={label} className={`${cls} opacity-40 cursor-not-allowed`}>{inner}</span>
+            );
+          })}
+        </div>
+      </nav>
 
     </div>
   );

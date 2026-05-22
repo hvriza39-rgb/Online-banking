@@ -49,6 +49,18 @@ enum SendType {
   INTERNATIONAL
 }
 
+enum CardType {
+  DEBIT
+  CREDIT
+}
+
+enum CardStatus {
+  PENDING
+  ACTIVE
+  FROZEN
+  CANCELLED
+}
+
 model User {
   id           String    @id @default(cuid())
   email        String    @unique
@@ -62,7 +74,8 @@ model User {
   account            Account?
   kyc                Kyc?
   withdrawalRequests WithdrawalRequest[]
-  supportTickets SupportTicket[]
+  supportTickets     SupportTicket[]
+  card               Card?
 
   @@map("users")
 }
@@ -153,4 +166,21 @@ model SupportMessage {
   ticket    SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
 
   @@map("support_messages")
+}
+
+model Card {
+  id          String     @id @default(cuid())
+  userId      String     @unique
+  user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type        CardType
+  last4       String
+  cardNumber  String     @unique
+  expiryMonth Int
+  expiryYear  Int
+  cvv         String
+  status      CardStatus @default(PENDING)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  @@map("cards")
 }

@@ -520,7 +520,7 @@ export default async function DashboardPage() {
         <div className="grid grid-cols-5 pb-safe">
           {[
             { label: "Overview",  icon: Home,         href: "/dashboard",    active: true  },
-            { label: "Card",  icon: LayoutGrid,   href: "/card",     active: false },
+            { label: "Card",  icon: CreditCard,   href: "/card",     active: false },
             { label: "Transfer",  icon: ArrowUpRight, href: isVerified ? "/send" : null, active: false },
             { label: "Analytics", icon: BarChart2,    href: "/transactions", active: false },
             { label: "Profile",   icon: User,         href: "/profile",      active: false },

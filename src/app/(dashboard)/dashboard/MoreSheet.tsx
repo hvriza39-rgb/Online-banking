@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { MoreHorizontal, X, Settings, ShieldCheck, HelpCircle, LogOut, ChevronRight, Bell } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 
 const ITEMS = [
   { icon: Settings,    label: "Settings",          sub: "Account preferences",     href: "/settings" },
@@ -20,18 +21,18 @@ export default function MoreSheet() {
       {/* Trigger */}
       <button
         onClick={() => setOpen(true)}
-        className="flex flex-col items-center gap-2 py-3 px-1 rounded-[12px] bg-white border border-[#e4e7ec] shadow-sm hover:border-[#d1d5db] transition-all active:scale-[0.97]"
+        className="flex flex-col items-center gap-2 py-3 px-1 rounded-[12px] bg-[#f2f9f6] border border-[#c8dfd5] shadow-sm hover:border-[#4daa80] transition-all active:scale-[0.97]"
       >
-        <div className="w-9 h-9 rounded-full bg-[#f3f4f6] flex items-center justify-center">
-          <MoreHorizontal className="w-4 h-4 text-[#6b7280]" strokeWidth={1.8} />
+        <div className="w-9 h-9 rounded-full bg-[#e4f2ec] flex items-center justify-center">
+          <MoreHorizontal className="w-4 h-4 text-[#2d5042]" strokeWidth={1.8} />
         </div>
-        <span className="text-[9px] font-semibold tracking-[0.08em] uppercase text-[#6b7280]">More</span>
+        <span className="text-[9px] font-semibold tracking-[0.08em] uppercase text-[#2d5042]">More</span>
       </button>
 
       {/* Backdrop */}
       {open && (
         <div
-          className="fixed inset-0 z-40 bg-black/30 backdrop-blur-sm"
+          className="fixed inset-0 z-40 bg-[#0f2419]/25 backdrop-blur-sm"
           onClick={() => setOpen(false)}
         />
       )}
@@ -42,21 +43,33 @@ export default function MoreSheet() {
           open ? "translate-y-0" : "translate-y-full"
         }`}
       >
-        <div className="bg-white rounded-t-[24px] shadow-2xl max-w-lg mx-auto overflow-hidden">
+        <div className="bg-[#f2f9f6] rounded-t-[24px] shadow-2xl max-w-lg mx-auto overflow-hidden">
 
           {/* Handle */}
           <div className="flex justify-center pt-3 pb-1">
-            <div className="w-10 h-1 rounded-full bg-[#e4e7ec]" />
+            <div className="w-10 h-1 rounded-full bg-[#c8dfd5]" />
           </div>
 
           {/* Header */}
-          <div className="flex items-center justify-between px-6 py-4 border-b border-[#f0f3f8]">
-            <p className="text-[16px] font-semibold text-[#111827]">More Options</p>
+          <div className="flex items-center justify-between px-6 py-4 border-b border-[#d8ede6]">
+            <div>
+              <Image
+                src="/nexabank-logo.svg"
+                alt="NexaBank"
+                width={120}
+                height={38}
+                className="h-9 w-auto"
+              />
+              <p className="text-[15px] font-semibold text-[#0f2419] mt-1.5"
+                 style={{ fontFamily: "'Playfair Display', serif" }}>
+                More Options
+              </p>
+            </div>
             <button
               onClick={() => setOpen(false)}
-              className="w-8 h-8 rounded-full bg-[#f3f4f6] flex items-center justify-center hover:bg-[#e5e7eb] transition-colors"
+              className="w-8 h-8 rounded-full bg-[#e4f2ec] border border-[#c8dfd5] flex items-center justify-center hover:bg-[#d8ede6] transition-colors"
             >
-              <X className="w-4 h-4 text-[#6b7280]" />
+              <X className="w-4 h-4 text-[#2d5042]" />
             </button>
           </div>
 
@@ -67,20 +80,28 @@ export default function MoreSheet() {
                 key={label}
                 href={href}
                 onClick={() => setOpen(false)}
-                className="flex items-center gap-3.5 px-3 py-3.5 rounded-[14px] hover:bg-[#f5f6f8] transition-colors active:scale-[0.99] group"
+                className={`flex items-center gap-3.5 px-3 py-3.5 rounded-[14px] transition-colors active:scale-[0.99] group ${
+                  danger ? "hover:bg-rose-50" : "hover:bg-[#e4f2ec]"
+                }`}
               >
                 <div className={`w-10 h-10 rounded-[13px] flex items-center justify-center flex-shrink-0 ${
-                  danger ? "bg-red-50 border border-red-100" : "bg-[#f5f6f8] border border-[#e4e7ec]"
+                  danger
+                    ? "bg-rose-50 border border-rose-100"
+                    : "bg-[#e4f2ec] border border-[#c8dfd5]"
                 }`}>
-                  <Icon className={`w-4.5 h-4.5 ${danger ? "text-[#dc2626]" : "text-[#374151]"}`} strokeWidth={1.8} />
+                  <Icon className={`w-4.5 h-4.5 ${danger ? "text-rose-500" : "text-[#1e7a52]"}`} strokeWidth={1.8} />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className={`text-[13px] font-semibold leading-none ${danger ? "text-[#dc2626]" : "text-[#111827]"}`}>
+                  <p className={`text-[13px] font-semibold leading-none ${danger ? "text-rose-500" : "text-[#0f2419]"}`}>
                     {label}
                   </p>
-                  <p className="text-[11px] text-[#9ca3af] mt-1">{sub}</p>
+                  <p className="text-[11px] text-[#6a8c7a] mt-1">{sub}</p>
                 </div>
-                <ChevronRight className="w-4 h-4 text-[#d1d5db] group-hover:text-[#9ca3af] transition-colors flex-shrink-0" />
+                <ChevronRight className={`w-4 h-4 flex-shrink-0 transition-colors ${
+                  danger
+                    ? "text-rose-200 group-hover:text-rose-400"
+                    : "text-[#c8dfd5] group-hover:text-[#4daa80]"
+                }`} />
               </Link>
             ))}
           </div>

@@ -40,7 +40,7 @@ export default async function KycPage() {
             </h1>
             <p className="text-slate-400 text-sm max-w-sm leading-relaxed mb-6">
               Your KYC details have been submitted and are currently under review.
-              An admin will approve your account shortly.
+              
             </p>
 
             <div className="flex items-center gap-2.5 bg-amber-50 border border-amber-200 rounded-2xl px-4 py-3 w-full max-w-xs">
@@ -69,7 +69,8 @@ export default async function KycPage() {
           <h1 className="text-2xl font-semibold text-slate-900">Verify your identity</h1>
           <p className="text-slate-400 text-sm mt-1.5 leading-relaxed">
             We need to verify who you are before activating your account.
-            Submit your details and an admin will review and approve your account.
+            Submit your details and our system will review your information. 
+          
           </p>
         </div>
 

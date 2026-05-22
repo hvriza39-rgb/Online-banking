@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { ArrowDownLeft, X, Copy, Check, ShieldAlert } from "lucide-react";
+import Image from "next/image";
 
 interface Props {
   name: string;
@@ -32,12 +33,12 @@ export default function ReceiveSheet({
       {/* Trigger button */}
       <button
         onClick={() => setOpen(true)}
-        className="flex flex-col items-center gap-2 py-3 px-1 rounded-[12px] bg-white border border-[#d4d9e8] shadow-sm hover:border-[#6b7fd4] transition-all active:scale-[0.97]"
+        className="flex flex-col items-center gap-2 py-3 px-1 rounded-[12px] bg-[#f2f9f6] border border-[#c8dfd5] shadow-sm hover:border-[#4daa80] transition-all active:scale-[0.97]"
       >
         <div className="w-9 h-9 rounded-full bg-[#edf7f5] flex items-center justify-center">
           <ArrowDownLeft className="w-4 h-4 text-[#0f7a6e]" strokeWidth={1.8} />
         </div>
-        <span className="text-[9px] font-semibold tracking-[0.08em] uppercase text-[#3d4870]">
+        <span className="text-[9px] font-semibold tracking-[0.08em] uppercase text-[#2d5042]">
           Receive
         </span>
       </button>
@@ -45,7 +46,7 @@ export default function ReceiveSheet({
       {/* Backdrop */}
       {open && (
         <div
-          className="fixed inset-0 z-40 bg-[#1a1f3a]/25 backdrop-blur-sm"
+          className="fixed inset-0 z-40 bg-[#0f2419]/25 backdrop-blur-sm"
           onClick={() => setOpen(false)}
         />
       )}
@@ -56,28 +57,33 @@ export default function ReceiveSheet({
           open ? "translate-y-0" : "translate-y-full"
         }`}
       >
-        <div className="bg-white rounded-t-[24px] shadow-2xl max-w-lg mx-auto overflow-hidden">
+        <div className="bg-[#f2f9f6] rounded-t-[24px] shadow-2xl max-w-lg mx-auto overflow-hidden">
 
           {/* Handle */}
           <div className="flex justify-center pt-3 pb-1">
-            <div className="w-10 h-1 rounded-full bg-[#d4d9e8]" />
+            <div className="w-10 h-1 rounded-full bg-[#c8dfd5]" />
           </div>
 
           {/* Header */}
-          <div className="flex items-center justify-between px-6 py-4 border-b border-[#e0e4f0]">
+          <div className="flex items-center justify-between px-6 py-4 border-b border-[#d8ede6]">
             <div>
-              <p className="text-[11px] font-semibold tracking-[0.15em] uppercase text-[#3d52a0]">
-                NexaBank
-              </p>
-              <p className="text-[16px] font-semibold text-[#1a1f3a] mt-0.5">
+              <Image
+                src="/nexabank-logo.svg"
+                alt="NexaBank"
+                width={120}
+                height={38}
+                className="h-9 w-auto"
+              />
+              <p className="text-[15px] font-semibold text-[#0f2419] mt-1.5"
+                 style={{ fontFamily: "'Playfair Display', serif" }}>
                 Receive Money
               </p>
             </div>
             <button
               onClick={() => setOpen(false)}
-              className="w-8 h-8 rounded-full bg-[#f0f2f7] flex items-center justify-center hover:bg-[#e0e4f0] transition-colors"
+              className="w-8 h-8 rounded-full bg-[#e4f2ec] border border-[#c8dfd5] flex items-center justify-center hover:bg-[#d8ede6] transition-colors"
             >
-              <X className="w-4 h-4 text-[#3d4870]" />
+              <X className="w-4 h-4 text-[#2d5042]" />
             </button>
           </div>
 
@@ -149,25 +155,25 @@ function DetailRow({
 }) {
   const isCopied = copied === copyKey;
   return (
-    <div className="bg-[#f4f6fb] rounded-[14px] px-4 py-3.5 flex items-center justify-between gap-3">
+    <div className="bg-[#e4f2ec] rounded-[14px] px-4 py-3.5 flex items-center justify-between gap-3">
       <div className="flex-1 min-w-0">
-        <p className="text-[9px] font-semibold tracking-[0.18em] uppercase text-[#7b87b8] mb-1">
+        <p className="text-[9px] font-semibold tracking-[0.18em] uppercase text-[#6a8c7a] mb-1">
           {label}
         </p>
         <p className={`text-[14px] font-semibold truncate ${
           mono ? "font-mono tracking-[0.08em]" : ""
-        } ${disabled ? "text-[#7b87b8]" : "text-[#1a1f3a]"}`}>
+        } ${disabled ? "text-[#6a8c7a]" : "text-[#0f2419]"}`}>
           {value}
         </p>
       </div>
       {!disabled && (
         <button
           onClick={onCopy}
-          className="w-8 h-8 rounded-full bg-white border border-[#d4d9e8] flex items-center justify-center flex-shrink-0 hover:border-[#0f7a6e]/40 transition-colors"
+          className="w-8 h-8 rounded-full bg-[#f2f9f6] border border-[#c8dfd5] flex items-center justify-center flex-shrink-0 hover:border-[#4daa80] transition-colors"
         >
           {isCopied
             ? <Check className="w-3.5 h-3.5 text-[#0f7a6e]" />
-            : <Copy className="w-3.5 h-3.5 text-[#7b87b8]" />
+            : <Copy className="w-3.5 h-3.5 text-[#6a8c7a]" />
           }
         </button>
       )}

@@ -212,9 +212,7 @@ export default async function DashboardPage() {
           <div className="bg-white rounded-2xl border border-[#e4e7ec] shadow-sm p-5">
             <div className="flex items-center justify-between mb-4">
               <p className="text-[14px] font-semibold text-[#111827]">Account Details</p>
-              <Link href="/settings" className="text-[10px] font-semibold tracking-[0.1em] uppercase text-[#0d9488]">
-                Manage →
-              </Link>
+              
             </div>
 
             {/* Account number */}

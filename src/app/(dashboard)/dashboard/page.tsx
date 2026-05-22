@@ -4,21 +4,22 @@ import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import { formatMoney, formatDateTime, cn } from "@/lib/utils";
 import {
-  ArrowDownLeft, ArrowUpRight, ClipboardList,
-  ShieldAlert, ArrowRight, CreditCard, Wallet, BarChart2,
+  ArrowDownLeft, ArrowUpRight, ShieldAlert, ArrowRight,
+  Wallet, BarChart2, Bell, Send, ClipboardList,
+  RefreshCw, MoreHorizontal, CreditCard,
 } from "lucide-react";
 import { TransactionType } from "@prisma/client";
 import Link from "next/link";
 
-export const metadata: Metadata = { title: "Account Overview" };
+export const metadata: Metadata = { title: "Account Overview — NexaBank" };
 
 const TX_CONFIG: Record<TransactionType, {
   label: string; icon: React.ElementType;
-  bg: string; text: string; sign: string;
+  bg: string; text: string; sign: string; border: string;
 }> = {
-  CREDIT:     { label: "Credit",  icon: ArrowDownLeft, bg: "bg-[#e6f7f3]", text: "text-[#16a37f]", sign: "+" },
-  DEBIT:      { label: "Debit",   icon: ArrowUpRight,  bg: "bg-rose-50",   text: "text-rose-400",  sign: "−" },
-  WITHDRAWAL: { label: "Debit",   icon: ArrowUpRight,  bg: "bg-rose-50",   text: "text-rose-400",  sign: "−" },
+  CREDIT:     { label: "Credit",     icon: ArrowDownLeft, bg: "bg-[#f0fdf9]", border: "border-[#bbf7e0]", text: "text-[#0d9488]", sign: "+" },
+  DEBIT:      { label: "Debit",      icon: ArrowUpRight,  bg: "bg-[#fff5f5]", border: "border-[#fecaca]", text: "text-[#dc2626]", sign: "−" },
+  WITHDRAWAL: { label: "Withdrawal", icon: ArrowUpRight,  bg: "bg-[#fff5f5]", border: "border-[#fecaca]", text: "text-[#dc2626]", sign: "−" },
 };
 
 export default async function DashboardPage() {
@@ -32,7 +33,7 @@ export default async function DashboardPage() {
 
   const account = await prisma.account.findUnique({
     where:   { userId: session.user.id },
-    include: { transactions: { orderBy: { createdAt: "desc" }, take: 6 } },
+    include: { transactions: { orderBy: { createdAt: "desc" }, take: 8 } },
   });
 
   if (!account) redirect("/login");
@@ -48,217 +49,295 @@ export default async function DashboardPage() {
     .reduce((s, t) => s + t.amount, 0);
 
   const total = totalCredited + totalDebited || 1;
-  const creditPct = (totalCredited / total) * 251.2;
-  const debitPct  = (totalDebited  / total) * 251.2;
+  const circumference = 251.2;
+  const creditPct = (totalCredited / total) * circumference;
+  const debitPct  = (totalDebited  / total) * circumference;
+
+  const initials = session.user.name
+    .split(" ")
+    .map((n: string) => n[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+
+  const fmtAcctNum = (n: string) =>
+    `${n.slice(0, 5)}  ${n.slice(5)}`;
 
   return (
-    <div className="min-h-screen bg-[#eef1f8] p-5 sm:p-8 flex flex-col gap-6">
+    <div className="min-h-screen bg-[#f5f6f8] font-sans">
 
-      {/* ── Top bar ─────────────────────────────────── */}
-      <div className="flex items-center justify-between">
-        <h1 className="text-xl sm:text-2xl font-extrabold tracking-tight text-[#1a1d27]">
-          Account Overview
-        </h1>
-        <div className="hidden sm:flex items-center gap-2.5 bg-white border border-[#e8ecf4] rounded-full px-4 py-2 shadow-sm">
-          <div className="w-7 h-7 rounded-full bg-[#16a37f] flex items-center justify-center text-white text-[11px] font-extrabold flex-shrink-0">
-            {session.user.name.split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase()}
+      {/* ── Page header ─────────────────────────────── */}
+      <div className="flex items-start justify-between px-5 pt-12 pb-5 border-b border-[#e4e7ec] bg-[#f5f6f8]">
+        <div>
+          <p className="text-[11px] font-semibold tracking-[0.18em] uppercase text-[#6b7280]"
+             style={{ fontFamily: "'IBM Plex Sans', sans-serif" }}>
+            NexaBank
+          </p>
+          <h1 className="text-[22px] font-semibold text-[#111827] tracking-tight mt-0.5"
+              style={{ fontFamily: "'IBM Plex Sans', sans-serif" }}>
+            Account Overview
+          </h1>
+        </div>
+        <div className="flex items-center gap-3 mt-1">
+          {/* Bell */}
+          <div className="w-9 h-9 rounded-full bg-white border border-[#e4e7ec] flex items-center justify-center shadow-sm">
+            <Bell className="w-4 h-4 text-[#6b7280]" strokeWidth={1.5} />
           </div>
-          <div>
-            <p className="text-[13px] font-semibold text-[#1a1d27] leading-none">{session.user.name}</p>
-            <p className="text-[11px] text-[#9ca3af] leading-none mt-0.5">Personal</p>
+          {/* Avatar */}
+          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#1a1a2e] to-[#374151] flex items-center justify-center border border-[#e4e7ec] shadow-sm">
+            <span className="text-[13px] font-semibold text-white tracking-wide">{initials}</span>
           </div>
         </div>
       </div>
 
-      {/* ── KYC Banner ──────────────────────────────── */}
-      {!isVerified && (
-        <Link
-          href="/kyc"
-          className="flex items-center gap-4 bg-gradient-to-r from-amber-50 to-yellow-50 border border-amber-200 rounded-2xl p-5 shadow-sm hover:shadow-md transition-all active:scale-[0.995]"
-        >
-          <div className="w-11 h-11 bg-amber-100 border-2 border-amber-200 rounded-[14px] flex items-center justify-center flex-shrink-0">
-            <ShieldAlert className="w-5 h-5 text-amber-500" />
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-[14px] font-bold text-amber-900">Verify your identity to activate your account</p>
-            <p className="text-[12px] text-amber-700 mt-0.5 leading-relaxed">
-              Complete KYC verification to get your account number and unlock transfers.
-            </p>
-          </div>
-          <div className="hidden sm:flex items-center gap-1.5 bg-amber-400 text-white text-[12px] font-bold px-4 py-2.5 rounded-xl flex-shrink-0 shadow-sm shadow-amber-200">
-            Verify now <ArrowRight className="w-3.5 h-3.5" />
-          </div>
-        </Link>
-      )}
+      <div className="px-5 pt-5 pb-24 flex flex-col gap-4 max-w-lg mx-auto lg:max-w-none lg:grid lg:grid-cols-3 lg:gap-5 lg:px-8">
 
-      {/* ── Main grid ───────────────────────────────── */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+        {/* ══ COLUMN 1 ══════════════════════════════════ */}
+        <div className="flex flex-col gap-3">
 
-        {/* ── LEFT: balance card + actions + account details ── */}
-        <div className="lg:col-span-1 flex flex-col gap-3">
+          {/* ── KYC banner ── */}
+          {!isVerified && (
+            <Link
+              href="/kyc"
+              className="flex items-center gap-3 bg-amber-50 border border-amber-200 rounded-2xl p-4 hover:bg-amber-100/60 transition-all active:scale-[0.99]"
+            >
+              <div className="w-10 h-10 bg-amber-100 border border-amber-200 rounded-[13px] flex items-center justify-center flex-shrink-0">
+                <ShieldAlert className="w-4.5 h-4.5 text-amber-500" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-[13px] font-bold text-amber-900 leading-snug">Verify your identity</p>
+                <p className="text-[11px] text-amber-700 mt-0.5 leading-relaxed">
+                  Complete KYC to unlock transfers and get your account number.
+                </p>
+              </div>
+              <ArrowRight className="w-4 h-4 text-amber-400 flex-shrink-0" />
+            </Link>
+          )}
 
-          {/* Balance card */}
-          <div className="bg-[#f9fafb] border border-[#e4e7ef] rounded-[18px] p-5 shadow-sm relative overflow-hidden">
-            <div className="absolute -top-8 -right-8 w-28 h-28 rounded-full bg-[#16a37f]/[0.06] pointer-events-none" />
-            <p className="text-[11px] font-semibold text-[#9ca3af] uppercase tracking-widest mb-1.5">
+          {/* ── Balance card ── */}
+          <div className="relative rounded-[16px] p-6 overflow-hidden border border-[#dde3ec] shadow-sm"
+               style={{ background: "linear-gradient(145deg, #ffffff 0%, #f0f4f8 100%)" }}>
+            {/* Decorative circle */}
+            <div className="absolute -top-8 -right-8 w-28 h-28 rounded-full pointer-events-none"
+                 style={{ background: "radial-gradient(circle, rgba(13,148,136,0.06) 0%, transparent 70%)" }} />
+            {/* Bottom teal line */}
+            <div className="absolute bottom-0 left-0 right-0 h-[2px]"
+                 style={{ background: "linear-gradient(90deg, transparent, rgba(13,148,136,0.4), transparent)" }} />
+
+            <p className="text-[10px] font-semibold tracking-[0.2em] uppercase text-[#9ca3af] mb-2">
               Main Balance
             </p>
-            <p className="font-mono text-[36px] font-semibold leading-none tracking-tight text-[#0f1117] mb-4">
+            <p className="font-mono text-[34px] font-semibold text-[#111827] leading-none tracking-tight mb-5">
               {formatMoney(account.balance, account.currency)}
             </p>
-            <div className="flex items-center justify-between">
+
+            <div className="h-px bg-[#e4e7ec] mb-4" />
+
+            <div className="flex items-end justify-between">
               <div>
-                <p className="text-[13px] font-semibold text-[#1a1d27] leading-none">{session.user.name}</p>
-                <p className="font-mono text-[12px] text-[#9ca3af] tracking-[0.05em] mt-1">
+                <p className="text-[13px] font-semibold text-[#111827] leading-none">
+                  {session.user.name}
+                </p>
+                <p className="font-mono text-[11px] text-[#9ca3af] tracking-[0.15em] mt-1.5">
                   {isVerified && account.accountNumber
-                    ? `${account.accountNumber.slice(0, 5)} ${account.accountNumber.slice(5)}`
+                    ? fmtAcctNum(account.accountNumber)
                     : "— Pending KYC —"}
                 </p>
               </div>
               {isVerified ? (
-                <span className="text-[10px] font-bold tracking-widest uppercase bg-[#e6f7f3] text-[#16a37f] px-3 py-1.5 rounded-full">
-                  Active
-                </span>
+                <div className="flex items-center gap-1.5 bg-[#f0fdf9] border border-[#bbf7e0] px-2.5 py-1 rounded-full">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#0d9488]" />
+                  <span className="text-[9px] font-bold tracking-[0.15em] uppercase text-[#0d9488]">Active</span>
+                </div>
               ) : (
-                <span className="text-[10px] font-bold tracking-widest uppercase bg-amber-50 border border-amber-200 text-amber-600 px-3 py-1.5 rounded-full">
-                  Unverified
-                </span>
+                <div className="flex items-center gap-1.5 bg-amber-50 border border-amber-200 px-2.5 py-1 rounded-full">
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+                  <span className="text-[9px] font-bold tracking-[0.15em] uppercase text-amber-600">Unverified</span>
+                </div>
               )}
             </div>
           </div>
 
-          {/* Quick actions */}
-          <div className="grid grid-cols-2 gap-2.5">
-            {isVerified ? (
-              <Link
-                href="/withdraw"
-                className="flex items-center justify-center gap-2 bg-white border border-[#e4e7ef] text-[#1a1d27] font-semibold text-[13.5px] py-3 rounded-[13px] shadow-sm hover:bg-[#f9fafb] transition-all active:scale-[0.98]"
-              >
-                <ArrowUpRight className="w-4 h-4" /> Send
-              </Link>
-            ) : (
-              <span className="flex items-center justify-center gap-2 bg-white border border-[#e4e7ef] text-[#c4c9d4] font-semibold text-[13.5px] py-3 rounded-[13px] cursor-not-allowed select-none">
-                <ArrowUpRight className="w-4 h-4" /> Send
-              </span>
-            )}
-            <Link
-              href="/transactions"
-              className="flex items-center justify-center gap-2 bg-[#16a37f] text-white font-semibold text-[13.5px] py-3 rounded-[13px] shadow-sm shadow-[#16a37f]/20 hover:bg-[#13946f] transition-all active:scale-[0.98]"
-            >
-              <ClipboardList className="w-4 h-4" /> History
-            </Link>
+          {/* ── Quick actions ── */}
+          <div className="grid grid-cols-4 gap-2.5">
+            {[
+              {
+                label: "Send",
+                icon: Send,
+                href: isVerified ? "/withdraw" : null,
+                iconBg: "bg-[#111827]/[0.07]",
+                iconColor: "text-[#111827]",
+              },
+              {
+                label: "Receive",
+                icon: ArrowDownLeft,
+                href: "/deposit",
+                iconBg: "bg-[#f0fdf9]",
+                iconColor: "text-[#0d9488]",
+              },
+              {
+                label: "History",
+                icon: ClipboardList,
+                href: "/transactions",
+                iconBg: "bg-[#f3f4f6]",
+                iconColor: "text-[#6b7280]",
+              },
+              {
+                label: "More",
+                icon: MoreHorizontal,
+                href: "/settings",
+                iconBg: "bg-[#f3f4f6]",
+                iconColor: "text-[#6b7280]",
+              },
+            ].map(({ label, icon: Icon, href, iconBg, iconColor }) => {
+              const base = "flex flex-col items-center gap-2 py-3 px-1 rounded-[12px] bg-white border border-[#e4e7ec] shadow-sm transition-all active:scale-[0.97]";
+              const inner = (
+                <>
+                  <div className={cn("w-9 h-9 rounded-full flex items-center justify-center", iconBg)}>
+                    <Icon className={cn("w-4 h-4", iconColor)} strokeWidth={1.8} />
+                  </div>
+                  <span className="text-[9px] font-semibold tracking-[0.08em] uppercase text-[#6b7280]">{label}</span>
+                </>
+              );
+              return href ? (
+                <Link key={label} href={href} className={cn(base, "hover:border-[#d1d5db]")}>{inner}</Link>
+              ) : (
+                <span key={label} className={cn(base, "cursor-not-allowed opacity-50")}>{inner}</span>
+              );
+            })}
           </div>
 
-          {/* KYC action (unverified only) */}
-          {!isVerified && (
-            <Link
-              href="/kyc"
-              className="flex items-center justify-center gap-2 bg-white border border-amber-200 text-amber-700 font-semibold text-[13.5px] py-3 rounded-[13px] shadow-sm hover:bg-amber-50 transition-all active:scale-[0.98]"
-            >
-              <ShieldAlert className="w-4 h-4" /> Verify KYC
-            </Link>
-          )}
+          {/* ── Account details ── */}
+          <div className="bg-white rounded-2xl border border-[#e4e7ec] shadow-sm p-5">
+            <div className="flex items-center justify-between mb-4">
+              <p className="text-[14px] font-semibold text-[#111827]">Account Details</p>
+              <Link href="/settings" className="text-[10px] font-semibold tracking-[0.1em] uppercase text-[#0d9488]">
+                Manage →
+              </Link>
+            </div>
 
-          {/* Account details */}
-          <div className="bg-white rounded-2xl border border-[#e8ecf4] shadow-sm p-5 mt-1">
-            <p className="text-[14px] font-bold text-[#1a1d27] mb-4">Account Details</p>
-            <div className="bg-[#f4f6fb] rounded-[13px] p-4 mb-3">
-              <p className="text-[10px] font-bold text-[#9ca3af] uppercase tracking-widest mb-1.5">Account Number</p>
+            {/* Account number */}
+            <div className="bg-[#f5f6f8] rounded-[12px] px-4 py-3 mb-3">
+              <p className="text-[9px] font-semibold tracking-[0.2em] uppercase text-[#9ca3af] mb-1.5">
+                Account Number
+              </p>
               {isVerified && account.accountNumber ? (
-                <p className="font-mono text-[17px] font-semibold text-[#1a1d27] tracking-[0.06em]">
-                  {account.accountNumber.slice(0, 5)} {account.accountNumber.slice(5)}
+                <p className="font-mono text-[16px] font-semibold text-[#111827] tracking-[0.1em]">
+                  {fmtAcctNum(account.accountNumber)}
                 </p>
               ) : (
-                <p className="font-mono text-[14px] text-[#9ca3af]">— Pending KYC —</p>
+                <p className="font-mono text-[13px] text-[#9ca3af]">— Pending KYC —</p>
               )}
             </div>
+
+            {/* Account type row */}
+            <div className="flex items-center justify-between px-1 mb-3">
+              <div>
+                <p className="text-[9px] font-semibold tracking-[0.15em] uppercase text-[#9ca3af] mb-1">Account Type</p>
+                <p className="font-mono text-[13px] text-[#111827] font-medium">Current Account</p>
+              </div>
+              <span className="text-[10px] text-[#9ca3af]">Personal</span>
+            </div>
+
+            {/* Pills */}
             <div className="flex items-center gap-2">
-              <div className="flex items-center gap-1.5 bg-[#f0f4ff] rounded-lg px-3 py-1.5">
-                <Wallet className="w-3.5 h-3.5 text-[#3b82f6]" />
-                <span className="text-[12px] font-bold text-[#3b82f6]">{account.currency}</span>
+              <div className="flex items-center gap-1.5 bg-[#111827]/[0.06] border border-[#111827]/[0.12] rounded-lg px-3 py-1.5">
+                <Wallet className="w-3 h-3 text-[#374151]" />
+                <span className="text-[11px] font-bold text-[#374151] tracking-[0.06em]">{account.currency}</span>
               </div>
               {isVerified ? (
-                <div className="flex items-center gap-1.5 bg-[#e6f7f3] rounded-lg px-3 py-1.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#16a37f]" />
-                  <span className="text-[12px] font-bold text-[#16a37f]">Active</span>
+                <div className="flex items-center gap-1.5 bg-[#f0fdf9] border border-[#bbf7e0] rounded-lg px-3 py-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#0d9488]" />
+                  <span className="text-[11px] font-bold text-[#0d9488]">Active</span>
                 </div>
               ) : (
                 <div className="flex items-center gap-1.5 bg-amber-50 border border-amber-200 rounded-lg px-3 py-1.5">
                   <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
-                  <span className="text-[12px] font-bold text-amber-600">Unverified</span>
+                  <span className="text-[11px] font-bold text-amber-600">Unverified</span>
                 </div>
               )}
             </div>
           </div>
+
         </div>
 
-        {/* ── CENTER: transaction summary button + spending overview ── */}
-        <div className="lg:col-span-1 flex flex-col gap-5">
+        {/* ══ COLUMN 2 ══════════════════════════════════ */}
+        <div className="flex flex-col gap-3">
 
-          {/* Transaction summary — replaces credit/debit stat tiles */}
+          {/* ── Transaction summary ── */}
           <Link
             href="/transactions"
-            className="bg-white rounded-2xl border border-[#e8ecf4] shadow-sm p-5 flex items-center justify-between hover:border-[#16a37f]/30 hover:shadow-md transition-all active:scale-[0.99] group"
+            className="bg-white rounded-2xl border border-[#e4e7ec] shadow-sm p-5 flex items-center justify-between hover:border-[#0d9488]/30 hover:shadow-md transition-all active:scale-[0.99] group"
           >
             <div className="flex items-center gap-4">
-              <div className="w-11 h-11 bg-[#e6f7f3] rounded-[14px] flex items-center justify-center flex-shrink-0">
-                <BarChart2 className="w-5 h-5 text-[#16a37f]" />
+              <div className="w-11 h-11 bg-[#f0fdf9] border border-[#bbf7e0] rounded-[14px] flex items-center justify-center flex-shrink-0">
+                <BarChart2 className="w-5 h-5 text-[#0d9488]" />
               </div>
               <div>
-                <p className="text-[14px] font-bold text-[#1a1d27]">Transaction Summary</p>
+                <p className="text-[13px] font-semibold text-[#111827]">Transaction Summary</p>
                 <div className="flex items-center gap-3 mt-1">
-                  <span className="text-[12px] text-[#6b7280]">
-                    In: <span className="font-mono font-semibold text-[#16a37f]">{formatMoney(totalCredited, account.currency)}</span>
+                  <span className="text-[11px] text-[#6b7280]">
+                    In:{" "}
+                    <span className="font-mono font-bold text-[#0d9488]">
+                      {formatMoney(totalCredited, account.currency)}
+                    </span>
                   </span>
-                  <span className="text-[#e4e7ef]">·</span>
-                  <span className="text-[12px] text-[#6b7280]">
-                    Out: <span className="font-mono font-semibold text-[#1a1d27]">{formatMoney(totalDebited, account.currency)}</span>
+                  <span className="text-[#e4e7ec]">·</span>
+                  <span className="text-[11px] text-[#6b7280]">
+                    Out:{" "}
+                    <span className="font-mono font-bold text-[#111827]">
+                      {formatMoney(totalDebited, account.currency)}
+                    </span>
                   </span>
                 </div>
               </div>
             </div>
-            <ArrowRight className="w-4 h-4 text-[#c4c9d4] group-hover:text-[#16a37f] transition-colors flex-shrink-0" />
+            <ArrowRight className="w-4 h-4 text-[#d1d5db] group-hover:text-[#0d9488] transition-colors flex-shrink-0" />
           </Link>
 
-          {/* Spending donut */}
-          <div className="bg-white rounded-2xl border border-[#e8ecf4] shadow-sm overflow-hidden flex-1">
+          {/* ── Spending overview ── */}
+          <div className="bg-white rounded-2xl border border-[#e4e7ec] shadow-sm overflow-hidden">
             <div className="flex items-center justify-between px-5 py-4 border-b border-[#f0f3f8]">
-              <p className="text-[14px] font-bold text-[#1a1d27]">Spending Overview</p>
+              <p className="text-[13px] font-semibold text-[#111827]">Spending Overview</p>
+              <Link href="/transactions" className="text-[10px] font-semibold tracking-[0.1em] uppercase text-[#0d9488]">
+                Details →
+              </Link>
             </div>
             <div className="flex items-center gap-5 p-5">
-              <svg width="110" height="110" viewBox="0 0 110 110" className="flex-shrink-0">
-                <circle cx="55" cy="55" r="40" fill="none" stroke="#f0f2f7" strokeWidth="18" />
+              {/* Donut */}
+              <svg width="90" height="90" viewBox="0 0 90 90" className="flex-shrink-0">
+                <circle cx="45" cy="45" r="32" fill="none" stroke="#e4e7ec" strokeWidth="12" />
                 {totalCredited > 0 && (
-                  <circle cx="55" cy="55" r="40" fill="none" stroke="#3b82f6" strokeWidth="18"
-                    strokeDasharray={`${creditPct} ${251.2 - creditPct}`}
-                    strokeDashoffset="0" strokeLinecap="round"
-                    transform="rotate(-90 55 55)"
+                  <circle cx="45" cy="45" r="32" fill="none" stroke="#0d9488" strokeWidth="12"
+                    strokeDasharray={`${creditPct} ${circumference - creditPct}`}
+                    strokeDashoffset="0" strokeLinecap="butt"
+                    transform="rotate(-90 45 45)"
                   />
                 )}
                 {totalDebited > 0 && (
-                  <circle cx="55" cy="55" r="40" fill="none" stroke="#16a37f" strokeWidth="18"
-                    strokeDasharray={`${debitPct} ${251.2 - debitPct}`}
-                    strokeDashoffset={`-${creditPct}`} strokeLinecap="round"
-                    transform="rotate(-90 55 55)"
+                  <circle cx="45" cy="45" r="32" fill="none" stroke="#9ca3af" strokeWidth="12"
+                    strokeDasharray={`${debitPct} ${circumference - debitPct}`}
+                    strokeDashoffset={`-${creditPct}`} strokeLinecap="butt"
+                    transform="rotate(-90 45 45)"
                   />
                 )}
-                {totalCredited === 0 && totalDebited === 0 && (
-                  <circle cx="55" cy="55" r="40" fill="none" stroke="#e8ecf4" strokeWidth="18" />
-                )}
-                <text x="55" y="50" textAnchor="middle" fontSize="11" fontFamily="monospace" fontWeight="700" fill="#1a1d27">
+                <text x="45" y="41" textAnchor="middle" fontSize="9" fontFamily="monospace"
+                      fontWeight="700" fill="#111827">
                   {formatMoney(account.balance, account.currency).replace(/\.00$/, "")}
                 </text>
-                <text x="55" y="63" textAnchor="middle" fontSize="9" fill="#9ca3af">balance</text>
+                <text x="45" y="52" textAnchor="middle" fontSize="8" fill="#9ca3af">balance</text>
               </svg>
+
+              {/* Legend */}
               <div className="flex flex-col gap-3 flex-1">
                 {[
-                  { color: "#3b82f6", label: "Credits", val: totalCredited },
-                  { color: "#16a37f", label: "Debits",  val: totalDebited  },
+                  { color: "#0d9488", label: "Credits", val: totalCredited },
+                  { color: "#9ca3af", label: "Debits",  val: totalDebited  },
                 ].map(({ color, label, val }) => (
                   <div key={label} className="flex items-center gap-2.5">
-                    <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: color }} />
-                    <span className="text-[12px] text-[#6b7280] font-medium flex-1">{label}</span>
-                    <span className="font-mono text-[12px] font-bold text-[#1a1d27]">
+                    <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: color }} />
+                    <span className="text-[11px] text-[#6b7280] font-medium flex-1 tracking-[0.03em]">{label}</span>
+                    <span className="font-mono text-[12px] font-semibold text-[#111827]">
                       {formatMoney(val, account.currency)}
                     </span>
                   </div>
@@ -266,19 +345,19 @@ export default async function DashboardPage() {
               </div>
             </div>
           </div>
-        </div>
 
-        {/* ── RIGHT: recent activity ── */}
-        <div className="lg:col-span-1 flex flex-col gap-5">
-          <div className="bg-white rounded-2xl border border-[#e8ecf4] shadow-sm overflow-hidden flex-1">
+          {/* ── Recent activity (mobile / col-2 on desktop) ── */}
+          <div className="bg-white rounded-2xl border border-[#e4e7ec] shadow-sm overflow-hidden lg:hidden">
             <div className="flex items-center justify-between px-5 py-4 border-b border-[#f0f3f8]">
-              <p className="text-[14px] font-bold text-[#1a1d27]">Recent Activity</p>
-              <Link href="/transactions" className="text-[12px] font-semibold text-[#16a37f]">View all</Link>
+              <p className="text-[13px] font-semibold text-[#111827]">Recent Transactions</p>
+              <Link href="/transactions" className="text-[10px] font-semibold tracking-[0.1em] uppercase text-[#0d9488]">
+                See all →
+              </Link>
             </div>
             {account.transactions.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-10 px-5 text-center">
-                <CreditCard className="w-8 h-8 text-[#e8ecf4] mb-3" />
-                <p className="text-[13px] font-semibold text-[#9ca3af]">No transactions yet</p>
+                <CreditCard className="w-7 h-7 text-[#e4e7ec] mb-3" />
+                <p className="text-[12px] font-semibold text-[#9ca3af]">No transactions yet</p>
               </div>
             ) : (
               <div>
@@ -286,21 +365,72 @@ export default async function DashboardPage() {
                   const cfg  = TX_CONFIG[tx.type];
                   const Icon = cfg.icon;
                   return (
-                    <div key={tx.id} className="flex items-center gap-3 px-5 py-3 border-b border-[#f5f7fb] last:border-0 hover:bg-[#fafbff] transition-colors">
-                      <div className={cn("w-9 h-9 rounded-[11px] flex items-center justify-center flex-shrink-0", cfg.bg)}>
-                        <Icon className={cn("w-4 h-4", cfg.text)} strokeWidth={2.5} />
+                    <div key={tx.id}
+                         className="flex items-center gap-3 px-5 py-3.5 border-b border-[#f5f7fb] last:border-0 hover:bg-[#fafbff] transition-colors">
+                      <div className={cn("w-9 h-9 rounded-[11px] border flex items-center justify-center flex-shrink-0", cfg.bg, cfg.border)}>
+                        <Icon className={cn("w-4 h-4", cfg.text)} strokeWidth={2} />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-[13px] font-semibold text-[#1a1d27]">{cfg.label}</p>
-                        <p className="text-[11px] text-[#9ca3af] truncate">{formatDateTime(tx.createdAt)}</p>
+                        <p className="text-[12px] font-semibold text-[#111827]">{cfg.label}</p>
+                        <p className="text-[10px] text-[#9ca3af] font-mono tracking-[0.04em] mt-0.5">
+                          {formatDateTime(tx.createdAt)}
+                        </p>
                       </div>
                       <div className="text-right flex-shrink-0">
-                        <p className={cn(
-                          "text-[13px] font-bold font-mono",
-                          tx.type === "CREDIT" ? "text-[#16a37f]" : "text-[#1a1d27]"
-                        )}>
+                        <p className={cn("text-[13px] font-bold font-mono",
+                          tx.type === "CREDIT" ? "text-[#0d9488]" : "text-[#111827]")}>
                           {cfg.sign}{formatMoney(tx.amount, account.currency)}
                         </p>
+                        <p className="text-[9px] text-[#9ca3af] tracking-[0.1em] uppercase mt-0.5">Cleared</p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+        </div>
+
+        {/* ══ COLUMN 3 — desktop only ════════════════════ */}
+        <div className="hidden lg:flex flex-col gap-3">
+          <div className="bg-white rounded-2xl border border-[#e4e7ec] shadow-sm overflow-hidden flex-1">
+            <div className="flex items-center justify-between px-5 py-4 border-b border-[#f0f3f8]">
+              <p className="text-[13px] font-semibold text-[#111827]">Recent Transactions</p>
+              <Link href="/transactions" className="text-[10px] font-semibold tracking-[0.1em] uppercase text-[#0d9488]">
+                See all →
+              </Link>
+            </div>
+            {account.transactions.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-10 px-5 text-center">
+                <CreditCard className="w-7 h-7 text-[#e4e7ec] mb-3" />
+                <p className="text-[12px] font-semibold text-[#9ca3af]">No transactions yet</p>
+              </div>
+            ) : (
+              <div>
+                {account.transactions.slice(0, 6).map((tx) => {
+                  const cfg  = TX_CONFIG[tx.type];
+                  const Icon = cfg.icon;
+                  return (
+                    <div key={tx.id}
+                         className="flex items-center gap-3 px-5 py-3.5 border-b border-[#f5f7fb] last:border-0 hover:bg-[#fafbff] transition-colors">
+                      <div className={cn("w-9 h-9 rounded-[11px] border flex items-center justify-center flex-shrink-0", cfg.bg, cfg.border)}>
+                        <Icon className={cn("w-4 h-4", cfg.text)} strokeWidth={2} />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-[12px] font-semibold text-[#111827]">
+                          {tx.note ?? cfg.label}
+                        </p>
+                        <p className="text-[10px] text-[#9ca3af] font-mono tracking-[0.04em] mt-0.5">
+                          {formatDateTime(tx.createdAt)}
+                        </p>
+                      </div>
+                      <div className="text-right flex-shrink-0">
+                        <p className={cn("text-[13px] font-bold font-mono",
+                          tx.type === "CREDIT" ? "text-[#0d9488]" : "text-[#111827]")}>
+                          {cfg.sign}{formatMoney(tx.amount, account.currency)}
+                        </p>
+                        <p className="text-[9px] text-[#9ca3af] tracking-[0.1em] uppercase mt-0.5">Cleared</p>
                       </div>
                     </div>
                   );
@@ -309,41 +439,48 @@ export default async function DashboardPage() {
             )}
           </div>
         </div>
+
       </div>
 
-      {/* ── Full-width transactions table ──────────── */}
+      {/* ── Full-width transactions table (desktop only) ── */}
       {account.transactions.length > 0 && (
-        <div className="bg-white rounded-2xl border border-[#e8ecf4] shadow-sm overflow-hidden">
+        <div className="hidden lg:block bg-white rounded-2xl border border-[#e4e7ec] shadow-sm overflow-hidden mx-8 mb-10">
           <div className="flex items-center justify-between px-6 py-4 border-b border-[#f0f3f8]">
-            <p className="text-[15px] font-bold text-[#1a1d27]">All Recent Transactions</p>
-            <Link href="/transactions" className="text-[12px] font-semibold text-[#16a37f]">View all →</Link>
+            <p className="text-[14px] font-semibold text-[#111827]">All Recent Transactions</p>
+            <Link href="/transactions"
+                  className="text-[10px] font-semibold tracking-[0.1em] uppercase text-[#0d9488]">
+              View all →
+            </Link>
           </div>
           <div className="divide-y divide-[#f5f7fb]">
             {account.transactions.map((tx) => {
               const cfg  = TX_CONFIG[tx.type];
               const Icon = cfg.icon;
               return (
-                <div key={tx.id} className="flex items-center gap-4 px-6 py-4 hover:bg-[#fafbff] transition-colors">
-                  <div className={cn("w-10 h-10 rounded-[13px] flex items-center justify-center flex-shrink-0", cfg.bg)}>
-                    <Icon className={cn("w-4 h-4", cfg.text)} strokeWidth={2.5} />
+                <div key={tx.id}
+                     className="flex items-center gap-4 px-6 py-4 hover:bg-[#fafbff] transition-colors">
+                  <div className={cn("w-10 h-10 rounded-[13px] border flex items-center justify-center flex-shrink-0", cfg.bg, cfg.border)}>
+                    <Icon className={cn("w-4 h-4", cfg.text)} strokeWidth={2} />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-[13.5px] font-semibold text-[#1a1d27]">{cfg.label}</p>
-                    <p className="text-[11px] text-[#9ca3af]">
-                      {tx.note ? tx.note : formatDateTime(tx.createdAt)}
+                    <p className="text-[13px] font-semibold text-[#111827]">
+                      {tx.note ?? cfg.label}
+                    </p>
+                    <p className="text-[11px] text-[#9ca3af] font-mono tracking-[0.03em] mt-0.5">
+                      {formatDateTime(tx.createdAt)}
                     </p>
                   </div>
-                  <div className="hidden sm:block text-[11px] text-[#9ca3af] font-mono">
-                    {formatDateTime(tx.createdAt)}
+                  <div className="hidden sm:block">
+                    <span className="text-[9px] font-semibold tracking-[0.1em] uppercase px-2.5 py-1 rounded-full bg-[#f5f6f8] text-[#9ca3af] border border-[#e4e7ec]">
+                      Cleared
+                    </span>
                   </div>
                   <div className="text-right flex-shrink-0">
-                    <p className={cn(
-                      "text-[14px] font-bold font-mono",
-                      tx.type === "CREDIT" ? "text-[#16a37f]" : "text-[#1a1d27]"
-                    )}>
+                    <p className={cn("text-[14px] font-bold font-mono",
+                      tx.type === "CREDIT" ? "text-[#0d9488]" : "text-[#111827]")}>
                       {cfg.sign}{formatMoney(tx.amount, account.currency)}
                     </p>
-                    <p className="text-[10.5px] text-[#9ca3af] font-mono mt-0.5">
+                    <p className="text-[10px] text-[#9ca3af] font-mono mt-0.5">
                       Bal: {formatMoney(tx.balanceAfter, account.currency)}
                     </p>
                   </div>

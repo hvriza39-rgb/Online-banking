@@ -18,8 +18,8 @@ export const metadata: Metadata = { title: "Account Overview — NexaBank" };
 // ── Revised palette — lighter, cooler, with colored text ──────────────────
 // --bg:        #f0f2f7   page background (cool blue-white)
 // --surface:   #e8ecf4   header / nav background
-// --card:      #ffffff   card background
-// --card-deep: #f4f6fb   inset / nested bg
+// --card:      #f2f4fa   card background
+// --card-deep: #eaecf5   inset / nested bg
 // --line:      #d4d9e8   borders
 // --line-soft: #e0e4f0   subtle dividers
 // --indigo:    #3d52a0   primary accent (bank name, active states)
@@ -135,7 +135,7 @@ export default async function DashboardPage() {
           )}
 
           {/* ── Balance card ── */}
-          <div className="relative rounded-[14px] p-6 overflow-hidden border border-[#d4d9e8] shadow-sm bg-white">
+          <div className="relative rounded-[14px] p-6 overflow-hidden border border-[#d4d9e8] shadow-sm bg-[#f2f4fa]">
             <p className="text-[10px] font-semibold tracking-[0.2em] uppercase text-[#7b87b8] mb-2">
               Main Balance
             </p>
@@ -178,7 +178,7 @@ export default async function DashboardPage() {
             {isVerified ? (
               <Link
                 href="/withdraw"
-                className="flex flex-col items-center gap-2 py-3 px-1 rounded-[12px] bg-white border border-[#d4d9e8] shadow-sm hover:border-[#6b7fd4] transition-all active:scale-[0.97]"
+                className="flex flex-col items-center gap-2 py-3 px-1 rounded-[12px] bg-[#f2f4fa] border border-[#d4d9e8] shadow-sm hover:border-[#6b7fd4] transition-all active:scale-[0.97]"
               >
                 <div className="w-9 h-9 rounded-full bg-[#eef0f9] flex items-center justify-center">
                   <Send className="w-4 h-4 text-[#3d52a0]" strokeWidth={1.8} />
@@ -186,7 +186,7 @@ export default async function DashboardPage() {
                 <span className="text-[9px] font-semibold tracking-[0.08em] uppercase text-[#3d4870]">Send</span>
               </Link>
             ) : (
-              <span className="flex flex-col items-center gap-2 py-3 px-1 rounded-[12px] bg-white border border-[#d4d9e8] shadow-sm cursor-not-allowed opacity-40 select-none">
+              <span className="flex flex-col items-center gap-2 py-3 px-1 rounded-[12px] bg-[#f2f4fa] border border-[#d4d9e8] shadow-sm cursor-not-allowed opacity-40 select-none">
                 <div className="w-9 h-9 rounded-full bg-[#eef0f9] flex items-center justify-center">
                   <Send className="w-4 h-4 text-[#3d52a0]" strokeWidth={1.8} />
                 </div>
@@ -206,7 +206,7 @@ export default async function DashboardPage() {
             {/* History */}
             <Link
               href="/transactions"
-              className="flex flex-col items-center gap-2 py-3 px-1 rounded-[12px] bg-white border border-[#d4d9e8] shadow-sm hover:border-[#6b7fd4] transition-all active:scale-[0.97]"
+              className="flex flex-col items-center gap-2 py-3 px-1 rounded-[12px] bg-[#f2f4fa] border border-[#d4d9e8] shadow-sm hover:border-[#6b7fd4] transition-all active:scale-[0.97]"
             >
               <div className="w-9 h-9 rounded-full bg-[#f0f2f7] flex items-center justify-center">
                 <ClipboardList className="w-4 h-4 text-[#6b7fd4]" strokeWidth={1.8} />
@@ -220,7 +220,7 @@ export default async function DashboardPage() {
           </div>
 
           {/* ── Account details ── */}
-          <div className="bg-white rounded-2xl border border-[#d4d9e8] shadow-sm p-5">
+          <div className="bg-[#f2f4fa] rounded-2xl border border-[#d4d9e8] shadow-sm p-5">
             <div className="flex items-center justify-between mb-4">
               <p className="text-[14px] font-semibold text-[#1a1f3a]"
                  style={{ fontFamily: "'Playfair Display', serif" }}>
@@ -229,7 +229,7 @@ export default async function DashboardPage() {
             </div>
 
             {/* Account number */}
-            <div className="bg-[#f4f6fb] rounded-[12px] px-4 py-3 mb-3">
+            <div className="bg-[#eaecf5] rounded-[12px] px-4 py-3 mb-3">
               <p className="text-[9px] font-semibold tracking-[0.2em] uppercase text-[#7b87b8] mb-1.5">
                 Account Number
               </p>
@@ -279,7 +279,7 @@ export default async function DashboardPage() {
           {/* ── Transaction summary ── */}
           <Link
             href="/transactions"
-            className="bg-white rounded-2xl border border-[#d4d9e8] shadow-sm p-5 flex items-center justify-between hover:border-[#6b7fd4] hover:shadow-md transition-all active:scale-[0.99] group"
+            className="bg-[#f2f4fa] rounded-2xl border border-[#d4d9e8] shadow-sm p-5 flex items-center justify-between hover:border-[#6b7fd4] hover:shadow-md transition-all active:scale-[0.99] group"
           >
             <div className="flex items-center gap-4">
               <div className="w-11 h-11 bg-[#edf7f5] border border-[#a8dbd4] rounded-[14px] flex items-center justify-center flex-shrink-0">
@@ -308,7 +308,7 @@ export default async function DashboardPage() {
           </Link>
 
           {/* ── Spending overview ── */}
-          <div className="bg-white rounded-2xl border border-[#d4d9e8] shadow-sm overflow-hidden">
+          <div className="bg-[#f2f4fa] rounded-2xl border border-[#d4d9e8] shadow-sm overflow-hidden">
             <div className="flex items-center justify-between px-5 py-4 border-b border-[#e0e4f0]">
               <p className="text-[13px] font-semibold text-[#1a1f3a]"
                  style={{ fontFamily: "'Playfair Display', serif" }}>
@@ -362,7 +362,7 @@ export default async function DashboardPage() {
           </div>
 
           {/* ── Recent activity (mobile / col-2 on desktop) ── */}
-          <div className="bg-white rounded-2xl border border-[#d4d9e8] shadow-sm overflow-hidden lg:hidden">
+          <div className="bg-[#f2f4fa] rounded-2xl border border-[#d4d9e8] shadow-sm overflow-hidden lg:hidden">
             <div className="flex items-center justify-between px-5 py-4 border-b border-[#e0e4f0]">
               <p className="text-[13px] font-semibold text-[#1a1f3a]"
                  style={{ fontFamily: "'Playfair Display', serif" }}>
@@ -384,7 +384,7 @@ export default async function DashboardPage() {
                   const Icon = cfg.icon;
                   return (
                     <div key={tx.id}
-                         className="flex items-center gap-3 px-5 py-3.5 border-b border-[#f0f2f7] last:border-0 hover:bg-[#f4f6fb] transition-colors">
+                         className="flex items-center gap-3 px-5 py-3.5 border-b border-[#f0f2f7] last:border-0 hover:bg-[#eaecf5] transition-colors">
                       <div className={cn("w-9 h-9 rounded-[11px] border flex items-center justify-center flex-shrink-0", cfg.bg, cfg.border)}>
                         <Icon className={cn("w-4 h-4", cfg.text)} strokeWidth={2} />
                       </div>
@@ -412,7 +412,7 @@ export default async function DashboardPage() {
 
         {/* ══ COLUMN 3 — desktop only ════════════════════ */}
         <div className="hidden lg:flex flex-col gap-3">
-          <div className="bg-white rounded-2xl border border-[#d4d9e8] shadow-sm overflow-hidden flex-1">
+          <div className="bg-[#f2f4fa] rounded-2xl border border-[#d4d9e8] shadow-sm overflow-hidden flex-1">
             <div className="flex items-center justify-between px-5 py-4 border-b border-[#e0e4f0]">
               <p className="text-[13px] font-semibold text-[#1a1f3a]"
                  style={{ fontFamily: "'Playfair Display', serif" }}>
@@ -434,7 +434,7 @@ export default async function DashboardPage() {
                   const Icon = cfg.icon;
                   return (
                     <div key={tx.id}
-                         className="flex items-center gap-3 px-5 py-3.5 border-b border-[#f0f2f7] last:border-0 hover:bg-[#f4f6fb] transition-colors">
+                         className="flex items-center gap-3 px-5 py-3.5 border-b border-[#f0f2f7] last:border-0 hover:bg-[#eaecf5] transition-colors">
                       <div className={cn("w-9 h-9 rounded-[11px] border flex items-center justify-center flex-shrink-0", cfg.bg, cfg.border)}>
                         <Icon className={cn("w-4 h-4", cfg.text)} strokeWidth={2} />
                       </div>
@@ -465,7 +465,7 @@ export default async function DashboardPage() {
 
       {/* ── Full-width transactions table (desktop only) ── */}
       {account.transactions.length > 0 && (
-        <div className="hidden lg:block bg-white rounded-2xl border border-[#d4d9e8] shadow-sm overflow-hidden mx-8 mb-10">
+        <div className="hidden lg:block bg-[#f2f4fa] rounded-2xl border border-[#d4d9e8] shadow-sm overflow-hidden mx-8 mb-10">
           <div className="flex items-center justify-between px-6 py-4 border-b border-[#e0e4f0]">
             <p className="text-[14px] font-semibold text-[#1a1f3a]"
                style={{ fontFamily: "'Playfair Display', serif" }}>
@@ -482,7 +482,7 @@ export default async function DashboardPage() {
               const Icon = cfg.icon;
               return (
                 <div key={tx.id}
-                     className="flex items-center gap-4 px-6 py-4 hover:bg-[#f4f6fb] transition-colors">
+                     className="flex items-center gap-4 px-6 py-4 hover:bg-[#eaecf5] transition-colors">
                   <div className={cn("w-10 h-10 rounded-[13px] border flex items-center justify-center flex-shrink-0", cfg.bg, cfg.border)}>
                     <Icon className={cn("w-4 h-4", cfg.text)} strokeWidth={2} />
                   </div>

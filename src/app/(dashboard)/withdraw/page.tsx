@@ -13,9 +13,9 @@ const STATUS_CONFIG: Record<WithdrawalStatus, {
   label: string; icon: React.ElementType;
   bg: string; border: string; text: string;
 }> = {
-  PENDING:  { label: "Pending",  icon: Clock,        bg: "bg-amber-50",   border: "border-amber-100",  text: "text-amber-700"  },
-  APPROVED: { label: "Approved", icon: CheckCircle2, bg: "bg-emerald-50", border: "border-emerald-100", text: "text-emerald-700" },
-  REJECTED: { label: "Rejected", icon: XCircle,      bg: "bg-rose-50",    border: "border-rose-100",   text: "text-rose-600"   },
+  PENDING:  { label: "Pending",  icon: Clock,        bg: "bg-[#fff8ec]",  border: "border-[#f0d9a0]", text: "text-[#c47a00]"  },
+  APPROVED: { label: "Approved", icon: CheckCircle2, bg: "bg-[#edf7f5]",  border: "border-[#a8dbd4]", text: "text-[#0f7a6e]"  },
+  REJECTED: { label: "Rejected", icon: XCircle,      bg: "bg-[#faeef0]",  border: "border-[#e8b8be]", text: "text-[#b52b3a]"  },
 };
 
 export default async function WithdrawPage() {
@@ -36,27 +36,30 @@ export default async function WithdrawPage() {
   });
 
   return (
-    <div className="min-h-screen p-6 lg:p-8">
+    <div className="min-h-screen bg-[#f0f7f4] p-6 lg:p-8">
       <div className="max-w-2xl">
 
         {/* Header */}
         <div className="mb-7 fade-up">
-          <h1 className="text-2xl font-semibold text-slate-900">Send Funds</h1>
-          <p className="text-slate-400 text-sm mt-1">Transfer funds to a local or international account</p>
+          <h1 className="text-2xl font-semibold text-[#0f2419] fade-up"
+              style={{ fontFamily: "'Playfair Display', serif" }}>
+            Send Funds
+          </h1>
+          <p className="text-[#6a8c7a] text-sm mt-1">Transfer funds to a local or international account</p>
         </div>
 
         {/* Balance display */}
-        <div className="fade-up delay-1 mb-5 rounded-2xl p-5 border border-slate-200 bg-gradient-to-br from-slate-50 to-white">
-          <p className="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-1">Available Balance</p>
-          <p className="text-3xl font-semibold text-slate-900 money tracking-tight">
+        <div className="fade-up delay-1 mb-5 rounded-2xl p-5 border border-[#c8dfd5] bg-[#f2f9f6]">
+          <p className="text-[10px] font-semibold text-[#6a8c7a] uppercase tracking-[0.2em] mb-1">Available Balance</p>
+          <p className="text-3xl font-semibold text-[#0f2419] font-mono tracking-tight">
             {formatMoney(account.balance, account.currency)}
           </p>
-          <p className="text-xs text-slate-400 mt-1">{account.currency} Account</p>
+          <p className="text-xs text-[#6a8c7a] mt-1">{account.currency} Account</p>
         </div>
 
         {/* Form card */}
-        <div className="card p-6 fade-up delay-2">
-          <h2 className="text-[14px] font-semibold text-slate-800 mb-5">New Transfer</h2>
+        <div className="bg-[#f2f9f6] rounded-2xl border border-[#c8dfd5] shadow-sm p-6 fade-up delay-2">
+          <h2 className="text-[14px] font-semibold text-[#0f2419] mb-5">New Transfer</h2>
           <WithdrawForm
             maxAmount={account.balance / 100}
             currency={account.currency}
@@ -66,26 +69,26 @@ export default async function WithdrawPage() {
 
         {/* Request history */}
         {requests.length > 0 && (
-          <div className="card mt-5 fade-up delay-3">
-            <div className="px-6 py-4 border-b border-slate-100">
-              <h2 className="text-[14px] font-semibold text-slate-800">Transfer History</h2>
+          <div className="bg-[#f2f9f6] rounded-2xl border border-[#c8dfd5] shadow-sm mt-5 fade-up delay-3">
+            <div className="px-6 py-4 border-b border-[#d8ede6]">
+              <h2 className="text-[14px] font-semibold text-[#0f2419]">Transfer History</h2>
             </div>
-            <div className="divide-y divide-slate-50">
+            <div className="divide-y divide-[#f0f7f4]">
               {requests.map((r) => {
                 const cfg  = STATUS_CONFIG[r.status];
                 const Icon = cfg.icon;
                 return (
-                  <div key={r.id} className="flex items-center gap-4 px-6 py-4">
+                  <div key={r.id} className="flex items-center gap-4 px-6 py-4 hover:bg-[#e4f2ec] transition-colors">
                     <div className={cn("w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 border", cfg.bg, cfg.border)}>
                       <Icon className={cn("w-4 h-4", cfg.text)} strokeWidth={2} />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-[13px] font-semibold text-slate-800 money">
+                      <p className="text-[13px] font-semibold text-[#0f2419] font-mono">
                         {formatMoney(r.amount, r.currency)}
                       </p>
-                      <p className="text-[11px] text-slate-400 mt-0.5">{formatDateTime(r.createdAt)}</p>
+                      <p className="text-[11px] text-[#6a8c7a] mt-0.5">{formatDateTime(r.createdAt)}</p>
                       {r.note && (
-                        <p className="text-[11px] text-slate-500 italic mt-0.5">"{r.note}"</p>
+                        <p className="text-[11px] text-[#2d5042] italic mt-0.5">"{r.note}"</p>
                       )}
                     </div>
                     <span className={cn("text-[11px] font-semibold px-2.5 py-1 rounded-full border", cfg.bg, cfg.border, cfg.text)}>

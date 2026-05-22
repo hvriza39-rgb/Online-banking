@@ -219,9 +219,9 @@ export function Sidebar({ user, kycStatus }: SidebarProps) {
         <Image
           src="/nexabank-logo.svg"
           alt="NexaBank"
-          width={100}
-          height={30}
-          className="h-7 w-auto"
+          width={140}
+          height={44}
+          className="h-11 w-auto"
           priority
         />
       </header>

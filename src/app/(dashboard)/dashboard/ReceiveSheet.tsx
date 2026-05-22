@@ -32,7 +32,7 @@ export default function ReceiveSheet({
       {/* Trigger button */}
       <button
         onClick={() => setOpen(true)}
-        className="flex flex-col items-center gap-2 py-3 px-1 rounded-[12px] bg-white border border-[#d4d9e8] shadow-sm hover:border-[#6b7fd4] transition-all active:scale-[0.97]"
+        className="flex flex-col items-center gap-2 py-3 px-1 rounded-[12px] bg-[#f2f4fa] border border-[#d4d9e8] shadow-sm hover:border-[#6b7fd4] transition-all active:scale-[0.97]"
       >
         <div className="w-9 h-9 rounded-full bg-[#edf7f5] flex items-center justify-center">
           <ArrowDownLeft className="w-4 h-4 text-[#0f7a6e]" strokeWidth={1.8} />
@@ -56,7 +56,7 @@ export default function ReceiveSheet({
           open ? "translate-y-0" : "translate-y-full"
         }`}
       >
-        <div className="bg-white rounded-t-[24px] shadow-2xl max-w-lg mx-auto overflow-hidden">
+        <div className="bg-[#f5f7fc] rounded-t-[24px] shadow-2xl max-w-lg mx-auto overflow-hidden">
 
           {/* Handle */}
           <div className="flex justify-center pt-3 pb-1">
@@ -149,7 +149,7 @@ function DetailRow({
 }) {
   const isCopied = copied === copyKey;
   return (
-    <div className="bg-[#f4f6fb] rounded-[14px] px-4 py-3.5 flex items-center justify-between gap-3">
+    <div className="bg-[#eaecf5] rounded-[14px] px-4 py-3.5 flex items-center justify-between gap-3">
       <div className="flex-1 min-w-0">
         <p className="text-[9px] font-semibold tracking-[0.18em] uppercase text-[#7b87b8] mb-1">
           {label}
@@ -163,7 +163,7 @@ function DetailRow({
       {!disabled && (
         <button
           onClick={onCopy}
-          className="w-8 h-8 rounded-full bg-white border border-[#d4d9e8] flex items-center justify-center flex-shrink-0 hover:border-[#0f7a6e]/40 transition-colors"
+          className="w-8 h-8 rounded-full bg-[#eef0f8] border border-[#d4d9e8] flex items-center justify-center flex-shrink-0 hover:border-[#0f7a6e]/40 transition-colors"
         >
           {isCopied
             ? <Check className="w-3.5 h-3.5 text-[#0f7a6e]" />

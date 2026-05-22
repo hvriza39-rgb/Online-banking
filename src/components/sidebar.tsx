@@ -19,6 +19,7 @@ const adminLinks = [
   { href: "/admin",             label: "Overview",    icon: LayoutDashboard, locked: false, highlight: false, pending: false },
   { href: "/admin/users",       label: "Users",       icon: Users,           locked: false, highlight: false, pending: false },
   { href: "/admin/withdrawals", label: "Withdrawals", icon: ArrowUpToLine, locked: false, highlight: false, pending: false },
+  { href: "/admin/kyc",         label: "Kyc",         icon: ShieldCheck, locked: false, highlight: false, pending: false },
   { href: "/admin/support",     label: "Support",     icon: MessageSquare,   locked: false, highlight: false, pending: false },
 ];
 

@@ -494,7 +494,7 @@ export default async function DashboardPage() {
       <nav className="lg:hidden fixed bottom-0 inset-x-0 z-30 bg-white border-t border-[#e4e7ec] shadow-[0_-4px_16px_rgba(0,0,0,0.06)]">
         <div className="grid grid-cols-5 pb-safe">
           {[
-            { label: "Home",      icon: Home,         href: "/dashboard",    active: true  },
+            { label: "Overview",  icon: home,         href: "/dashboard",    active: true  },
             { label: "Accounts",  icon: LayoutGrid,   href: "/accounts",     active: false },
             { label: "Transfer",  icon: ArrowUpRight, href: isVerified ? "/send" : null, active: false },
             { label: "Analytics", icon: BarChart2,    href: "/transactions", active: false },

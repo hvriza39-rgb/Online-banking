@@ -6,9 +6,10 @@ import { signOut } from "next-auth/react";
 import { useEffect, useState } from "react";
 import {
   LayoutDashboard, ArrowUpToLine, ClipboardList,
-  Users, LogOut, Wallet, ShieldCheck, ShieldAlert, Clock, MessageSquare, Menu, X,
+  Users, LogOut, ShieldCheck, ShieldAlert, Clock, MessageSquare, Menu, X,
 } from "lucide-react";
 import { cn, getInitials } from "@/lib/utils";
+import Image from "next/image";
 
 interface SidebarProps {
   user:       { name: string; email: string; role: string };
@@ -70,19 +71,20 @@ export function Sidebar({ user, kycStatus }: SidebarProps) {
       {/* Logo */}
       <div className="flex-shrink-0 flex items-center justify-between gap-3 px-5 h-[70px] border-b border-[#c8dfd5]">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl flex items-center justify-center"
-               style={{ background: "linear-gradient(135deg, #1a6648, #3daa7a)" }}>
-            <Wallet className="w-[18px] h-[18px] text-white" strokeWidth={2.5} />
-          </div>
-          <div>
-            <span className="font-semibold text-[#0f2419] text-[15px] tracking-tight">NexaBank</span>
-            {isAdmin && (
-              <div className="flex items-center gap-1 mt-0.5">
-                <ShieldCheck className="w-2.5 h-2.5 text-[#1e7a52]" />
-                <span className="text-[10px] text-[#1e7a52] font-semibold uppercase tracking-wider">Admin</span>
-              </div>
-            )}
-          </div>
+          <Image
+            src="/nexabank-logo.svg"
+            alt="NexaBank"
+            width={130}
+            height={40}
+            className="h-10 w-auto"
+            priority
+          />
+          {isAdmin && (
+            <div className="flex items-center gap-1">
+              <ShieldCheck className="w-2.5 h-2.5 text-[#1e7a52]" />
+              <span className="text-[10px] text-[#1e7a52] font-semibold uppercase tracking-wider">Admin</span>
+            </div>
+          )}
         </div>
         <button
           onClick={() => setOpen(false)}
@@ -214,13 +216,14 @@ export function Sidebar({ user, kycStatus }: SidebarProps) {
         >
           <Menu className="w-5 h-5" />
         </button>
-        <div className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded-lg flex items-center justify-center"
-               style={{ background: "linear-gradient(135deg, #1a6648, #3daa7a)" }}>
-            <Wallet className="w-[15px] h-[15px] text-white" strokeWidth={2.5} />
-          </div>
-          <span className="font-semibold text-[#0f2419] text-[15px] tracking-tight">NexaBank</span>
-        </div>
+        <Image
+          src="/nexabank-logo.svg"
+          alt="NexaBank"
+          width={100}
+          height={30}
+          className="h-7 w-auto"
+          priority
+        />
       </header>
 
       {/* ── Backdrop ───────────────────────────────────── */}

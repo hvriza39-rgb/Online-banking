@@ -18,12 +18,12 @@ type SupportMessage = {
 type TicketStatus = "OPEN" | "CLOSED" | null;
 
 const FAQ_SHORTCUTS = [
-  { icon: CreditCard,      label: "Card issues",           text: "I'm having an issue with my card." },
-  { icon: ArrowDownToLine, label: "Transfer failed",       text: "My transfer failed. Can you help?" },
-  { icon: KeyRound,        label: "Account access",        text: "I can't access my account." },
-  { icon: ShieldCheck,     label: "KYC verification",      text: "I need help with KYC verification." },
-  { icon: RefreshCw,       label: "Wrong transaction",     text: "A transaction on my account looks incorrect." },
-  { icon: HelpCircle,      label: "Something else",        text: "I have a question that isn't listed here." },
+  { icon: CreditCard,      label: "Card issues",       text: "I'm having an issue with my card." },
+  { icon: ArrowDownToLine, label: "Transfer failed",   text: "My transfer failed. Can you help?" },
+  { icon: KeyRound,        label: "Account access",    text: "I can't access my account." },
+  { icon: ShieldCheck,     label: "KYC verification",  text: "I need help with KYC verification." },
+  { icon: RefreshCw,       label: "Wrong transaction", text: "A transaction on my account looks incorrect." },
+  { icon: HelpCircle,      label: "Something else",    text: "I have a question that isn't listed here." },
 ];
 
 function formatTime(dateStr: string) {
@@ -56,17 +56,16 @@ function groupByDate(messages: SupportMessage[]) {
 }
 
 export default function SupportPage() {
-  const [messages, setMessages]       = useState<SupportMessage[]>([]);
-  const [ticketId, setTicketId]       = useState<string | null>(null);
-  const [status, setStatus]           = useState<TicketStatus>(null);
-  const [loading, setLoading]         = useState(true);
-  const [sending, setSending]         = useState(false);
-  const [input, setInput]             = useState("");
-  const [error, setError]             = useState("");
-  const bottomRef                     = useRef<HTMLDivElement>(null);
-  const textareaRef                   = useRef<HTMLTextAreaElement>(null);
+  const [messages, setMessages] = useState<SupportMessage[]>([]);
+  const [ticketId, setTicketId] = useState<string | null>(null);
+  const [status, setStatus]     = useState<TicketStatus>(null);
+  const [loading, setLoading]   = useState(true);
+  const [sending, setSending]   = useState(false);
+  const [input, setInput]       = useState("");
+  const [error, setError]       = useState("");
+  const bottomRef               = useRef<HTMLDivElement>(null);
+  const textareaRef             = useRef<HTMLTextAreaElement>(null);
 
-  // Fetch or create the single support thread for this user
   const fetchThread = async () => {
     try {
       const res  = await fetch("/api/support/thread", { cache: "no-store" });
@@ -83,12 +82,8 @@ export default function SupportPage() {
   };
 
   useEffect(() => { fetchThread(); }, []);
+  useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages]);
 
-  useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
-
-  // Auto-resize textarea
   const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setInput(e.target.value);
     const el = textareaRef.current;
@@ -124,24 +119,27 @@ export default function SupportPage() {
     if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSend(); }
   };
 
-  const grouped = groupByDate(messages);
+  const grouped  = groupByDate(messages);
   const isClosed = status === "CLOSED";
 
   return (
-    <div className="min-h-screen bg-[#eef1f8] p-5 sm:p-8 flex flex-col gap-6">
+    <div className="min-h-screen bg-[#f0f7f4] p-5 sm:p-8 flex flex-col gap-6">
 
       {/* ── Header ── */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl sm:text-2xl font-extrabold tracking-tight text-[#1a1d27]">Support</h1>
-          <p className="text-[13px] text-[#9ca3af] mt-0.5">We usually reply within a few hours.</p>
+          <h1 className="text-xl sm:text-2xl font-semibold text-[#0f2419]"
+              style={{ fontFamily: "'Playfair Display', serif" }}>
+            Support
+          </h1>
+          <p className="text-[13px] text-[#6a8c7a] mt-0.5">We usually reply within a few hours.</p>
         </div>
         {status && (
           <span className={cn(
             "text-[11px] font-bold uppercase tracking-widest px-3 py-1.5 rounded-full border",
             status === "OPEN"
-              ? "bg-[#e6f7f3] text-[#16a37f] border-[#16a37f]/20"
-              : "bg-[#f4f6fb] text-[#9ca3af] border-[#e4e7ef]"
+              ? "bg-[#edf7f5] text-[#0f7a6e] border-[#a8dbd4]"
+              : "bg-[#e4f2ec] text-[#6a8c7a] border-[#c8dfd5]"
           )}>
             {status === "OPEN" ? "● Open" : "Closed"}
           </span>
@@ -152,9 +150,9 @@ export default function SupportPage() {
 
         {/* ── LEFT: FAQ shortcuts ── */}
         <div className="lg:col-span-1 flex flex-col gap-3">
-          <div className="bg-white rounded-2xl border border-[#e8ecf4] shadow-sm p-5">
-            <p className="text-[13px] font-bold text-[#1a1d27] mb-1">Quick topics</p>
-            <p className="text-[12px] text-[#9ca3af] mb-4">Tap a topic to get started fast.</p>
+          <div className="bg-[#f2f9f6] rounded-2xl border border-[#c8dfd5] shadow-sm p-5">
+            <p className="text-[13px] font-semibold text-[#0f2419] mb-1">Quick topics</p>
+            <p className="text-[12px] text-[#6a8c7a] mb-4">Tap a topic to get started fast.</p>
             <div className="flex flex-col gap-2">
               {FAQ_SHORTCUTS.map(({ icon: Icon, label, text }) => (
                 <button
@@ -162,40 +160,41 @@ export default function SupportPage() {
                   type="button"
                   disabled={isClosed}
                   onClick={() => handleSend(text)}
-                  className="flex items-center gap-3 w-full px-4 py-3 rounded-[13px] border border-[#e8ecf4] bg-[#f9fafb] hover:border-[#16a37f]/30 hover:bg-[#f0faf6] text-left transition-all active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed group"
+                  className="flex items-center gap-3 w-full px-4 py-3 rounded-[13px] border border-[#c8dfd5] bg-[#e4f2ec] hover:border-[#4daa80] hover:bg-[#d8ede6] text-left transition-all active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed group"
                 >
-                  <div className="w-8 h-8 rounded-lg bg-[#e6f7f3] flex items-center justify-center flex-shrink-0 group-hover:bg-[#16a37f]/15 transition-colors">
-                    <Icon className="w-3.5 h-3.5 text-[#16a37f]" strokeWidth={2} />
+                  <div className="w-8 h-8 rounded-lg bg-[#f2f9f6] border border-[#c8dfd5] flex items-center justify-center flex-shrink-0 group-hover:border-[#4daa80] transition-colors">
+                    <Icon className="w-3.5 h-3.5 text-[#1e7a52]" strokeWidth={2} />
                   </div>
-                  <span className="text-[13px] font-medium text-[#374151]">{label}</span>
+                  <span className="text-[13px] font-medium text-[#2d5042]">{label}</span>
                 </button>
               ))}
             </div>
           </div>
 
           {/* Status info */}
-          <div className="bg-white rounded-2xl border border-[#e8ecf4] shadow-sm p-5">
+          <div className="bg-[#f2f9f6] rounded-2xl border border-[#c8dfd5] shadow-sm p-5">
             <div className="flex items-center gap-2.5 mb-3">
-              <div className="w-2 h-2 rounded-full bg-[#16a37f] animate-pulse" />
-              <p className="text-[13px] font-semibold text-[#1a1d27]">Support is online</p>
+              <div className="w-2 h-2 rounded-full bg-[#1e7a52] animate-pulse" />
+              <p className="text-[13px] font-semibold text-[#0f2419]">Support is online</p>
             </div>
-            <p className="text-[12px] text-[#9ca3af] leading-relaxed">
+            <p className="text-[12px] text-[#6a8c7a] leading-relaxed">
               Our team reviews all messages and typically responds within 2–4 hours during business hours.
             </p>
           </div>
         </div>
 
         {/* ── RIGHT: Chat thread ── */}
-        <div className="lg:col-span-2 bg-white rounded-2xl border border-[#e8ecf4] shadow-sm flex flex-col overflow-hidden" style={{ minHeight: "560px" }}>
+        <div className="lg:col-span-2 bg-[#f2f9f6] rounded-2xl border border-[#c8dfd5] shadow-sm flex flex-col overflow-hidden" style={{ minHeight: "560px" }}>
 
           {/* Chat header */}
-          <div className="flex items-center gap-3 px-5 py-4 border-b border-[#f0f3f8]">
-            <div className="w-9 h-9 rounded-[11px] bg-[#0f1117] flex items-center justify-center flex-shrink-0">
+          <div className="flex items-center gap-3 px-5 py-4 border-b border-[#d8ede6]">
+            <div className="w-9 h-9 rounded-[11px] flex items-center justify-center flex-shrink-0"
+                 style={{ background: "linear-gradient(135deg, #1a6648, #3daa7a)" }}>
               <MessageCircle className="w-4 h-4 text-white" strokeWidth={2} />
             </div>
             <div>
-              <p className="text-[14px] font-bold text-[#1a1d27]">NexaBank Support</p>
-              <p className="text-[11px] text-[#9ca3af]">Replies go to this thread</p>
+              <p className="text-[14px] font-semibold text-[#0f2419]">NexaBank Support</p>
+              <p className="text-[11px] text-[#6a8c7a]">Replies go to this thread</p>
             </div>
           </div>
 
@@ -204,17 +203,17 @@ export default function SupportPage() {
 
             {loading && (
               <div className="flex items-center justify-center py-12">
-                <Loader2 className="w-5 h-5 animate-spin text-[#c4c9d4]" />
+                <Loader2 className="w-5 h-5 animate-spin text-[#a8c8b8]" />
               </div>
             )}
 
             {!loading && messages.length === 0 && (
               <div className="flex flex-col items-center justify-center py-16 text-center">
-                <div className="w-14 h-14 rounded-2xl bg-[#f4f6fb] border border-[#e4e7ef] flex items-center justify-center mb-4">
-                  <MessageCircle className="w-6 h-6 text-[#c4c9d4]" />
+                <div className="w-14 h-14 rounded-2xl bg-[#e4f2ec] border border-[#c8dfd5] flex items-center justify-center mb-4">
+                  <MessageCircle className="w-6 h-6 text-[#a8c8b8]" />
                 </div>
-                <p className="text-[14px] font-semibold text-[#9ca3af]">No messages yet</p>
-                <p className="text-[12px] text-[#c4c9d4] mt-1">Use a quick topic or type below to start.</p>
+                <p className="text-[14px] font-semibold text-[#6a8c7a]">No messages yet</p>
+                <p className="text-[12px] text-[#a8c8b8] mt-1">Use a quick topic or type below to start.</p>
               </div>
             )}
 
@@ -222,11 +221,11 @@ export default function SupportPage() {
               <div key={date}>
                 {/* Date divider */}
                 <div className="flex items-center gap-3 my-4">
-                  <div className="flex-1 h-px bg-[#f0f3f8]" />
-                  <span className="text-[11px] text-[#c4c9d4] font-medium">
+                  <div className="flex-1 h-px bg-[#d8ede6]" />
+                  <span className="text-[11px] text-[#a8c8b8] font-medium">
                     {formatDateDivider(dayMsgs[0].createdAt)}
                   </span>
-                  <div className="flex-1 h-px bg-[#f0f3f8]" />
+                  <div className="flex-1 h-px bg-[#d8ede6]" />
                 </div>
 
                 <div className="space-y-3">
@@ -235,23 +234,22 @@ export default function SupportPage() {
                     return (
                       <div key={msg.id} className={cn("flex", isUser ? "justify-end" : "justify-start")}>
                         {!isUser && (
-                          <div className="w-7 h-7 rounded-lg bg-[#0f1117] flex items-center justify-center flex-shrink-0 mr-2 mt-0.5 self-end">
+                          <div className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 mr-2 mt-0.5 self-end"
+                               style={{ background: "linear-gradient(135deg, #1a6648, #3daa7a)" }}>
                             <MessageCircle className="w-3 h-3 text-white" />
                           </div>
                         )}
-                        <div className={cn(
-                          "max-w-[72%] flex flex-col",
-                          isUser ? "items-end" : "items-start"
-                        )}>
+                        <div className={cn("max-w-[72%] flex flex-col", isUser ? "items-end" : "items-start")}>
                           <div className={cn(
                             "px-4 py-2.5 rounded-2xl text-[13.5px] leading-relaxed",
                             isUser
-                              ? "bg-[#0f1117] text-white rounded-br-sm"
-                              : "bg-[#f4f6fb] text-[#1a1d27] border border-[#e8ecf4] rounded-bl-sm"
-                          )}>
+                              ? "text-white rounded-br-sm"
+                              : "bg-[#e4f2ec] text-[#0f2419] border border-[#c8dfd5] rounded-bl-sm"
+                          )}
+                          style={isUser ? { background: "linear-gradient(135deg, #1a6648, #2a8a62)" } : {}}>
                             <p className="whitespace-pre-wrap break-words">{msg.body}</p>
                           </div>
-                          <span className="text-[10px] text-[#c4c9d4] mt-1 px-1">
+                          <span className="text-[10px] text-[#a8c8b8] mt-1 px-1">
                             {formatTime(msg.createdAt)}
                           </span>
                         </div>
@@ -264,21 +262,21 @@ export default function SupportPage() {
 
             {/* Closed notice */}
             {isClosed && (
-              <div className="flex items-center gap-2 justify-center py-3 px-4 bg-[#f4f6fb] border border-[#e4e7ef] rounded-xl text-[12px] text-[#9ca3af]">
+              <div className="flex items-center gap-2 justify-center py-3 px-4 bg-[#e4f2ec] border border-[#c8dfd5] rounded-xl text-[12px] text-[#6a8c7a]">
                 <CheckCircle2 className="w-3.5 h-3.5 flex-shrink-0" />
                 This conversation is closed. Start a new message to reopen it.
               </div>
             )}
 
             {error && (
-              <div className="text-[12px] text-rose-500 text-center">{error}</div>
+              <div className="text-[12px] text-[#b52b3a] text-center">{error}</div>
             )}
 
             <div ref={bottomRef} />
           </div>
 
           {/* Input area */}
-          <div className="border-t border-[#f0f3f8] px-4 py-3">
+          <div className="border-t border-[#d8ede6] px-4 py-3 bg-[#eaf5f0]">
             <div className="flex items-end gap-3">
               <textarea
                 ref={textareaRef}
@@ -288,14 +286,15 @@ export default function SupportPage() {
                 disabled={isClosed || sending}
                 rows={1}
                 placeholder={isClosed ? "This conversation is closed." : "Type a message… (Enter to send)"}
-                className="flex-1 resize-none bg-[#f9fafb] border border-[#e4e7ef] rounded-[13px] px-4 py-2.5 text-[13.5px] text-[#1a1d27] placeholder-[#c4c9d4] focus:outline-none focus:border-[#16a37f]/40 focus:bg-white transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 resize-none bg-[#f2f9f6] border border-[#c8dfd5] rounded-[13px] px-4 py-2.5 text-[13.5px] text-[#0f2419] placeholder-[#a8c8b8] focus:outline-none focus:border-[#4daa80] focus:bg-white transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 style={{ minHeight: "42px", maxHeight: "120px" }}
               />
               <button
                 type="button"
                 onClick={() => handleSend()}
                 disabled={!input.trim() || sending || isClosed}
-                className="w-10 h-10 rounded-[13px] bg-[#0f1117] text-white flex items-center justify-center flex-shrink-0 hover:bg-[#1a1d27] transition-all active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed mb-0.5"
+                className="w-10 h-10 rounded-[13px] text-white flex items-center justify-center flex-shrink-0 transition-all active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed mb-0.5"
+                style={{ background: "linear-gradient(135deg, #1a6648, #3daa7a)" }}
               >
                 {sending
                   ? <Loader2 className="w-4 h-4 animate-spin" />
@@ -303,7 +302,7 @@ export default function SupportPage() {
                 }
               </button>
             </div>
-            <p className="text-[10px] text-[#c4c9d4] mt-2 px-1">Shift+Enter for new line</p>
+            <p className="text-[10px] text-[#a8c8b8] mt-2 px-1">Shift+Enter for new line</p>
           </div>
         </div>
       </div>

@@ -33,30 +33,30 @@ export default async function TransactionsPage() {
             {account.transactions.length} transaction{account.transactions.length !== 1 ? "s" : ""} total
           </p>
         </div>
-
-        {/* Summary chips */}
-        <div className="flex gap-3 mb-5 flex-wrap fade-up delay-1">
-          {[
-            {
-              label: "Total In",
-              value: account.transactions
-                .filter((t) => t.type === "CREDIT")
-                .reduce((s: bigint, t) => s + t.amount, BigInt(0)),
-              className: "bg-[#edf7f5] border border-[#a8dbd4] text-[#0f7a6e]",
-            },
-            {
-              label: "Total Out",
-              value: account.transactions
-                .filter((t) => t.type !== "CREDIT")
-                .reduce((s: bigint, t) => s + t.amount, BigInt(0)),
-              className: "bg-[#faeef0] border border-[#e8b8be] text-[#b52b3a]",
-            },
-          ].map((s) => (
-            <div key={s.label} className={cn("px-4 py-2 rounded-xl text-sm font-medium font-mono", s.className)}>
-              {s.label}: {formatMoney(s.value, account.currency)}
-            </div>
-          ))}
-        </div>
+{/* Summary chips */}
+<div className="flex gap-3 mb-5 flex-wrap fade-up delay-1">
+  {[
+    {
+      label: "Total In",
+      value: account.transactions
+        .filter((t) => t.type === "CREDIT")
+        .reduce((s: bigint, t) => s + BigInt(t.amount), BigInt(0)),
+      className: "bg-[#edf7f5] border border-[#a8dbd4] text-[#0f7a6e]",
+    },
+    {
+      label: "Total Out",
+      value: account.transactions
+        .filter((t) => t.type !== "CREDIT")
+        .reduce((s: bigint, t) => s + BigInt(t.amount), BigInt(0)),
+      className: "bg-[#faeef0] border border-[#e8b8be] text-[#b52b3a]",
+    },
+  ].map((s) => (
+    <div key={s.label} className={cn("px-4 py-2 rounded-xl text-sm font-medium font-mono", s.className)}>
+      {s.label}: {formatMoney(s.value, account.currency)}
+    </div>
+  ))}
+</div>
+        
 
         {/* Table */}
         <div className="bg-[#f2f9f6] rounded-2xl border border-[#c8dfd5] shadow-sm overflow-hidden fade-up delay-2">

@@ -28,7 +28,7 @@ const SEND_TYPES = [
 const inputClass = (hasError: boolean) =>
   cn(
     "w-full px-4 py-3 rounded-xl border text-sm outline-none transition-all",
-    "focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 bg-white",
+    "focus:ring-2 focus:ring-green-500/20 focus:border-green-600 bg-white",
     hasError ? "border-rose-300 bg-rose-50" : "border-slate-200"
   );
 
@@ -44,13 +44,11 @@ export function WithdrawForm({
   const [error, setError]             = useState<string | null>(null);
   const [showSupport, setShowSupport] = useState(false);
 
-  // New withdrawal modal state
   const [showModal, setShowModal]               = useState(false);
   const [verificationCode, setVerificationCode] = useState("");
   const [pendingData, setPendingData]           = useState<WithdrawalRequestInput | null>(null);
   const [submitting, setSubmitting]             = useState(false);
 
-  // Inline verify-existing state
   const [existingCode, setExistingCode]         = useState("");
   const [verifying, setVerifying]               = useState(false);
   const [verifyError, setVerifyError]           = useState<string | null>(null);
@@ -122,7 +120,6 @@ export function WithdrawForm({
 
     return (
       <div className="space-y-4">
-        {/* Status banner */}
         <div className="flex items-start gap-3 p-4 bg-rose-50 border border-rose-100 rounded-xl">
           <ShieldAlert className="w-4 h-4 text-rose-500 flex-shrink-0 mt-0.5" />
           <div>
@@ -133,7 +130,6 @@ export function WithdrawForm({
           </div>
         </div>
 
-        {/* Code input */}
         <div>
           <label className={labelClass}>Security Code</label>
           <div className="relative">
@@ -145,7 +141,7 @@ export function WithdrawForm({
               placeholder="e.g. A1B2C3D4"
               maxLength={16}
               disabled={verifying}
-              className="w-full pl-9 pr-4 py-3 rounded-xl border border-slate-200 text-sm font-mono tracking-widest outline-none transition-all focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 disabled:opacity-50"
+              className="w-full pl-9 pr-4 py-3 rounded-xl border border-slate-200 text-sm font-mono tracking-widest outline-none transition-all focus:ring-2 focus:ring-green-500/20 focus:border-green-600 disabled:opacity-50"
             />
           </div>
           {verifyError && (
@@ -155,7 +151,6 @@ export function WithdrawForm({
           )}
         </div>
 
-        {/* Actions */}
         <div className="space-y-2">
           <button
             onClick={submitVerification}
@@ -238,18 +233,18 @@ export function WithdrawForm({
                 className={cn(
                   "flex items-center gap-3 px-4 py-3 rounded-xl border text-left transition-all",
                   sendType === value
-                    ? "border-blue-500 bg-blue-50"
+                    ? "border-green-600 bg-green-50"
                     : "border-slate-200 bg-white hover:border-slate-300"
                 )}
               >
                 <div className={cn(
                   "w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0",
-                  sendType === value ? "bg-blue-100" : "bg-slate-100"
+                  sendType === value ? "bg-green-100" : "bg-slate-100"
                 )}>
-                  <Icon className={cn("w-4 h-4", sendType === value ? "text-blue-600" : "text-slate-400")} />
+                  <Icon className={cn("w-4 h-4", sendType === value ? "text-green-700" : "text-slate-400")} />
                 </div>
                 <div>
-                  <p className={cn("text-[13px] font-semibold", sendType === value ? "text-blue-700" : "text-slate-700")}>
+                  <p className={cn("text-[13px] font-semibold", sendType === value ? "text-green-700" : "text-slate-700")}>
                     {label}
                   </p>
                   <p className="text-[11px] text-slate-400">{sub}</p>
@@ -298,7 +293,7 @@ export function WithdrawForm({
             <button
               type="button"
               onClick={() => setShowSupport((v) => !v)}
-              className="flex items-center gap-1 text-[11px] text-slate-400 hover:text-blue-500 transition-colors"
+              className="flex items-center gap-1 text-[11px] text-slate-400 hover:text-green-700 transition-colors"
             >
               <HelpCircle className="w-3 h-3" />
               Don't have a {sendType === "LOCAL" ? "routing number" : "sort code"}?
@@ -315,17 +310,17 @@ export function WithdrawForm({
             </p>
           )}
           {showSupport && (
-            <div className="mt-3 flex items-start gap-3 p-4 bg-blue-50 border border-blue-100 rounded-xl">
-              <MessageCircle className="w-4 h-4 text-blue-500 flex-shrink-0 mt-0.5" />
+            <div className="mt-3 flex items-start gap-3 p-4 bg-green-50 border border-green-100 rounded-xl">
+              <MessageCircle className="w-4 h-4 text-green-700 flex-shrink-0 mt-0.5" />
               <div className="flex-1">
-                <p className="text-[12px] font-semibold text-blue-800 mb-0.5">Need help?</p>
-                <p className="text-[11px] text-blue-600 leading-relaxed mb-2">
+                <p className="text-[12px] font-semibold text-green-900 mb-0.5">Need help?</p>
+                <p className="text-[11px] text-green-700 leading-relaxed mb-2">
                   You can find your {sendType === "LOCAL" ? "routing number" : "sort code"} on your bank statement or by contacting your bank.
                   Our support team can also help you locate it.
                 </p>
                 <a
                   href="/support"
-                  className="inline-flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white text-[11px] font-semibold px-3 py-1.5 rounded-lg transition-all"
+                  className="inline-flex items-center gap-1.5 bg-green-700 hover:bg-green-800 text-white text-[11px] font-semibold px-3 py-1.5 rounded-lg transition-all"
                 >
                   <MessageCircle className="w-3 h-3" />
                   Contact Support
@@ -349,7 +344,7 @@ export function WithdrawForm({
               placeholder="0.00"
               className={cn(
                 "w-full pl-8 pr-4 py-3 rounded-xl border text-sm outline-none transition-all money",
-                "focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500",
+                "focus:ring-2 focus:ring-green-500/20 focus:border-green-600",
                 errors.amount ? "border-rose-300 bg-rose-50" : "border-slate-200 bg-white"
               )}
             />
@@ -431,7 +426,7 @@ export function WithdrawForm({
                   placeholder="e.g. A1B2C3D4"
                   maxLength={16}
                   disabled={submitting}
-                  className="w-full pl-9 pr-4 py-3 rounded-xl border border-slate-200 text-sm font-mono tracking-widest outline-none transition-all focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 disabled:opacity-50"
+                  className="w-full pl-9 pr-4 py-3 rounded-xl border border-slate-200 text-sm font-mono tracking-widest outline-none transition-all focus:ring-2 focus:ring-green-500/20 focus:border-green-600 disabled:opacity-50"
                 />
               </div>
             </div>

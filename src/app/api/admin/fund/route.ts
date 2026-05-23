@@ -1,9 +1,11 @@
+// app/api/admin/fund/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { fundAccountSchema } from "@/lib/validators";
-import { majorToCents } from "@/lib/utils";
+import { majorToCents, formatMoney } from "@/lib/utils";
 import { TransactionType } from "@prisma/client";
+import { createNotification } from "@/lib/notifications";
 
 export async function POST(req: NextRequest) {
   try {
@@ -14,42 +16,26 @@ export async function POST(req: NextRequest) {
 
     const body   = await req.json();
     const parsed = fundAccountSchema.safeParse(body);
-
     if (!parsed.success) {
-      return NextResponse.json(
-        { error: parsed.error.errors[0]?.message ?? "Invalid input" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: parsed.error.errors[0]?.message ?? "Invalid input" }, { status: 400 });
     }
 
     const { userId, amount, type, note } = parsed.data;
     const amountCents = majorToCents(amount);
 
-    // Fetch account
     const account = await prisma.account.findUnique({ where: { userId } });
-    if (!account) {
-      return NextResponse.json({ error: "User account not found" }, { status: 404 });
-    }
+    if (!account) return NextResponse.json({ error: "User account not found" }, { status: 404 });
 
-    // Prevent negative balance on debit
     if (type === "DEBIT" && account.balance < amountCents) {
-      return NextResponse.json(
-        { error: "Insufficient balance to debit this amount" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Insufficient balance to debit this amount" }, { status: 400 });
     }
 
-    const newBalance =
-      type === "CREDIT"
-        ? account.balance + amountCents
-        : account.balance - amountCents;
+    const newBalance = type === "CREDIT"
+      ? account.balance + amountCents
+      : account.balance - amountCents;
 
-    // Atomic: update balance + record transaction
     await prisma.$transaction([
-      prisma.account.update({
-        where: { userId },
-        data: { balance: newBalance },
-      }),
+      prisma.account.update({ where: { userId }, data: { balance: newBalance } }),
       prisma.transaction.create({
         data: {
           accountId:    account.id,
@@ -60,6 +46,24 @@ export async function POST(req: NextRequest) {
         },
       }),
     ]);
+
+    // ── Notification ──
+    const formatted = formatMoney(amountCents, account.currency);
+    if (type === "CREDIT") {
+      await createNotification(
+        userId,
+        "ACCOUNT_CREDITED",
+        "Funds Received",
+        `${formatted} has been credited to your account.${note ? ` Note: ${note}` : ""}`,
+      );
+    } else {
+      await createNotification(
+        userId,
+        "ACCOUNT_DEBITED",
+        "Account Debited",
+        `${formatted} has been debited from your account.${note ? ` Note: ${note}` : ""}`,
+      );
+    }
 
     return NextResponse.json({ success: true });
   } catch (error) {

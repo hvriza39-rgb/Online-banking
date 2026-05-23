@@ -26,13 +26,17 @@ export default async function WithdrawPage() {
   const account = await prisma.account.findUnique({ where: { userId: session.user.id } });
   if (!account) redirect("/login");
 
-  // Block new submissions if user has any active (pending or held) request
-  const hasPending = !!(await prisma.withdrawalRequest.findFirst({
+  // Find any active (non-processed) request — we need both status and id
+  const activePending = await prisma.withdrawalRequest.findFirst({
     where: {
       userId: session.user.id,
       status: { in: ["PENDING", "PENDING_VERIFICATION"] },
     },
-  }));
+    orderBy: { createdAt: "desc" },
+  });
+
+  const pendingStatus    = (activePending?.status ?? null) as "PENDING" | "PENDING_VERIFICATION" | null;
+  const pendingRequestId = activePending?.id ?? null;
 
   const requests = await prisma.withdrawalRequest.findMany({
     where:   { userId: session.user.id },
@@ -64,11 +68,14 @@ export default async function WithdrawPage() {
 
         {/* Form card */}
         <div className="bg-[#f2f9f6] rounded-2xl border border-[#c8dfd5] shadow-sm p-6 fade-up delay-2">
-          <h2 className="text-[14px] font-semibold text-[#0f2419] mb-5">New Transfer</h2>
+          <h2 className="text-[14px] font-semibold text-[#0f2419] mb-5">
+            {pendingStatus === "PENDING_VERIFICATION" ? "Complete Your Transfer" : "New Transfer"}
+          </h2>
           <WithdrawForm
             maxAmount={account.balance / 100}
             currency={account.currency}
-            hasPending={hasPending}
+            pendingStatus={pendingStatus}
+            pendingRequestId={pendingRequestId}
           />
         </div>
 

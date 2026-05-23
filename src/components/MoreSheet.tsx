@@ -9,7 +9,7 @@ import { handleSignOut } from "@/app/dashboard/settings/actions";
 const ITEMS = [
   { icon: Settings,    label: "Settings",         sub: "Account preferences",  href: "/dashboard/settings" },
   { icon: ShieldCheck, label: "KYC Verification", sub: "Identity & documents", href: "/kyc"                },
-  { icon: Bell,        label: "Notifications",     sub: "Alerts & preferences", href: "/notifications"      },
+  { icon: Bell,        label: "Notifications",     sub: "Alerts & preferences", href: "/dashboard/notifications"      },
   { icon: HelpCircle,  label: "Help & Support",    sub: "FAQs and contact us",  href: "/support"            },
 ];
 

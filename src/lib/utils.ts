@@ -10,15 +10,15 @@ export function cn(...inputs: ClassValue[]) {
 // ── Money ─────────────────────────────────────────────────
 // All amounts stored as cents (integers). 100 cents = 1 major unit.
 
-export function centsToMajor(cents: number): number {
-  return cents / 100;
+export function centsToMajor(cents: number | bigint): number {
+  return Number(cents) / 100;
 }
 
 export function majorToCents(amount: number): number {
   return Math.round(amount * 100);
 }
 
-export function formatMoney(cents: number, currency: Currency): string {
+export function formatMoney(cents: number | bigint, currency: Currency): string {
   const symbol = currency === "USD" ? "$" : "€";
   const amount = centsToMajor(cents);
   return `${symbol}${amount.toLocaleString("en-US", {

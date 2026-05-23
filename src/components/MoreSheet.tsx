@@ -4,13 +4,13 @@ import { useState } from "react";
 import { MoreHorizontal, X, Settings, ShieldCheck, HelpCircle, LogOut, ChevronRight, Bell } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
+import { handleSignOut } from "@/app/dashboard/settings/actions";
 
 const ITEMS = [
-  { icon: Settings,    label: "Settings",          sub: "Account preferences",     href: "/dashboard/settings" },
-  { icon: ShieldCheck, label: "KYC Verification",  sub: "Identity & documents",    href: "/kyc"      },
-  { icon: Bell,        label: "Notifications",      sub: "Alerts & preferences",    href: "/notifications" },
-  { icon: HelpCircle,  label: "Help & Support",     sub: "FAQs and contact us",     href: "/support"  },
-  { icon: LogOut,      label: "Sign Out",           sub: "Log out of your account", href: "/logout",  danger: true },
+  { icon: Settings,    label: "Settings",         sub: "Account preferences",  href: "/dashboard/settings" },
+  { icon: ShieldCheck, label: "KYC Verification", sub: "Identity & documents", href: "/kyc"                },
+  { icon: Bell,        label: "Notifications",     sub: "Alerts & preferences", href: "/notifications"      },
+  { icon: HelpCircle,  label: "Help & Support",    sub: "FAQs and contact us",  href: "/support"            },
 ];
 
 export default function MoreSheet() {
@@ -73,35 +73,38 @@ export default function MoreSheet() {
 
           {/* Items */}
           <div className="px-4 py-3 flex flex-col gap-1">
-            {ITEMS.map(({ icon: Icon, label, sub, href, danger }) => (
+            {ITEMS.map(({ icon: Icon, label, sub, href }) => (
               <Link
                 key={label}
                 href={href}
                 onClick={() => setOpen(false)}
-                className={`flex items-center gap-3.5 px-3 py-3.5 rounded-[14px] transition-colors active:scale-[0.99] group ${
-                  danger ? "hover:bg-rose-50" : "hover:bg-[#e4f2ec]"
-                }`}
+                className="flex items-center gap-3.5 px-3 py-3.5 rounded-[14px] hover:bg-[#e4f2ec] transition-colors active:scale-[0.99] group"
               >
-                <div className={`w-10 h-10 rounded-[13px] flex items-center justify-center flex-shrink-0 ${
-                  danger
-                    ? "bg-rose-50 border border-rose-100"
-                    : "bg-[#e4f2ec] border border-[#c8dfd5]"
-                }`}>
-                  <Icon className={`w-4.5 h-4.5 ${danger ? "text-rose-500" : "text-[#1e7a52]"}`} strokeWidth={1.8} />
+                <div className="w-10 h-10 rounded-[13px] flex items-center justify-center flex-shrink-0 bg-[#e4f2ec] border border-[#c8dfd5]">
+                  <Icon className="w-4.5 h-4.5 text-[#1e7a52]" strokeWidth={1.8} />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className={`text-[13px] font-semibold leading-none ${danger ? "text-rose-500" : "text-[#0f2419]"}`}>
-                    {label}
-                  </p>
+                  <p className="text-[13px] font-semibold leading-none text-[#0f2419]">{label}</p>
                   <p className="text-[11px] text-[#6a8c7a] mt-1">{sub}</p>
                 </div>
-                <ChevronRight className={`w-4 h-4 flex-shrink-0 transition-colors ${
-                  danger
-                    ? "text-rose-200 group-hover:text-rose-400"
-                    : "text-[#c8dfd5] group-hover:text-[#4daa80]"
-                }`} />
+                <ChevronRight className="w-4 h-4 flex-shrink-0 text-[#c8dfd5] group-hover:text-[#4daa80] transition-colors" />
               </Link>
             ))}
+
+            {/* Sign Out */}
+            <button
+              onClick={() => handleSignOut()}
+              className="flex items-center gap-3.5 px-3 py-3.5 rounded-[14px] hover:bg-rose-50 transition-colors active:scale-[0.99] group w-full"
+            >
+              <div className="w-10 h-10 rounded-[13px] flex items-center justify-center flex-shrink-0 bg-rose-50 border border-rose-100">
+                <LogOut className="w-4.5 h-4.5 text-rose-500" strokeWidth={1.8} />
+              </div>
+              <div className="flex-1 min-w-0 text-left">
+                <p className="text-[13px] font-semibold leading-none text-rose-500">Sign Out</p>
+                <p className="text-[11px] text-[#6a8c7a] mt-1">Log out of your account</p>
+              </div>
+              <ChevronRight className="w-4 h-4 flex-shrink-0 text-rose-200 group-hover:text-rose-400 transition-colors" />
+            </button>
           </div>
 
           {/* Safe area */}

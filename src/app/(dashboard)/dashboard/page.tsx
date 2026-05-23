@@ -504,7 +504,7 @@ export default async function DashboardPage() {
           {[
             { label: "Overview",  icon: Home,         href: "/dashboard",    active: true  },
             { label: "Card",      icon: CreditCard,   href: "/card",         active: false },
-            { label: "Transfer",  icon: ArrowUpRight, href: isVerified ? "/send" : null, active: false },
+            { label: "Transfer",  icon: ArrowUpRight, href: isVerified ? "/withdraw" : null, active: false },
             { label: "Analytics", icon: BarChart2,    href: "/transactions", active: false },
             { label: "Profile",   icon: User,         href: "/profile",      active: false },
           ].map(({ label, icon: Icon, href, active }) => {

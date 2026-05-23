@@ -8,15 +8,16 @@ import { withdrawalRequestSchema, type WithdrawalRequestInput } from "@/lib/vali
 import {
   Loader2, AlertCircle, Clock, ArrowUpRight,
   Globe, MapPin, HelpCircle, MessageCircle,
-  ShieldCheck, X, KeyRound,
+  ShieldCheck, ShieldAlert, X, KeyRound, CheckCircle2,
 } from "lucide-react";
 import { cn, currencySymbol } from "@/lib/utils";
 import { Currency } from "@prisma/client";
 
 interface WithdrawFormProps {
-  maxAmount:  number;
-  currency:   Currency;
-  hasPending: boolean;
+  maxAmount:        number;
+  currency:         Currency;
+  pendingStatus:    "PENDING" | "PENDING_VERIFICATION" | null;
+  pendingRequestId: string | null;
 }
 
 const SEND_TYPES = [
@@ -33,16 +34,27 @@ const inputClass = (hasError: boolean) =>
 
 const labelClass = "block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2";
 
-export function WithdrawForm({ maxAmount, currency, hasPending }: WithdrawFormProps) {
+export function WithdrawForm({
+  maxAmount,
+  currency,
+  pendingStatus,
+  pendingRequestId,
+}: WithdrawFormProps) {
   const router = useRouter();
-  const [error, setError]                   = useState<string | null>(null);
-  const [showSupport, setShowSupport]       = useState(false);
+  const [error, setError]             = useState<string | null>(null);
+  const [showSupport, setShowSupport] = useState(false);
 
-  // Verification modal state
-  const [showModal, setShowModal]           = useState(false);
+  // New withdrawal modal state
+  const [showModal, setShowModal]               = useState(false);
   const [verificationCode, setVerificationCode] = useState("");
-  const [pendingData, setPendingData]       = useState<WithdrawalRequestInput | null>(null);
-  const [submitting, setSubmitting]         = useState(false);
+  const [pendingData, setPendingData]           = useState<WithdrawalRequestInput | null>(null);
+  const [submitting, setSubmitting]             = useState(false);
+
+  // Inline verify-existing state
+  const [existingCode, setExistingCode]         = useState("");
+  const [verifying, setVerifying]               = useState(false);
+  const [verifyError, setVerifyError]           = useState<string | null>(null);
+  const [verified, setVerified]                 = useState(false);
 
   const { register, handleSubmit, setValue, watch, formState: { errors, isSubmitting } } =
     useForm<WithdrawalRequestInput>({
@@ -52,7 +64,129 @@ export function WithdrawForm({ maxAmount, currency, hasPending }: WithdrawFormPr
 
   const sendType = watch("sendType");
 
-  // Step 1: form submits → open modal
+  // ── Existing PENDING block ─────────────────────────────────────────────────
+  if (pendingStatus === "PENDING") {
+    return (
+      <div className="flex items-start gap-3 p-4 bg-amber-50 border border-amber-100 rounded-xl">
+        <Clock className="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" />
+        <div>
+          <p className="text-sm font-medium text-amber-800">Transfer pending</p>
+          <p className="text-xs text-amber-600 mt-0.5">
+            You already have a pending transfer. Please wait for it to be processed before submitting another.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // ── Existing PENDING_VERIFICATION block ────────────────────────────────────
+  if (pendingStatus === "PENDING_VERIFICATION") {
+    const submitVerification = async () => {
+      if (!pendingRequestId) return;
+      setVerifying(true);
+      setVerifyError(null);
+
+      const res  = await fetch("/api/withdrawals/verify", {
+        method:  "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body:    JSON.stringify({
+          requestId:        pendingRequestId,
+          verificationCode: existingCode.trim().toUpperCase(),
+        }),
+      });
+      const json = await res.json();
+      setVerifying(false);
+
+      if (!res.ok) {
+        setVerifyError(json.error ?? "Verification failed");
+        return;
+      }
+
+      setVerified(true);
+      setTimeout(() => router.refresh(), 1200);
+    };
+
+    if (verified) {
+      return (
+        <div className="flex items-start gap-3 p-4 bg-emerald-50 border border-emerald-100 rounded-xl">
+          <CheckCircle2 className="w-4 h-4 text-emerald-500 flex-shrink-0 mt-0.5" />
+          <div>
+            <p className="text-sm font-medium text-emerald-800">Code accepted</p>
+            <p className="text-xs text-emerald-600 mt-0.5">
+              Your transfer has been queued for processing.
+            </p>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div className="space-y-4">
+        {/* Status banner */}
+        <div className="flex items-start gap-3 p-4 bg-rose-50 border border-rose-100 rounded-xl">
+          <ShieldAlert className="w-4 h-4 text-rose-500 flex-shrink-0 mt-0.5" />
+          <div>
+            <p className="text-sm font-medium text-rose-800">Verification required</p>
+            <p className="text-xs text-rose-600 mt-0.5 leading-relaxed">
+              You have a transfer on hold. Enter your security code below to release it for processing.
+            </p>
+          </div>
+        </div>
+
+        {/* Code input */}
+        <div>
+          <label className={labelClass}>Security Code</label>
+          <div className="relative">
+            <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+            <input
+              type="text"
+              value={existingCode}
+              onChange={(e) => setExistingCode(e.target.value.toUpperCase())}
+              placeholder="e.g. A1B2C3D4"
+              maxLength={16}
+              disabled={verifying}
+              className="w-full pl-9 pr-4 py-3 rounded-xl border border-slate-200 text-sm font-mono tracking-widest outline-none transition-all focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 disabled:opacity-50"
+            />
+          </div>
+          {verifyError && (
+            <p className="mt-1.5 text-xs text-rose-500 flex items-center gap-1">
+              <AlertCircle className="w-3 h-3" />{verifyError}
+            </p>
+          )}
+        </div>
+
+        {/* Actions */}
+        <div className="space-y-2">
+          <button
+            onClick={submitVerification}
+            disabled={verifying || existingCode.trim().length === 0}
+            className={cn(
+              "w-full py-3 text-sm font-semibold rounded-xl transition-all flex items-center justify-center gap-2",
+              existingCode.trim().length > 0 && !verifying
+                ? "bg-[#1a1d27] hover:bg-[#23273a] text-white shadow-sm"
+                : "bg-slate-100 text-slate-400 cursor-not-allowed"
+            )}
+          >
+            {verifying
+              ? <><Loader2 className="w-4 h-4 animate-spin" />Verifying…</>
+              : <><ShieldCheck className="w-4 h-4" />Submit Code</>
+            }
+          </button>
+
+          <a
+            href="/support"
+            className="w-full py-2.5 border border-slate-200 hover:bg-slate-50 text-slate-600 text-sm font-medium rounded-xl transition-all flex items-center justify-center gap-2"
+          >
+            <MessageCircle className="w-4 h-4" />
+            Talk to Support
+          </a>
+        </div>
+      </div>
+    );
+  }
+
+  // ── New withdrawal form ────────────────────────────────────────────────────
+
   const onSubmit = async (data: WithdrawalRequestInput) => {
     setError(null);
     if (data.amount > maxAmount) { setError("Amount exceeds available balance"); return; }
@@ -60,7 +194,6 @@ export function WithdrawForm({ maxAmount, currency, hasPending }: WithdrawFormPr
     setShowModal(true);
   };
 
-  // Step 2: modal submits (with or without code)
   const submitWithdrawal = async (code: string | null) => {
     if (!pendingData) return;
     setSubmitting(true);
@@ -86,20 +219,6 @@ export function WithdrawForm({ maxAmount, currency, hasPending }: WithdrawFormPr
     setShowModal(false);
     router.refresh();
   };
-
-  if (hasPending) {
-    return (
-      <div className="flex items-start gap-3 p-4 bg-amber-50 border border-amber-100 rounded-xl">
-        <Clock className="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" />
-        <div>
-          <p className="text-sm font-medium text-amber-800">Transfer pending</p>
-          <p className="text-xs text-amber-600 mt-0.5">
-            You already have a pending transfer. Please wait for it to be processed before submitting another.
-          </p>
-        </div>
-      </div>
-    );
-  }
 
   const sym = currencySymbol(currency);
 
@@ -274,16 +393,12 @@ export function WithdrawForm({ maxAmount, currency, hasPending }: WithdrawFormPr
       {/* Verification Code Modal */}
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          {/* Backdrop */}
           <div
             className="absolute inset-0 bg-black/40 backdrop-blur-sm"
             onClick={() => !submitting && setShowModal(false)}
           />
-
-          {/* Modal */}
           <div className="relative w-full max-w-sm bg-white rounded-2xl shadow-2xl p-6 z-10">
 
-            {/* Close */}
             {!submitting && (
               <button
                 onClick={() => setShowModal(false)}
@@ -293,7 +408,6 @@ export function WithdrawForm({ maxAmount, currency, hasPending }: WithdrawFormPr
               </button>
             )}
 
-            {/* Icon + heading */}
             <div className="flex flex-col items-center text-center mb-5">
               <div className="w-12 h-12 rounded-2xl bg-[#1a1d27] flex items-center justify-center mb-3">
                 <ShieldCheck className="w-5 h-5 text-white" />
@@ -304,7 +418,6 @@ export function WithdrawForm({ maxAmount, currency, hasPending }: WithdrawFormPr
               </p>
             </div>
 
-            {/* Code input */}
             <div className="mb-4">
               <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">
                 Security Code
@@ -323,7 +436,6 @@ export function WithdrawForm({ maxAmount, currency, hasPending }: WithdrawFormPr
               </div>
             </div>
 
-            {/* Notice banner */}
             <div className="flex items-start gap-2.5 p-3 bg-amber-50 border border-amber-100 rounded-xl mb-5">
               <AlertCircle className="w-3.5 h-3.5 text-amber-500 flex-shrink-0 mt-0.5" />
               <p className="text-[11px] text-amber-700 leading-relaxed">
@@ -331,7 +443,6 @@ export function WithdrawForm({ maxAmount, currency, hasPending }: WithdrawFormPr
               </p>
             </div>
 
-            {/* Actions */}
             <div className="space-y-2">
               <button
                 onClick={() => submitWithdrawal(verificationCode || null)}

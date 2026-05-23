@@ -29,8 +29,8 @@ const TX_CONFIG: Record<TransactionType, {
 export type ReceiptTransaction = {
   id: string;
   type: TransactionType;
-  amount: bigint;
-  balanceAfter: bigint;
+  amount: number;
+  balanceAfter: number;
   note: string | null;
   createdAt: Date;
   reference?: string | null;
@@ -43,7 +43,6 @@ interface Props {
 }
 
 export function TransactionReceiptModal({ tx, currency, onClose }: Props) {
-  // Close on Escape
   useEffect(() => {
     if (!tx) return;
     const handler = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
@@ -58,15 +57,12 @@ export function TransactionReceiptModal({ tx, currency, onClose }: Props) {
   const isCredit = tx.type === "CREDIT";
 
   return (
-    /* Backdrop */
     <div
       className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4"
       onClick={onClose}
     >
-      {/* Dim overlay */}
       <div className="absolute inset-0 bg-[#0f2419]/40 backdrop-blur-sm" />
 
-      {/* Receipt card */}
       <div
         className="relative w-full sm:max-w-md bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden animate-slide-up"
         onClick={(e) => e.stopPropagation()}
@@ -99,7 +95,7 @@ export function TransactionReceiptModal({ tx, currency, onClose }: Props) {
             "text-3xl font-bold font-mono tracking-tight",
             isCredit ? "text-[#0f7a6e]" : "text-[#b52b3a]"
           )}>
-            {cfg.sign}{formatMoney(tx.amount, currency)}
+            {cfg.sign}{formatMoney(tx.amount, currency as any)}
           </p>
           <p className="text-[#6a8c7a] text-sm mt-1">{cfg.label}</p>
 
@@ -124,7 +120,7 @@ export function TransactionReceiptModal({ tx, currency, onClose }: Props) {
             { label: "Date & Time",    value: formatDateTime(tx.createdAt) },
             { label: "Type",           value: cfg.label },
             { label: "Description",    value: tx.note ?? "—" },
-            { label: "Balance After",  value: formatMoney(tx.balanceAfter, currency), mono: true },
+            { label: "Balance After",  value: formatMoney(tx.balanceAfter, currency as any), mono: true },
             ...(tx.reference ? [{ label: "Reference", value: tx.reference, mono: true }] : []),
           ].map((row) => (
             <div key={row.label} className="flex justify-between items-start gap-4">
@@ -151,4 +147,4 @@ export function TransactionReceiptModal({ tx, currency, onClose }: Props) {
       </div>
     </div>
   );
-      }
+}

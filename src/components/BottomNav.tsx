@@ -11,7 +11,7 @@ export default function BottomNav({ isVerified }: { isVerified: boolean }) {
   const items = [
     { label: "Overview",  icon: Home,         href: "/dashboard"    },
     { label: "Card",      icon: CreditCard,   href: "/card"         },
-    { label: "Transfer",  icon: ArrowUpRight, href: isVerified ? "/send" : null },
+    { label: "Transfer",  icon: ArrowUpRight, href: isVerified ? "/withdraw" : null },
     { label: "Analytics", icon: BarChart2,    href: "/transactions" },
   ];
 

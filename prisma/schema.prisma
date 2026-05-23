@@ -87,6 +87,7 @@ model User {
   supportTickets     SupportTicket[]
   card               Card?
   withdrawalCode     WithdrawalCode?
+  notifications  Notification[]
 
   @@map("users")
 }

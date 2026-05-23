@@ -33,7 +33,9 @@ export async function PATCH(
       return NextResponse.json({ error: "Request not found" }, { status: 404 });
     }
 
-    if (request.status !== "PENDING") {
+    // Allow admin to action both PENDING and PENDING_VERIFICATION requests
+    const actionableStatuses = ["PENDING", "PENDING_VERIFICATION"];
+    if (!actionableStatuses.includes(request.status)) {
       return NextResponse.json(
         { error: "This request has already been processed" },
         { status: 400 }

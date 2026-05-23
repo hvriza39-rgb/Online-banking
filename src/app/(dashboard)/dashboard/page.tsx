@@ -6,7 +6,7 @@ import { formatMoney, formatDateTime, cn } from "@/lib/utils";
 import {
   ArrowDownLeft, ArrowUpRight, ShieldAlert, ArrowRight,
   Wallet, BarChart2, Bell, Send, ClipboardList,
-  MoreHorizontal, CreditCard, Home, LayoutGrid, User,
+  CreditCard,
 } from "lucide-react";
 import ReceiveSheet from "./ReceiveSheet";
 import MoreSheet from "./MoreSheet";
@@ -39,6 +39,10 @@ export default async function DashboardPage() {
   });
 
   if (!account) redirect("/login");
+
+  const unreadCount = await prisma.notification.count({
+    where: { userId: session.user.id, read: false },
+  });
 
   const isVerified = user?.kycStatus === "VERIFIED";
 
@@ -82,9 +86,19 @@ export default async function DashboardPage() {
         </div>
         <div className="flex items-center gap-3 mt-1">
           {/* Bell */}
-          <div className="w-9 h-9 rounded-full bg-[#f0f7f4] border border-[#c8dfd5] flex items-center justify-center shadow-sm">
+          <Link
+            href="/dashboard/notifications"
+            className="relative w-9 h-9 rounded-full bg-[#f0f7f4] border border-[#c8dfd5] flex items-center justify-center shadow-sm hover:bg-[#e4f2ec] transition-colors"
+          >
             <Bell className="w-4 h-4 text-[#2d5042]" strokeWidth={1.5} />
-          </div>
+            {unreadCount > 0 && (
+              <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-[#b52b3a] flex items-center justify-center">
+                <span className="text-[8px] font-bold text-white">
+                  {unreadCount > 9 ? "9+" : unreadCount}
+                </span>
+              </span>
+            )}
+          </Link>
           {/* Avatar */}
           <div className="w-9 h-9 rounded-full flex items-center justify-center border border-[#1a6648] shadow-sm"
                style={{ background: "linear-gradient(135deg, #1a6648, #3daa7a)" }}>
@@ -117,7 +131,7 @@ export default async function DashboardPage() {
             </Link>
           )}
 
-          {/* ── Balance card — darkened to match account number inset ── */}
+          {/* ── Balance card ── */}
           <div className="relative rounded-[14px] p-6 overflow-hidden border border-[#c8dfd5] shadow-sm bg-[#e4f2ec]">
             <p className="text-[10px] font-semibold tracking-[0.2em] uppercase text-[#6a8c7a] mb-2">
               Main Balance
@@ -154,7 +168,7 @@ export default async function DashboardPage() {
             </div>
           </div>
 
-          {/* ── Quick actions — darkened to match account number inset ── */}
+          {/* ── Quick actions ── */}
           <div className="grid grid-cols-4 gap-2.5">
 
             {/* Send */}
@@ -497,6 +511,6 @@ export default async function DashboardPage() {
           </div>
         </div>
       )}
-  </div>
+    </div>
   );
 }

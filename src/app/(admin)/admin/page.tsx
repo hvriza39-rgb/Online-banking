@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import {
   Users, MessageSquare, Send, X, ChevronRight,
   CheckCircle, XCircle, ArrowUpToLine, Search,
-  Edit, Loader2, Bell, Activity
+  Edit, Loader2, Bell, Activity, ShieldAlert,
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -32,18 +32,79 @@ function cn(...classes: (string | boolean | undefined)[]) {
   return classes.filter(Boolean).join(' ');
 }
 
+// ── Inline withdrawal actions component ──────────────────────────────────────
+function WithdrawalActionsInline({
+  requestId,
+  onSuccess,
+}: {
+  requestId: string;
+  onSuccess: () => void;
+}) {
+  const [note, setNote]       = useState('');
+  const [loading, setLoading] = useState<'APPROVED' | 'REJECTED' | null>(null);
+  const [error, setError]     = useState<string | null>(null);
+  const [done, setDone]       = useState(false);
+
+  const handle = async (action: 'APPROVED' | 'REJECTED') => {
+    setLoading(action); setError(null);
+    const res  = await fetch(`/api/admin/withdrawals/${requestId}`, {
+      method:  'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ action, adminNote: note || undefined }),
+    });
+    const json = await res.json();
+    setLoading(null);
+    if (!res.ok) { setError(json.error ?? 'Failed'); return; }
+    setDone(true);
+    onSuccess();
+  };
+
+  if (done) {
+    return <p className="text-xs text-emerald-600 font-semibold text-center py-1">✓ Processed</p>;
+  }
+
+  return (
+    <div className="space-y-3">
+      <input
+        value={note}
+        onChange={(e) => setNote(e.target.value)}
+        placeholder="Admin note (optional — visible to user)"
+        maxLength={200}
+        className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-sm outline-none focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+      />
+      {error && <p className="text-xs text-rose-500">{error}</p>}
+      <div className="flex gap-2">
+        <button
+          onClick={() => handle('APPROVED')} disabled={!!loading}
+          className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold transition-all disabled:opacity-50 shadow-sm shadow-emerald-100"
+        >
+          {loading === 'APPROVED' ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle size={16} />}
+          Approve
+        </button>
+        <button
+          onClick={() => handle('REJECTED')} disabled={!!loading}
+          className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-white hover:bg-rose-50 text-rose-600 text-sm font-semibold border border-rose-200 transition-all disabled:opacity-50"
+        >
+          {loading === 'REJECTED' ? <Loader2 className="w-4 h-4 animate-spin" /> : <XCircle size={16} />}
+          Reject
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ── Main dashboard ────────────────────────────────────────────────────────────
 export default function AdminDashboard() {
-  const [activeTab, setActiveTab] = useState<'chat' | 'users' | 'withdrawals'>('chat');
-  const [withdrawals, setWithdrawals] = useState<any[]>([]);
-  const [tickets, setTickets] = useState<Ticket[]>([]);
+  const [activeTab, setActiveTab]       = useState<'chat' | 'users' | 'withdrawals'>('chat');
+  const [withdrawals, setWithdrawals]   = useState<any[]>([]);
+  const [tickets, setTickets]           = useState<Ticket[]>([]);
   const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
-  const [reply, setReply] = useState('');
-  const [sending, setSending] = useState(false);
+  const [reply, setReply]               = useState('');
+  const [sending, setSending]           = useState(false);
   const [loadingTickets, setLoadingTickets] = useState(true);
-  const [users, setUsers] = useState<any[]>([]);
-  const [search, setSearch] = useState('');
+  const [users, setUsers]               = useState<any[]>([]);
+  const [search, setSearch]             = useState('');
   const [loadingUsers, setLoadingUsers] = useState(true);
-  const [processingTx, setProcessingTx] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -59,24 +120,18 @@ export default function AdminDashboard() {
   }, [selectedTicket]);
 
   const fetchDashboard = async () => {
-    const token = localStorage.getItem('token');
     try {
-      const res = await fetch('/api/admin/dashboard', {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await fetch('/api/admin/withdrawals');
       if (res.ok) {
         const data = await res.json();
-        setWithdrawals(data.pendingWithdrawals || []);
+        setWithdrawals(data.withdrawals || []);
       }
     } catch (e) {}
   };
 
   const fetchTickets = async () => {
-    const token = localStorage.getItem('token');
     try {
-      const res = await fetch('/api/admin/support/tickets', {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await fetch('/api/admin/support/tickets');
       if (res.ok) {
         const data = await res.json();
         const list = data.tickets || data || [];
@@ -92,52 +147,38 @@ export default function AdminDashboard() {
 
   const fetchUsers = async () => {
     try {
-      const res = await fetch('/api/admin/users', { cache: 'no-store' });
+      const res  = await fetch('/api/admin/users', { cache: 'no-store' });
       const data = await res.json();
       if (Array.isArray(data)) setUsers(data);
     } catch (e) {}
     finally { setLoadingUsers(false); }
   };
 
-  const handleWithdrawal = async (txId: string, action: 'approve' | 'reject') => {
-    setProcessingTx(txId);
-    try {
-      const res = await fetch('/api/admin/transactions/update', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ transactionId: txId, action }),
-      });
-      if (res.ok) await fetchDashboard();
-    } catch (e) {}
-    finally { setProcessingTx(null); }
-  };
-
   const sendReply = async () => {
     if (!reply.trim() || !selectedTicket) return;
     setSending(true);
-    const token = localStorage.getItem('token');
     try {
       const res = await fetch(`/api/admin/support/tickets/${selectedTicket.id}/messages`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ body: reply.trim() }),
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ body: reply.trim() }),
       });
       if (res.ok) { setReply(''); await fetchTickets(); }
     } catch (e) {}
     finally { setSending(false); }
   };
 
-  const openTickets = tickets.filter(t => t.status !== 'CLOSED');
-  const unreadCount = countUnreadMessages(tickets);
+  const openTickets   = tickets.filter(t => t.status !== 'CLOSED');
+  const unreadCount   = countUnreadMessages(tickets);
   const filteredUsers = users.filter((u: any) =>
     u.email?.toLowerCase().includes(search.toLowerCase()) ||
     u.name?.toLowerCase().includes(search.toLowerCase())
   );
 
   const tabs = [
-    { id: 'chat',        label: 'Support',     icon: MessageSquare, badge: unreadCount,       activeBg: 'bg-blue-500',   badgeBg: 'bg-blue-500',   badgeText: 'text-blue-600'   },
-    { id: 'users',       label: 'Users',       icon: Users,         badge: users.length,      activeBg: 'bg-violet-500', badgeBg: 'bg-violet-500', badgeText: 'text-violet-600' },
-    { id: 'withdrawals', label: 'Withdrawals', icon: ArrowUpToLine, badge: withdrawals.length, activeBg: 'bg-orange-400', badgeBg: 'bg-orange-400', badgeText: 'text-orange-500' },
+    { id: 'chat',        label: 'Support',     icon: MessageSquare, badge: unreadCount,        activeBg: 'bg-blue-500',   badgeBg: 'bg-blue-500',   },
+    { id: 'users',       label: 'Users',       icon: Users,         badge: users.length,       activeBg: 'bg-violet-500', badgeBg: 'bg-violet-500', },
+    { id: 'withdrawals', label: 'Withdrawals', icon: ArrowUpToLine, badge: withdrawals.length, activeBg: 'bg-orange-400', badgeBg: 'bg-orange-400', },
   ];
 
   return (
@@ -164,7 +205,7 @@ export default function AdminDashboard() {
 
         {/* Tab nav cards */}
         <div className="grid grid-cols-3 gap-3">
-          {tabs.map(({ id, label, icon: Icon, badge, activeBg, badgeBg, badgeText }) => {
+          {tabs.map(({ id, label, icon: Icon, badge, activeBg, badgeBg }) => {
             const isActive = activeTab === id;
             return (
               <button
@@ -225,7 +266,7 @@ export default function AdminDashboard() {
                   const msgs = ticket.messages ?? [];
                   const lastAdminIdx = msgs.map(m => m.sender).lastIndexOf('ADMIN');
                   const ticketUnread = msgs.filter((m, i) => m.sender === 'USER' && i > lastAdminIdx).length;
-                  const last = msgs[msgs.length - 1];
+                  const last    = msgs[msgs.length - 1];
                   const initial = (ticket.user?.name || ticket.user?.email || '?').charAt(0).toUpperCase();
                   return (
                     <button key={ticket.id} onClick={() => setSelectedTicket(ticket)}
@@ -366,53 +407,56 @@ export default function AdminDashboard() {
 
         {/* ── Withdrawals Tab ── */}
         {activeTab === 'withdrawals' && (
-          <div className="bg-white border border-slate-100 rounded-2xl shadow-sm overflow-hidden flex flex-col" style={{ height: 560 }}>
-            <div className="flex items-center gap-2 px-5 py-4 border-b border-slate-100">
+          <div className="space-y-4">
+            <div className="flex items-center gap-2">
               <ArrowUpToLine size={16} className="text-orange-400" />
               <span className="text-slate-800 font-semibold text-sm">Withdrawal Requests</span>
               {withdrawals.length > 0 && (
-                <span className="bg-orange-400 text-white text-xs font-bold px-2 py-0.5 rounded-full">{withdrawals.length}</span>
+                <span className="bg-orange-400 text-white text-xs font-bold px-2 py-0.5 rounded-full">
+                  {withdrawals.length}
+                </span>
               )}
             </div>
-            <div className="flex-1 overflow-y-auto divide-y divide-slate-50">
-              {withdrawals.length === 0 ? (
-                <div className="flex flex-col items-center justify-center h-full text-slate-400 gap-2">
-                  <CheckCircle size={32} className="opacity-30" />
-                  <p className="text-sm">No pending withdrawals</p>
-                </div>
-              ) : withdrawals.map(tx => (
-                <div key={tx.id} className="px-5 py-4 hover:bg-slate-50 transition-colors">
-                  <div className="flex items-center justify-between mb-1">
-                    <div>
-                      <span className="text-slate-800 font-semibold text-sm">{tx.user?.name || 'Unknown'}</span>
-                      {tx.user?.email && (
-                        <p className="text-slate-400 text-[10px] font-mono mt-0.5">{tx.user.email}</p>
-                      )}
+
+            {withdrawals.length === 0 ? (
+              <div className="bg-white border border-slate-100 rounded-2xl shadow-sm flex flex-col items-center justify-center py-16 text-slate-400 gap-2">
+                <CheckCircle size={32} className="opacity-30" />
+                <p className="text-sm">No pending withdrawals</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {withdrawals.map((tx: any) => (
+                  <div key={tx.id} className="bg-white border border-slate-100 rounded-2xl shadow-sm p-5">
+                    <div className="flex items-start justify-between gap-4 mb-4">
+                      <div>
+                        <p className="text-[13.5px] font-semibold text-slate-900">{tx.user?.name || 'Unknown'}</p>
+                        <p className="text-[12px] text-slate-400 mt-0.5">{tx.user?.email}</p>
+                        {tx.note && (
+                          <p className="text-[12px] text-slate-500 italic mt-1.5 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-100">
+                            "{tx.note}"
+                          </p>
+                        )}
+                        {tx.status === 'PENDING_VERIFICATION' && (
+                          <span className="inline-flex items-center gap-1 mt-2 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-rose-50 text-rose-600 border border-rose-100">
+                            <ShieldAlert size={10} />
+                            No Code
+                          </span>
+                        )}
+                      </div>
+                      <div className="text-right flex-shrink-0">
+                        <p className="text-2xl font-bold text-slate-900">
+                          {tx.currency === 'USD' ? '$' : '€'}{(tx.amount / 100).toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                        </p>
+                        <p className="text-xs text-slate-400 mt-0.5">{tx.currency}</p>
+                      </div>
                     </div>
-                    <span className="text-slate-900 font-bold tabular-nums">${tx.amount?.toLocaleString()}</span>
+                    <div className="border-t border-slate-100 pt-4">
+                      <WithdrawalActionsInline requestId={tx.id} onSuccess={fetchDashboard} />
+                    </div>
                   </div>
-                  <span className="text-slate-400 text-xs font-mono">
-                    {tx.network} • {tx.address ? `${tx.address.substring(0, 6)}...${tx.address.slice(-4)}` : 'N/A'}
-                  </span>
-                  <div className="flex gap-2 mt-3">
-                    <button
-                      onClick={() => handleWithdrawal(tx.id, 'approve')}
-                      disabled={processingTx === tx.id}
-                      className="flex-1 flex items-center justify-center gap-2 py-2 bg-emerald-50 text-emerald-600 rounded-xl hover:bg-emerald-500 hover:text-white transition-all disabled:opacity-40 text-sm font-semibold border border-emerald-100">
-                      {processingTx === tx.id ? <Loader2 size={14} className="animate-spin" /> : <CheckCircle size={14} />}
-                      Approve
-                    </button>
-                    <button
-                      onClick={() => handleWithdrawal(tx.id, 'reject')}
-                      disabled={processingTx === tx.id}
-                      className="flex-1 flex items-center justify-center gap-2 py-2 bg-rose-50 text-rose-500 rounded-xl hover:bg-rose-500 hover:text-white transition-all disabled:opacity-40 text-sm font-semibold border border-rose-100">
-                      {processingTx === tx.id ? <Loader2 size={14} className="animate-spin" /> : <XCircle size={14} />}
-                      Reject
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
 

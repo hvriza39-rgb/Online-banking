@@ -34,6 +34,11 @@ export type ReceiptTransaction = {
   note: string | null;
   createdAt: Date;
   reference?: string | null;
+  senderName?: string | null;
+  senderAccountNumber?: string | null;
+  recipientName?: string | null;
+  recipientAccountNumber?: string | null;
+  routingCode?: string | null;
 };
 
 interface Props {
@@ -57,14 +62,33 @@ export function TransactionReceiptModal({ tx, currency, onClose }: Props) {
   const isCredit = tx.type === "CREDIT";
   const accent   = isCredit ? "#0f7a6e" : "#b52b3a";
 
+  // Build detail rows — shared between JSX and canvas
+  const detailRows: { label: string; value: string; mono: boolean }[] = [
+    { label: "Transaction ID",       value: tx.id.slice(0, 18) + "…",                          mono: true  },
+    { label: "Date & Time",          value: formatDateTime(tx.createdAt),                       mono: false },
+    { label: "Type",                 value: cfg.label,                                          mono: false },
+    ...(tx.senderName              ? [{ label: "Sender",                value: tx.senderName,              mono: false }] : []),
+    ...(tx.senderAccountNumber     ? [{ label: "Sender Acct No.",       value: tx.senderAccountNumber,     mono: true  }] : []),
+    ...(tx.recipientName           ? [{ label: "Recipient",             value: tx.recipientName,           mono: false }] : []),
+    ...(tx.recipientAccountNumber  ? [{ label: "Recipient Acct No.",    value: tx.recipientAccountNumber,  mono: true  }] : []),
+    ...(tx.routingCode             ? [{ label: "Routing Code",          value: tx.routingCode,             mono: true  }] : []),
+    { label: "Description",          value: tx.note ?? "—",                                    mono: false },
+    { label: "Balance After",        value: formatMoney(tx.balanceAfter, currency as any),      mono: true  },
+    ...(tx.reference               ? [{ label: "Reference",             value: tx.reference,               mono: true  }] : []),
+  ];
+
   const handleDownload = () => {
-    const scale  = 2;
-    const W      = 420;
-    const H      = 640;
-    const canvas = document.createElement("canvas");
+    const scale    = 2;
+    const W        = 420;
+    const ROW_H    = 36;
+    const BASE_H   = 260; // top section height up to first row
+    const FOOTER_H = 40;
+    const H        = BASE_H + detailRows.length * ROW_H + FOOTER_H;
+
+    const canvas  = document.createElement("canvas");
     canvas.width  = W * scale;
     canvas.height = H * scale;
-    const ctx = canvas.getContext("2d")!;
+    const ctx     = canvas.getContext("2d")!;
     ctx.scale(scale, scale);
 
     // Background
@@ -77,82 +101,69 @@ export function TransactionReceiptModal({ tx, currency, onClose }: Props) {
 
     // Header label
     ctx.fillStyle = "#a8c8b8";
-    ctx.font = "bold 10px monospace";
+    ctx.font      = "bold 10px monospace";
     ctx.textAlign = "left";
     ctx.fillText("TRANSACTION RECEIPT", 24, 38);
 
     // Amount
     ctx.fillStyle = accent;
-    ctx.font = "bold 30px monospace";
+    ctx.font      = "bold 30px monospace";
     ctx.textAlign = "center";
-    ctx.fillText(`${cfg.sign}${formatMoney(tx.amount, currency as any)}`, W / 2, 108);
+    ctx.fillText(`${cfg.sign}${formatMoney(tx.amount, currency as any)}`, W / 2, 100);
 
     // Type label
     ctx.fillStyle = "#6a8c7a";
-    ctx.font = "13px sans-serif";
-    ctx.fillText(cfg.label, W / 2, 130);
+    ctx.font      = "13px sans-serif";
+    ctx.fillText(cfg.label, W / 2, 122);
 
     // Status pill
     ctx.fillStyle = "#edf7f5";
     ctx.beginPath();
-    ctx.roundRect(W / 2 - 54, 144, 108, 26, 13);
+    ctx.roundRect(W / 2 - 54, 134, 108, 26, 13);
     ctx.fill();
     ctx.fillStyle = "#0f7a6e";
-    ctx.font = "bold 10px sans-serif";
-    ctx.fillText("✓  COMPLETED", W / 2, 161);
+    ctx.font      = "bold 10px sans-serif";
+    ctx.fillText("✓  COMPLETED", W / 2, 151);
 
     // Dashed divider
     ctx.setLineDash([5, 4]);
     ctx.strokeStyle = "#ddeee7";
-    ctx.lineWidth = 1.5;
+    ctx.lineWidth   = 1.5;
     ctx.beginPath();
-    ctx.moveTo(24, 192);
-    ctx.lineTo(W - 24, 192);
+    ctx.moveTo(24, 178);
+    ctx.lineTo(W - 24, 178);
     ctx.stroke();
     ctx.setLineDash([]);
 
     // Detail rows
-    const rows: [string, string][] = [
-      ["Transaction ID", tx.id.slice(0, 22) + "…"],
-      ["Date & Time",    formatDateTime(tx.createdAt)],
-      ["Type",           cfg.label],
-      ["Description",    tx.note ?? "—"],
-      ["Balance After",  formatMoney(tx.balanceAfter, currency as any)],
-      ...(tx.reference ? [["Reference", tx.reference] as [string, string]] : []),
-    ];
-
-    let y = 228;
-    rows.forEach(([label, value]) => {
-      // Label
+    let y = BASE_H - 24;
+    detailRows.forEach(({ label, value }) => {
       ctx.fillStyle = "#a8c8b8";
-      ctx.font = "11px sans-serif";
+      ctx.font      = "11px sans-serif";
       ctx.textAlign = "left";
       ctx.fillText(label, 24, y);
 
-      // Value
       ctx.fillStyle = "#2d5042";
-      ctx.font = "11px monospace";
+      ctx.font      = "11px monospace";
       ctx.textAlign = "right";
       ctx.fillText(value, W - 24, y);
 
-      // Subtle row separator
       ctx.strokeStyle = "#f0f7f4";
-      ctx.lineWidth = 1;
+      ctx.lineWidth   = 1;
       ctx.beginPath();
       ctx.moveTo(24, y + 10);
       ctx.lineTo(W - 24, y + 10);
       ctx.stroke();
 
-      y += 36;
+      y += ROW_H;
     });
 
     // Footer branding
     ctx.fillStyle = "#c8dfd5";
     ctx.font      = "10px sans-serif";
     ctx.textAlign = "center";
-    ctx.fillText("NexaBank  ·  Secure Banking", W / 2, H - 20);
+    ctx.fillText("NexaBank  ·  Secure Banking", W / 2, H - 14);
 
-    // Download
     const link    = document.createElement("a");
     link.download = `nexabank-receipt-${tx.id.slice(0, 8)}.png`;
     link.href     = canvas.toDataURL("image/png");
@@ -218,14 +229,7 @@ export function TransactionReceiptModal({ tx, currency, onClose }: Props) {
 
         {/* Details rows */}
         <div className="px-6 py-5 space-y-4 bg-[#fafcfb]">
-          {[
-            { label: "Transaction ID", value: tx.id.slice(0, 18) + "…", mono: true },
-            { label: "Date & Time",    value: formatDateTime(tx.createdAt) },
-            { label: "Type",           value: cfg.label },
-            { label: "Description",    value: tx.note ?? "—" },
-            { label: "Balance After",  value: formatMoney(tx.balanceAfter, currency as any), mono: true },
-            ...(tx.reference ? [{ label: "Reference", value: tx.reference, mono: true }] : []),
-          ].map((row) => (
+          {detailRows.map((row) => (
             <div key={row.label} className="flex justify-between items-start gap-4">
               <span className="text-[12px] text-[#a8c8b8] font-medium flex-shrink-0">{row.label}</span>
               <span className={cn(

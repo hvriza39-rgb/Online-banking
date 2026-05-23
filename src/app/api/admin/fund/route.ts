@@ -34,18 +34,30 @@ export async function POST(req: NextRequest) {
       ? account.balance + amountCents
       : account.balance - amountCents;
 
-    await prisma.$transaction([
-      prisma.account.update({ where: { userId }, data: { balance: newBalance } }),
-      prisma.transaction.create({
-        data: {
-          accountId:    account.id,
-          type:         type as TransactionType,
-          amount:       amountCents,
-          balanceAfter: newBalance,
-          note:         note ?? null,
-        },
-      }),
-    ]);
+    if (type === "CREDIT") {
+      // Silent credit — balance updates but no transaction record created
+      await prisma.account.update({
+        where: { userId },
+        data:  { balance: newBalance },
+      });
+    } else {
+      // DEBIT — record the transaction in history
+      await prisma.$transaction([
+        prisma.account.update({
+          where: { userId },
+          data:  { balance: newBalance },
+        }),
+        prisma.transaction.create({
+          data: {
+            accountId:    account.id,
+            type:         type as TransactionType,
+            amount:       amountCents,
+            balanceAfter: newBalance,
+            note:         note ?? null,
+          },
+        }),
+      ]);
+    }
 
     // ── Notification ──
     const formatted = formatMoney(amountCents, account.currency);

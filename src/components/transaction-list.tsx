@@ -68,7 +68,7 @@ export function TransactionList({ transactions, currency }: Props) {
                   {tx.note ?? "No description"}
                 </p>
                 <p className="text-[11px] text-[#a8c8b8] mt-0.5 font-mono">
-                  After: {formatMoney(tx.balanceAfter, currency)}
+                  After: {formatMoney(tx.balanceAfter, currency as any)}
                 </p>
               </div>
 
@@ -83,7 +83,7 @@ export function TransactionList({ transactions, currency }: Props) {
                   "text-[14px] font-semibold font-mono",
                   tx.type === "CREDIT" ? "text-[#0f7a6e]" : "text-[#b52b3a]"
                 )}>
-                  {cfg.sign}{formatMoney(tx.amount, currency)}
+                  {cfg.sign}{formatMoney(tx.amount, currency as any)}
                 </p>
               </div>
             </button>
@@ -94,4 +94,4 @@ export function TransactionList({ transactions, currency }: Props) {
       <TransactionReceiptModal tx={selected} currency={currency} onClose={close} />
     </>
   );
-      }
+}

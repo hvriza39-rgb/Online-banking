@@ -3,39 +3,34 @@ import { NextResponse } from "next/server";
 
 export default auth((req) => {
   const { nextUrl, auth: session } = req;
-
   const pathname = nextUrl.pathname;
 
   const isLoggedIn = !!session?.user;
-  const isAdmin = session?.user?.role === "ADMIN";
+  const isAdmin    = session?.user?.role === "ADMIN";
 
-  const isAuthPage =
-    pathname.startsWith("/login") || pathname.startsWith("/register");
+  const isAuthPage   = pathname.startsWith("/login") || pathname.startsWith("/register");
+  const isHomePage   = pathname === "/";
+  const isAdminPage  = pathname.startsWith("/admin");
+  const isApiRoute   = pathname.startsWith("/api");
+  const isPublicApi  = pathname.startsWith("/api/auth");
 
-  const isAdminPage = pathname.startsWith("/admin");
+  if (isApiRoute && !isPublicApi) return NextResponse.next();
+  if (isPublicApi)                return NextResponse.next();
 
-  const isApiRoute = pathname.startsWith("/api");
+  // Homepage is always public
+  if (isHomePage) return NextResponse.next();
 
-  const isPublicApi = pathname.startsWith("/api/auth");
-
-  if (isApiRoute && !isPublicApi) {
-    return NextResponse.next();
-  }
-
-  if (isPublicApi) {
-    return NextResponse.next();
-  }
-
+  // Logged-in users shouldn't see login/register
   if (isLoggedIn && isAuthPage) {
-    return NextResponse.redirect(
-      new URL(isAdmin ? "/admin" : "/dashboard", nextUrl)
-    );
+    return NextResponse.redirect(new URL(isAdmin ? "/admin" : "/dashboard", nextUrl));
   }
 
+  // Unauthenticated users can't access protected pages
   if (!isLoggedIn && !isAuthPage) {
     return NextResponse.redirect(new URL("/login", nextUrl));
   }
 
+  // Non-admins can't access admin pages
   if (isAdminPage && !isAdmin) {
     return NextResponse.redirect(new URL("/dashboard", nextUrl));
   }

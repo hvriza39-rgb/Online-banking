@@ -21,9 +21,9 @@ export default function MoreSheet() {
       {/* Trigger */}
       <button
         onClick={() => setOpen(true)}
-        className="flex flex-col items-center gap-2 py-3 px-1 rounded-[12px] bg-[#f2f9f6] border border-[#c8dfd5] shadow-sm hover:border-[#4daa80] transition-all active:scale-[0.97]"
+        className="flex flex-col items-center gap-2 py-3 px-1 rounded-[12px] bg-[#e4f2ec] border border-[#c8dfd5] shadow-sm hover:border-[#4daa80] transition-all active:scale-[0.97]"
       >
-        <div className="w-9 h-9 rounded-full bg-[#e4f2ec] flex items-center justify-center">
+        <div className="w-9 h-9 rounded-full bg-[#d8ede6] flex items-center justify-center">
           <MoreHorizontal className="w-4 h-4 text-[#2d5042]" strokeWidth={1.8} />
         </div>
         <span className="text-[9px] font-semibold tracking-[0.08em] uppercase text-[#2d5042]">More</span>

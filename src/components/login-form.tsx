@@ -23,8 +23,8 @@ export function LoginForm() {
       email: data.email, password: data.password, redirect: false,
     });
     if (res?.error) { setError("Invalid email or password. Please try again."); return; }
-    router.push("/");
     router.refresh();
+    router.push("/dashboard");
   };
 
   return (

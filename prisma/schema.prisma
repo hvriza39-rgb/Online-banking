@@ -61,6 +61,15 @@ enum CardStatus {
   FROZEN
   CANCELLED
 }
+enum NotificationType {
+  KYC_APPROVED
+  KYC_REJECTED
+  WITHDRAWAL_APPROVED
+  WITHDRAWAL_REJECTED
+  SUPPORT_MESSAGE
+  ACCOUNT_CREDITED
+  ACCOUNT_DEBITED
+}
 
 model User {
   id           String    @id @default(cuid())
@@ -196,4 +205,17 @@ model Card {
   updatedAt   DateTime   @updatedAt
 
   @@map("cards")
+}
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      NotificationType
+  title     String
+  body      String
+  read      Boolean          @default(false)
+  createdAt DateTime         @default(now())
+
+  @@index([userId, read])
+  @@map("notifications")
 }

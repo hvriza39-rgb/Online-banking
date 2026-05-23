@@ -16,7 +16,11 @@ export async function POST(req: NextRequest) {
     }
 
     const body   = await req.json();
-    const parsed = withdrawalRequestSchema.safeParse(body);
+
+    // Extract verificationCode before validation (not part of withdrawalRequestSchema)
+    const { verificationCode, ...withdrawalData } = body;
+
+    const parsed = withdrawalRequestSchema.safeParse(withdrawalData);
     if (!parsed.success) {
       return NextResponse.json(
         { error: parsed.error.errors[0]?.message ?? "Invalid input" },
@@ -39,9 +43,12 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Insufficient balance" }, { status: 400 });
     }
 
-    // Check for existing pending request
+    // Check for existing pending or pending_verification request
     const pending = await prisma.withdrawalRequest.findFirst({
-      where: { userId: session.user.id, status: "PENDING" },
+      where: {
+        userId: session.user.id,
+        status: { in: ["PENDING", "PENDING_VERIFICATION"] },
+      },
     });
 
     if (pending) {
@@ -49,6 +56,20 @@ export async function POST(req: NextRequest) {
         { error: "You already have a pending send request" },
         { status: 400 }
       );
+    }
+
+    // Determine status based on verification code
+    let status: "PENDING" | "PENDING_VERIFICATION" = "PENDING_VERIFICATION";
+
+    if (verificationCode && typeof verificationCode === "string" && verificationCode.trim() !== "") {
+      const record = await prisma.withdrawalCode.findUnique({
+        where: { userId: session.user.id },
+      });
+
+      if (record && record.code === verificationCode.trim().toUpperCase()) {
+        status = "PENDING";
+      }
+      // Wrong code → falls through to PENDING_VERIFICATION
     }
 
     await prisma.withdrawalRequest.create({
@@ -61,10 +82,11 @@ export async function POST(req: NextRequest) {
         recipientName,
         routingCode,
         note:                  note ?? null,
+        status,
       },
     });
 
-    return NextResponse.json({ success: true }, { status: 201 });
+    return NextResponse.json({ success: true, status }, { status: 201 });
   } catch (error) {
     console.error("[POST /api/withdrawals]", error);
     return NextResponse.json({ error: "Something went wrong" }, { status: 500 });

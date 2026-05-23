@@ -41,14 +41,14 @@ export default async function TransactionsPage() {
               label: "Total In",
               value: account.transactions
                 .filter((t) => t.type === "CREDIT")
-                .reduce((s, t) => s + t.amount, BigInt(0)),
+                .reduce((s: bigint, t) => s + t.amount, BigInt(0)),
               className: "bg-[#edf7f5] border border-[#a8dbd4] text-[#0f7a6e]",
             },
             {
               label: "Total Out",
               value: account.transactions
                 .filter((t) => t.type !== "CREDIT")
-                .reduce((s, t) => s + t.amount, BigInt(0)),
+                .reduce((s: bigint, t) => s + t.amount, BigInt(0)),
               className: "bg-[#faeef0] border border-[#e8b8be] text-[#b52b3a]",
             },
           ].map((s) => (

@@ -2,35 +2,11 @@ import { Metadata } from "next";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
-import { formatMoney, formatDateTime, cn } from "@/lib/utils";
-import { ArrowDownLeft, ArrowUpRight, ClipboardList } from "lucide-react";
-import { TransactionType } from "@prisma/client";
+import { formatMoney, cn } from "@/lib/utils";
+import { ClipboardList } from "lucide-react";
+import { TransactionList } from "@/components/transaction-list";
 
 export const metadata: Metadata = { title: "Transactions" };
-
-const TX_CONFIG: Record<TransactionType, {
-  label: string; icon: React.ElementType;
-  bg: string; text: string; border: string; chipBg: string; chipText: string; sign: string;
-}> = {
-  CREDIT: {
-    label: "Credit", icon: ArrowDownLeft,
-    bg: "bg-[#edf7f5]", text: "text-[#0f7a6e]", border: "border-[#a8dbd4]",
-    chipBg: "bg-[#edf7f5] border border-[#a8dbd4]", chipText: "text-[#0f7a6e]",
-    sign: "+",
-  },
-  DEBIT: {
-    label: "Debit", icon: ArrowUpRight,
-    bg: "bg-[#faeef0]", text: "text-[#b52b3a]", border: "border-[#e8b8be]",
-    chipBg: "bg-[#faeef0] border border-[#e8b8be]", chipText: "text-[#b52b3a]",
-    sign: "−",
-  },
-  WITHDRAWAL: {
-    label: "Withdrawal", icon: ArrowUpRight,
-    bg: "bg-[#faeef0]", text: "text-[#b52b3a]", border: "border-[#e8b8be]",
-    chipBg: "bg-[#faeef0] border border-[#e8b8be]", chipText: "text-[#b52b3a]",
-    sign: "−",
-  },
-};
 
 export default async function TransactionsPage() {
   const session = await auth();
@@ -63,12 +39,16 @@ export default async function TransactionsPage() {
           {[
             {
               label: "Total In",
-              value: account.transactions.filter((t) => t.type === "CREDIT").reduce((s, t) => s + t.amount, 0),
+              value: account.transactions
+                .filter((t) => t.type === "CREDIT")
+                .reduce((s, t) => s + t.amount, BigInt(0)),
               className: "bg-[#edf7f5] border border-[#a8dbd4] text-[#0f7a6e]",
             },
             {
               label: "Total Out",
-              value: account.transactions.filter((t) => t.type !== "CREDIT").reduce((s, t) => s + t.amount, 0),
+              value: account.transactions
+                .filter((t) => t.type !== "CREDIT")
+                .reduce((s, t) => s + t.amount, BigInt(0)),
               className: "bg-[#faeef0] border border-[#e8b8be] text-[#b52b3a]",
             },
           ].map((s) => (
@@ -97,53 +77,10 @@ export default async function TransactionsPage() {
                 ))}
               </div>
 
-              <div className="divide-y divide-[#f0f7f4]">
-                {account.transactions.map((tx) => {
-                  const cfg  = TX_CONFIG[tx.type];
-                  const Icon = cfg.icon;
-                  return (
-                    <div key={tx.id}
-                      className="grid grid-cols-[44px_1fr_130px_110px] gap-4 items-center px-6 py-4 hover:bg-[#e4f2ec] transition-colors">
-
-                      {/* Icon */}
-                      <div className={cn("w-9 h-9 rounded-xl border flex items-center justify-center", cfg.bg, cfg.border)}>
-                        <Icon className={cn("w-4 h-4", cfg.text)} strokeWidth={2.5} />
-                      </div>
-
-                      {/* Details */}
-                      <div className="min-w-0">
-                        <div className="flex items-center gap-2 mb-0.5">
-                          <span className={cn("text-[11px] font-semibold px-2 py-0.5 rounded-full", cfg.chipBg, cfg.chipText)}>
-                            {cfg.label}
-                          </span>
-                        </div>
-                        <p className="text-[12px] text-[#6a8c7a] truncate">
-                          {tx.note ?? "No description"}
-                        </p>
-                        <p className="text-[11px] text-[#a8c8b8] mt-0.5 font-mono">
-                          After: {formatMoney(tx.balanceAfter, account.currency)}
-                        </p>
-                      </div>
-
-                      {/* Date */}
-                      <div>
-                        <p className="text-[12px] text-[#2d5042]">{formatDateTime(tx.createdAt)}</p>
-                      </div>
-
-                      {/* Amount */}
-                      <div className="text-right">
-                        <p className={cn(
-                          "text-[14px] font-semibold font-mono",
-                          tx.type === "CREDIT" ? "text-[#0f7a6e]" : "text-[#b52b3a]"
-                        )}>
-                          {cfg.sign}{formatMoney(tx.amount, account.currency)}
-                        </p>
-                      </div>
-
-                    </div>
-                  );
-                })}
-              </div>
+              <TransactionList
+                transactions={account.transactions}
+                currency={account.currency}
+              />
             </>
           )}
         </div>

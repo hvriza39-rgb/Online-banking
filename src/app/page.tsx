@@ -124,7 +124,7 @@ export default function HomePage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
             {[
               { icon: Zap,        title: "Instant Transfers", desc: "Send money locally or internationally in seconds." },
-              { icon: Lock,       title: "Bank-Grade Security", desc: "Your account is protected with 256-bit encryption and KYC verification." },
+              
               { icon: Globe,      title: "Global Reach", desc: "Send to any account worldwide with competitive rates." },
               { icon: Smartphone, title: "Always Available", desc: "Access your account 24/7 from any device, anywhere." },
             ].map(({ icon: Icon, title, desc }) => (

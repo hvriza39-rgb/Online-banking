@@ -140,7 +140,7 @@ model Transaction {
 
   @@map("transactions")
 }
-}
+
 
 model WithdrawalRequest {
   id                     String           @id @default(cuid())

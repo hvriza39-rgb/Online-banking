@@ -23,8 +23,16 @@ export function LoginForm() {
       email: data.email, password: data.password, redirect: false,
     });
     if (res?.error) { setError("Invalid email or password. Please try again."); return; }
+
+    const sessionRes = await fetch("/api/auth/session");
+    const session    = await sessionRes.json();
+
+    if (session?.user?.role === "ADMIN") {
+      router.push("/admin");
+    } else {
+      router.push("/dashboard");
+    }
     router.refresh();
-    router.push("/dashboard");
   };
 
   return (

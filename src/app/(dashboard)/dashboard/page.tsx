@@ -15,23 +15,6 @@ import Link from "next/link";
 
 export const metadata: Metadata = { title: "Account Overview — NexaBank" };
 
-// ── Revised palette — lighter, cooler, with colored text ──────────────────
-// --bg:        #f0f7f4   page background (cool blue-white)
-// --surface:   #e2f0ea   header / nav background
-// --card:      #f2f9f6   card background
-// --card-deep: #e4f2ec   inset / nested bg
-// --line:      #c8dfd5   borders
-// --line-soft: #d8ede6   subtle dividers
-// --indigo:    #1e7a52   primary accent (bank name, active states)
-// --indigo-lt: #4daa80   lighter indigo
-// --indigo-dk: #155c3a   darker indigo / section links
-// --text-pri:  #0f2419   headings / primary text (deep navy)
-// --text-sec:  #2d5042   secondary text (indigo-tinted)
-// --text-dim:  #6a8c7a   placeholder / dim labels
-// --teal:      #0f7a6e   credit / active green-teal
-// --rose:      #b52b3a   debit red
-// --amber:     #c47a00   currency / unverified
-
 const TX_CONFIG: Record<TransactionType, {
   label: string; icon: React.ElementType;
   bg: string; text: string; sign: string; border: string;
@@ -134,8 +117,8 @@ export default async function DashboardPage() {
             </Link>
           )}
 
-          {/* ── Balance card ── */}
-          <div className="relative rounded-[14px] p-6 overflow-hidden border border-[#c8dfd5] shadow-sm bg-[#f2f9f6]">
+          {/* ── Balance card — darkened to match account number inset ── */}
+          <div className="relative rounded-[14px] p-6 overflow-hidden border border-[#c8dfd5] shadow-sm bg-[#e4f2ec]">
             <p className="text-[10px] font-semibold tracking-[0.2em] uppercase text-[#6a8c7a] mb-2">
               Main Balance
             </p>
@@ -171,23 +154,23 @@ export default async function DashboardPage() {
             </div>
           </div>
 
-          {/* ── Quick actions ── */}
+          {/* ── Quick actions — darkened to match account number inset ── */}
           <div className="grid grid-cols-4 gap-2.5">
 
             {/* Send */}
             {isVerified ? (
               <Link
                 href="/withdraw"
-                className="flex flex-col items-center gap-2 py-3 px-1 rounded-[12px] bg-[#f2f9f6] border border-[#c8dfd5] shadow-sm hover:border-[#4daa80] transition-all active:scale-[0.97]"
+                className="flex flex-col items-center gap-2 py-3 px-1 rounded-[12px] bg-[#e4f2ec] border border-[#c8dfd5] shadow-sm hover:border-[#4daa80] transition-all active:scale-[0.97]"
               >
-                <div className="w-9 h-9 rounded-full bg-[#eaf5f0] flex items-center justify-center">
+                <div className="w-9 h-9 rounded-full bg-[#d8ede6] flex items-center justify-center">
                   <Send className="w-4 h-4 text-[#1e7a52]" strokeWidth={1.8} />
                 </div>
                 <span className="text-[9px] font-semibold tracking-[0.08em] uppercase text-[#2d5042]">Send</span>
               </Link>
             ) : (
-              <span className="flex flex-col items-center gap-2 py-3 px-1 rounded-[12px] bg-[#f2f9f6] border border-[#c8dfd5] shadow-sm cursor-not-allowed opacity-40 select-none">
-                <div className="w-9 h-9 rounded-full bg-[#eaf5f0] flex items-center justify-center">
+              <span className="flex flex-col items-center gap-2 py-3 px-1 rounded-[12px] bg-[#e4f2ec] border border-[#c8dfd5] shadow-sm cursor-not-allowed opacity-40 select-none">
+                <div className="w-9 h-9 rounded-full bg-[#d8ede6] flex items-center justify-center">
                   <Send className="w-4 h-4 text-[#1e7a52]" strokeWidth={1.8} />
                 </div>
                 <span className="text-[9px] font-semibold tracking-[0.08em] uppercase text-[#2d5042]">Send</span>
@@ -206,9 +189,9 @@ export default async function DashboardPage() {
             {/* History */}
             <Link
               href="/transactions"
-              className="flex flex-col items-center gap-2 py-3 px-1 rounded-[12px] bg-[#f2f9f6] border border-[#c8dfd5] shadow-sm hover:border-[#4daa80] transition-all active:scale-[0.97]"
+              className="flex flex-col items-center gap-2 py-3 px-1 rounded-[12px] bg-[#e4f2ec] border border-[#c8dfd5] shadow-sm hover:border-[#4daa80] transition-all active:scale-[0.97]"
             >
-              <div className="w-9 h-9 rounded-full bg-[#f0f7f4] flex items-center justify-center">
+              <div className="w-9 h-9 rounded-full bg-[#d8ede6] flex items-center justify-center">
                 <ClipboardList className="w-4 h-4 text-[#4daa80]" strokeWidth={1.8} />
               </div>
               <span className="text-[9px] font-semibold tracking-[0.08em] uppercase text-[#2d5042]">History</span>
@@ -520,7 +503,7 @@ export default async function DashboardPage() {
         <div className="grid grid-cols-5 pb-safe">
           {[
             { label: "Overview",  icon: Home,         href: "/dashboard",    active: true  },
-            { label: "Card",  icon: CreditCard,   href: "/card",     active: false },
+            { label: "Card",      icon: CreditCard,   href: "/card",         active: false },
             { label: "Transfer",  icon: ArrowUpRight, href: isVerified ? "/send" : null, active: false },
             { label: "Analytics", icon: BarChart2,    href: "/transactions", active: false },
             { label: "Profile",   icon: User,         href: "/profile",      active: false },

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { X, ArrowDownLeft, ArrowUpRight, CheckCircle2 } from "lucide-react";
+import { X, ArrowDownLeft, ArrowUpRight, CheckCircle2, Download } from "lucide-react";
 import { cn, formatMoney, formatDateTime } from "@/lib/utils";
 import { TransactionType } from "@prisma/client";
 
@@ -52,9 +52,112 @@ export function TransactionReceiptModal({ tx, currency, onClose }: Props) {
 
   if (!tx) return null;
 
-  const cfg  = TX_CONFIG[tx.type];
-  const Icon = cfg.icon;
+  const cfg      = TX_CONFIG[tx.type];
+  const Icon     = cfg.icon;
   const isCredit = tx.type === "CREDIT";
+  const accent   = isCredit ? "#0f7a6e" : "#b52b3a";
+
+  const handleDownload = () => {
+    const scale  = 2;
+    const W      = 420;
+    const H      = 640;
+    const canvas = document.createElement("canvas");
+    canvas.width  = W * scale;
+    canvas.height = H * scale;
+    const ctx = canvas.getContext("2d")!;
+    ctx.scale(scale, scale);
+
+    // Background
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0, 0, W, H);
+
+    // Top color bar
+    ctx.fillStyle = accent;
+    ctx.fillRect(0, 0, W, 6);
+
+    // Header label
+    ctx.fillStyle = "#a8c8b8";
+    ctx.font = "bold 10px monospace";
+    ctx.textAlign = "left";
+    ctx.fillText("TRANSACTION RECEIPT", 24, 38);
+
+    // Amount
+    ctx.fillStyle = accent;
+    ctx.font = "bold 30px monospace";
+    ctx.textAlign = "center";
+    ctx.fillText(`${cfg.sign}${formatMoney(tx.amount, currency as any)}`, W / 2, 108);
+
+    // Type label
+    ctx.fillStyle = "#6a8c7a";
+    ctx.font = "13px sans-serif";
+    ctx.fillText(cfg.label, W / 2, 130);
+
+    // Status pill
+    ctx.fillStyle = "#edf7f5";
+    ctx.beginPath();
+    ctx.roundRect(W / 2 - 54, 144, 108, 26, 13);
+    ctx.fill();
+    ctx.fillStyle = "#0f7a6e";
+    ctx.font = "bold 10px sans-serif";
+    ctx.fillText("✓  COMPLETED", W / 2, 161);
+
+    // Dashed divider
+    ctx.setLineDash([5, 4]);
+    ctx.strokeStyle = "#ddeee7";
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(24, 192);
+    ctx.lineTo(W - 24, 192);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Detail rows
+    const rows: [string, string][] = [
+      ["Transaction ID", tx.id.slice(0, 22) + "…"],
+      ["Date & Time",    formatDateTime(tx.createdAt)],
+      ["Type",           cfg.label],
+      ["Description",    tx.note ?? "—"],
+      ["Balance After",  formatMoney(tx.balanceAfter, currency as any)],
+      ...(tx.reference ? [["Reference", tx.reference] as [string, string]] : []),
+    ];
+
+    let y = 228;
+    rows.forEach(([label, value]) => {
+      // Label
+      ctx.fillStyle = "#a8c8b8";
+      ctx.font = "11px sans-serif";
+      ctx.textAlign = "left";
+      ctx.fillText(label, 24, y);
+
+      // Value
+      ctx.fillStyle = "#2d5042";
+      ctx.font = "11px monospace";
+      ctx.textAlign = "right";
+      ctx.fillText(value, W - 24, y);
+
+      // Subtle row separator
+      ctx.strokeStyle = "#f0f7f4";
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(24, y + 10);
+      ctx.lineTo(W - 24, y + 10);
+      ctx.stroke();
+
+      y += 36;
+    });
+
+    // Footer branding
+    ctx.fillStyle = "#c8dfd5";
+    ctx.font      = "10px sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText("NexaBank  ·  Secure Banking", W / 2, H - 20);
+
+    // Download
+    const link    = document.createElement("a");
+    link.download = `nexabank-receipt-${tx.id.slice(0, 8)}.png`;
+    link.href     = canvas.toDataURL("image/png");
+    link.click();
+  };
 
   return (
     <div
@@ -136,10 +239,17 @@ export function TransactionReceiptModal({ tx, currency, onClose }: Props) {
         </div>
 
         {/* Footer */}
-        <div className="px-6 pb-6 pt-3 bg-[#fafcfb]">
+        <div className="px-6 pb-6 pt-3 bg-[#fafcfb] flex gap-3">
+          <button
+            onClick={handleDownload}
+            className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-[#edf7f5] border border-[#a8dbd4] text-[#0f7a6e] text-sm font-semibold hover:bg-[#d6ede8] transition-colors"
+          >
+            <Download className="w-4 h-4" />
+            Download
+          </button>
           <button
             onClick={onClose}
-            className="w-full py-3 rounded-xl bg-[#0f2419] text-white text-sm font-semibold hover:bg-[#1a3828] transition-colors"
+            className="flex-1 py-3 rounded-xl bg-[#0f2419] text-white text-sm font-semibold hover:bg-[#1a3828] transition-colors"
           >
             Close
           </button>

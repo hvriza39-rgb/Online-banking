@@ -8,7 +8,7 @@ import Image from "next/image";
 const ITEMS = [
   { icon: Settings,    label: "Settings",          sub: "Account preferences",     href: "/settings" },
   { icon: ShieldCheck, label: "KYC Verification",  sub: "Identity & documents",    href: "/kyc"      },
-  { icon: Bell,        label: "Notifications",      sub: "Alerts & preferences",    href: "/notifications" },
+  { icon: Bell,        label: "Notifications",      sub: "Alerts & preferences",    href: "/dashboard/notifications" },
   { icon: HelpCircle,  label: "Help & Support",     sub: "FAQs and contact us",     href: "/support"  },
   { icon: LogOut,      label: "Sign Out",           sub: "Log out of your account", href: "/logout",  danger: true },
 ];

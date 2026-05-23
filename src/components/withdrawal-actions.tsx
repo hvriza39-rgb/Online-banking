@@ -12,7 +12,7 @@ export function WithdrawalActions({ requestId }: { requestId: string }) {
 
   const handle = async (action: "APPROVED" | "REJECTED") => {
     setLoading(action); setError(null);
-    const res  = await fetch(`/api/withdrawals/${requestId}`, {
+    const res  = await fetch(`/api/admin/withdrawals/${requestId}`, {
       method: "PATCH", headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ action, adminNote: note || undefined }),
     });

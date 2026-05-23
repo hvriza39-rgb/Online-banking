@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import { WithdrawForm } from "@/components/withdraw-form";
 import { formatMoney, formatDateTime, cn } from "@/lib/utils";
-import { Clock, CheckCircle2, XCircle } from "lucide-react";
+import { Clock, CheckCircle2, XCircle, ShieldAlert } from "lucide-react";
 import { WithdrawalStatus } from "@prisma/client";
 
 export const metadata: Metadata = { title: "Send Funds" };
@@ -13,9 +13,10 @@ const STATUS_CONFIG: Record<WithdrawalStatus, {
   label: string; icon: React.ElementType;
   bg: string; border: string; text: string;
 }> = {
-  PENDING:  { label: "Pending",  icon: Clock,        bg: "bg-[#fff8ec]",  border: "border-[#f0d9a0]", text: "text-[#c47a00]"  },
-  APPROVED: { label: "Approved", icon: CheckCircle2, bg: "bg-[#edf7f5]",  border: "border-[#a8dbd4]", text: "text-[#0f7a6e]"  },
-  REJECTED: { label: "Rejected", icon: XCircle,      bg: "bg-[#faeef0]",  border: "border-[#e8b8be]", text: "text-[#b52b3a]"  },
+  PENDING:              { label: "Pending",              icon: Clock,        bg: "bg-[#fff8ec]",  border: "border-[#f0d9a0]", text: "text-[#c47a00]"  },
+  PENDING_VERIFICATION: { label: "Awaiting Verification", icon: ShieldAlert,  bg: "bg-[#fdf2f2]",  border: "border-[#f0c0c0]", text: "text-[#b52b3a]"  },
+  APPROVED:             { label: "Approved",             icon: CheckCircle2, bg: "bg-[#edf7f5]",  border: "border-[#a8dbd4]", text: "text-[#0f7a6e]"  },
+  REJECTED:             { label: "Rejected",             icon: XCircle,      bg: "bg-[#faeef0]",  border: "border-[#e8b8be]", text: "text-[#b52b3a]"  },
 };
 
 export default async function WithdrawPage() {
@@ -25,8 +26,12 @@ export default async function WithdrawPage() {
   const account = await prisma.account.findUnique({ where: { userId: session.user.id } });
   if (!account) redirect("/login");
 
+  // Block new submissions if user has any active (pending or held) request
   const hasPending = !!(await prisma.withdrawalRequest.findFirst({
-    where: { userId: session.user.id, status: "PENDING" },
+    where: {
+      userId: session.user.id,
+      status: { in: ["PENDING", "PENDING_VERIFICATION"] },
+    },
   }));
 
   const requests = await prisma.withdrawalRequest.findMany({

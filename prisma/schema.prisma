@@ -132,7 +132,14 @@ model Transaction {
   note         String?
   createdAt    DateTime        @default(now())
 
+  senderName            String?
+  senderAccountNumber   String?
+  recipientName         String?
+  recipientAccountNumber String?
+  routingCode           String?
+
   @@map("transactions")
+}
 }
 
 model WithdrawalRequest {

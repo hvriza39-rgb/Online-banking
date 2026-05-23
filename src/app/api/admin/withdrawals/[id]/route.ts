@@ -26,6 +26,7 @@ export async function PATCH(
 
     const request = await prisma.withdrawalRequest.findUnique({
       where: { id: params.id },
+      include: { user: { include: { account: true } } },
     });
 
     if (!request) {
@@ -64,11 +65,16 @@ export async function PATCH(
         }),
         prisma.transaction.create({
           data: {
-            accountId: account.id,
-            type: "WITHDRAWAL",
-            amount: request.amount,
-            balanceAfter: newBalance,
-            note: `Withdrawal approved${adminNote ? `: ${adminNote}` : ""}`,
+            accountId:             account.id,
+            type:                  "WITHDRAWAL",
+            amount:                request.amount,
+            balanceAfter:          newBalance,
+            note:                  `Withdrawal approved${adminNote ? `: ${adminNote}` : ""}`,
+            senderName:            request.user.name,
+            senderAccountNumber:   account.accountNumber ?? undefined,
+            recipientName:         request.recipientName,
+            recipientAccountNumber: request.recipientAccountNumber,
+            routingCode:           request.routingCode,
           },
         }),
         prisma.withdrawalRequest.update({
@@ -78,9 +84,9 @@ export async function PATCH(
         prisma.notification.create({
           data: {
             userId: request.userId,
-            type: "WITHDRAWAL_APPROVED",
-            title: "Withdrawal Approved",
-            body: adminNote
+            type:   "WITHDRAWAL_APPROVED",
+            title:  "Withdrawal Approved",
+            body:   adminNote
               ? `Your withdrawal has been approved. Note: ${adminNote}`
               : "Your withdrawal request has been approved and processed.",
           },
@@ -95,9 +101,9 @@ export async function PATCH(
         prisma.notification.create({
           data: {
             userId: request.userId,
-            type: "WITHDRAWAL_REJECTED",
-            title: "Withdrawal Rejected",
-            body: adminNote
+            type:   "WITHDRAWAL_REJECTED",
+            title:  "Withdrawal Rejected",
+            body:   adminNote
               ? `Your withdrawal was rejected. Reason: ${adminNote}`
               : "Your withdrawal request has been rejected.",
           },

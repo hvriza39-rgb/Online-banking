@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import {
   ShieldCheck,
   Zap,
@@ -17,13 +18,8 @@ export default function HomePage() {
       {/* ── Nav ── */}
       <nav className="sticky top-0 z-50 bg-[#f0f7f4]/80 backdrop-blur-md border-b border-[#d4ebe0]">
         <div className="max-w-5xl mx-auto px-6 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-[#0f4f2f] flex items-center justify-center">
-              <span className="text-white font-bold text-sm">N</span>
-            </div>
-            <span className="text-[#0f2419] font-semibold text-[15px] tracking-tight">
-              Nexa<span className="text-[#1a7a4a]">Bank</span>
-            </span>
+          <div className="flex items-center">
+            <Image src="/nexabank-logo.svg" alt="NexaBank" width={130} height={36} />
           </div>
           <div className="flex items-center gap-3">
             <Link
@@ -43,28 +39,36 @@ export default function HomePage() {
       </nav>
 
       {/* ── Hero ── */}
-      <section className="relative overflow-hidden">
-        {/* Background blobs */}
-        <div className="absolute top-0 right-0 w-[600px] h-[600px] rounded-full bg-[#c8f0da]/40 blur-3xl -translate-y-1/4 translate-x-1/4 pointer-events-none" />
-        <div className="absolute bottom-0 left-0 w-[400px] h-[400px] rounded-full bg-[#d4ebe0]/50 blur-3xl translate-y-1/4 -translate-x-1/4 pointer-events-none" />
+      <section className="relative overflow-hidden min-h-[600px]">
+        {/* Hero background image */}
+        <div className="absolute inset-0">
+          <Image
+            src="/hero.jpg"
+            alt="Banking hero"
+            fill
+            className="object-cover object-center"
+            priority
+          />
+          <div className="absolute inset-0 bg-[#0f2419]/60" />
+        </div>
 
-        <div className="relative max-w-5xl mx-auto px-6 pt-20 pb-24">
+        <div className="relative max-w-5xl mx-auto px-6 pt-24 pb-32">
           <div className="max-w-2xl">
             {/* Badge */}
-            <div className="inline-flex items-center gap-2 bg-[#e4f7ed] border border-[#a8dfc0] text-[#1a7a4a] text-xs font-semibold px-3 py-1.5 rounded-full mb-6">
+            <div className="inline-flex items-center gap-2 bg-white/10 border border-white/20 text-white text-xs font-semibold px-3 py-1.5 rounded-full mb-6 backdrop-blur-sm">
               <ShieldCheck className="w-3.5 h-3.5" />
               Secure. Modern. Always available.
             </div>
 
             <h1
-              className="text-5xl lg:text-6xl font-bold text-[#0f2419] leading-[1.1] mb-6"
+              className="text-5xl lg:text-6xl font-bold text-white leading-[1.1] mb-6"
               style={{ fontFamily: "'Playfair Display', Georgia, serif" }}
             >
               Banking that works{" "}
-              <span className="text-[#1a7a4a] italic">for you</span>
+              <span className="text-[#6ee7a0] italic">for you</span>
             </h1>
 
-            <p className="text-[#4a7060] text-lg leading-relaxed mb-10 max-w-lg">
+            <p className="text-white/80 text-lg leading-relaxed mb-10 max-w-lg">
               Open a NexaBank account in minutes. Send money globally, manage your
               finances, and stay in control — all from your phone.
             </p>
@@ -72,14 +76,14 @@ export default function HomePage() {
             <div className="flex flex-wrap gap-3">
               <Link
                 href="/register"
-                className="inline-flex items-center gap-2 bg-[#0f4f2f] hover:bg-[#0a3d24] text-white font-semibold px-6 py-3.5 rounded-2xl transition-all shadow-lg shadow-[#0f4f2f]/20 text-sm"
+                className="inline-flex items-center gap-2 bg-[#0f4f2f] hover:bg-[#0a3d24] text-white font-semibold px-6 py-3.5 rounded-2xl transition-all shadow-lg text-sm"
               >
                 Open a free account
                 <ArrowRight className="w-4 h-4" />
               </Link>
               <Link
                 href="/login"
-                className="inline-flex items-center gap-2 bg-white hover:bg-[#f5faf7] text-[#0f2419] font-semibold px-6 py-3.5 rounded-2xl border border-[#c8dfd5] transition-all text-sm"
+                className="inline-flex items-center gap-2 bg-white/10 hover:bg-white/20 backdrop-blur-sm text-white font-semibold px-6 py-3.5 rounded-2xl border border-white/30 transition-all text-sm"
               >
                 Log in to your account
               </Link>
@@ -92,38 +96,11 @@ export default function HomePage() {
                 "256-bit encryption",
                 "Instant transfers",
               ].map((item) => (
-                <div key={item} className="flex items-center gap-1.5 text-[13px] text-[#4a7060]">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-[#1a7a4a]" />
+                <div key={item} className="flex items-center gap-1.5 text-[13px] text-white/80">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-[#6ee7a0]" />
                   {item}
                 </div>
               ))}
-            </div>
-          </div>
-
-          {/* Floating card mockup */}
-          <div className="absolute right-6 top-16 hidden lg:block">
-            <div className="w-72 bg-white rounded-3xl shadow-2xl shadow-[#0f2419]/10 border border-[#e4f2ec] p-6 rotate-3 hover:rotate-0 transition-transform duration-500">
-              <div className="flex items-center justify-between mb-6">
-                <div>
-                  <p className="text-[10px] font-semibold text-[#6a8c7a] uppercase tracking-widest">Main Balance</p>
-                  <p className="text-3xl font-bold text-[#0f2419] mt-0.5" style={{ fontFamily: "monospace" }}>€12,450.00</p>
-                </div>
-                <div className="w-10 h-10 rounded-2xl bg-[#0f4f2f] flex items-center justify-center">
-                  <span className="text-white font-bold text-sm">N</span>
-                </div>
-              </div>
-              <div className="space-y-3">
-                {[
-                  { label: "Transfer to Sarah", amount: "−€250.00", color: "text-rose-500" },
-                  { label: "Salary credit",     amount: "+€3,200.00", color: "text-emerald-600" },
-                  { label: "Netflix",           amount: "−€15.99",  color: "text-rose-500" },
-                ].map((t) => (
-                  <div key={t.label} className="flex items-center justify-between py-2 border-b border-[#f0f7f4] last:border-0">
-                    <p className="text-[12px] text-[#2d5042] font-medium">{t.label}</p>
-                    <p className={`text-[12px] font-semibold font-mono ${t.color}`}>{t.amount}</p>
-                  </div>
-                ))}
-              </div>
             </div>
           </div>
         </div>
@@ -146,26 +123,10 @@ export default function HomePage() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
             {[
-              {
-                icon: Zap,
-                title: "Instant Transfers",
-                desc: "Send money locally or internationally in seconds.",
-              },
-              {
-                icon: Lock,
-                title: "Bank-Grade Security",
-                desc: "Your account is protected with 256-bit encryption and KYC verification.",
-              },
-              {
-                icon: Globe,
-                title: "Global Reach",
-                desc: "Send to any account worldwide with competitive rates.",
-              },
-              {
-                icon: Smartphone,
-                title: "Always Available",
-                desc: "Access your account 24/7 from any device, anywhere.",
-              },
+              { icon: Zap,        title: "Instant Transfers", desc: "Send money locally or internationally in seconds." },
+              { icon: Lock,       title: "Bank-Grade Security", desc: "Your account is protected with 256-bit encryption and KYC verification." },
+              { icon: Globe,      title: "Global Reach", desc: "Send to any account worldwide with competitive rates." },
+              { icon: Smartphone, title: "Always Available", desc: "Access your account 24/7 from any device, anywhere." },
             ].map(({ icon: Icon, title, desc }) => (
               <div
                 key={title}
@@ -182,52 +143,167 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ── How it works ── */}
+      {/* ── Customer section ── */}
       <section className="max-w-5xl mx-auto px-6 py-20">
-        <div className="text-center mb-14">
-          <h2
-            className="text-3xl font-bold text-[#0f2419] mb-3"
-            style={{ fontFamily: "'Playfair Display', Georgia, serif" }}
-          >
-            Get started in minutes
-          </h2>
-          <p className="text-[#4a7060] text-sm">Three simple steps to your new account.</p>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
+          <div className="relative h-[400px] rounded-3xl overflow-hidden shadow-xl shadow-[#0f2419]/10">
+            <Image
+              src="/customer.jpg"
+              alt="Happy NexaBank customer"
+              fill
+              className="object-cover object-center"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#0f2419]/40 to-transparent" />
+          </div>
+          <div>
+            <div className="inline-flex items-center gap-2 bg-[#e4f7ed] border border-[#a8dfc0] text-[#1a7a4a] text-xs font-semibold px-3 py-1.5 rounded-full mb-5">
+              <ShieldCheck className="w-3.5 h-3.5" />
+              Trusted by thousands
+            </div>
+            <h2
+              className="text-3xl font-bold text-[#0f2419] mb-4 leading-tight"
+              style={{ fontFamily: "'Playfair Display', Georgia, serif" }}
+            >
+              Banking you can actually enjoy
+            </h2>
+            <p className="text-[#4a7060] text-sm leading-relaxed mb-6">
+              Our customers love the simplicity and power of NexaBank. From instant transfers to real-time notifications, everything is designed around you.
+            </p>
+            <div className="space-y-3">
+              {[
+                "Instant transfer notifications",
+                "24/7 customer support",
+                "Zero hidden fees",
+                "Full transaction history",
+              ].map((item) => (
+                <div key={item} className="flex items-center gap-2.5 text-[13px] text-[#2d5042]">
+                  <CheckCircle2 className="w-4 h-4 text-[#1a7a4a] flex-shrink-0" />
+                  {item}
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
+      </section>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {[
-            {
-              step: "01",
-              title: "Create your account",
-              desc: "Sign up with your email and set a secure password. Takes less than 2 minutes.",
-            },
-            {
-              step: "02",
-              title: "Verify your identity",
-              desc: "Submit your ID and personal details. Our team reviews and approves within 24 hours.",
-            },
-            {
-              step: "03",
-              title: "Start banking",
-              desc: "Your account number is ready. Send, receive, and manage funds instantly.",
-            },
-          ].map(({ step, title, desc }) => (
-            <div key={step} className="relative p-7 rounded-2xl bg-white border border-[#d4ebe0] shadow-sm">
-              <span
-                className="block text-6xl font-bold text-[#e4f2ec] mb-4 leading-none"
+      {/* ── Card section ── */}
+      <section className="bg-[#0f2419]">
+        <div className="max-w-5xl mx-auto px-6 py-20">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
+            <div>
+              <div className="inline-flex items-center gap-2 bg-white/10 border border-white/20 text-white text-xs font-semibold px-3 py-1.5 rounded-full mb-5">
+                <CreditCard className="w-3.5 h-3.5" />
+                Your NexaBank Card
+              </div>
+              <h2
+                className="text-3xl font-bold text-white mb-4 leading-tight"
                 style={{ fontFamily: "'Playfair Display', Georgia, serif" }}
               >
-                {step}
-              </span>
-              <h3 className="text-[15px] font-semibold text-[#0f2419] mb-2">{title}</h3>
-              <p className="text-[12px] text-[#6a8c7a] leading-relaxed">{desc}</p>
+                One card for everything
+              </h2>
+              <p className="text-white/70 text-sm leading-relaxed mb-6">
+                Pay anywhere in the world with your NexaBank debit card. Shop online, withdraw cash, or tap to pay — all with real-time balance updates.
+              </p>
+              <div className="space-y-3">
+                {[
+                  "Accepted worldwide",
+                  "Freeze & unfreeze instantly",
+                  "Real-time spending alerts",
+                  "Zero foreign transaction fees",
+                ].map((item) => (
+                  <div key={item} className="flex items-center gap-2.5 text-[13px] text-white/80">
+                    <CheckCircle2 className="w-4 h-4 text-[#6ee7a0] flex-shrink-0" />
+                    {item}
+                  </div>
+                ))}
+              </div>
             </div>
-          ))}
+            <div className="relative h-[400px] rounded-3xl overflow-hidden shadow-2xl">
+              <Image
+                src="/card.jpg"
+                alt="NexaBank card"
+                fill
+                className="object-cover object-center"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-[#0f2419]/30 to-transparent" />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── Retirement / savings section ── */}
+      <section className="max-w-5xl mx-auto px-6 py-20">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
+          <div className="relative h-[400px] rounded-3xl overflow-hidden shadow-xl shadow-[#0f2419]/10 order-2 lg:order-1">
+            <Image
+              src="/retirement.jpg"
+              alt="Plan for your future"
+              fill
+              className="object-cover object-center"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#0f2419]/40 to-transparent" />
+          </div>
+          <div className="order-1 lg:order-2">
+            <div className="inline-flex items-center gap-2 bg-[#e4f7ed] border border-[#a8dfc0] text-[#1a7a4a] text-xs font-semibold px-3 py-1.5 rounded-full mb-5">
+              <Globe className="w-3.5 h-3.5" />
+              Plan your future
+            </div>
+            <h2
+              className="text-3xl font-bold text-[#0f2419] mb-4 leading-tight"
+              style={{ fontFamily: "'Playfair Display', Georgia, serif" }}
+            >
+              Save for what matters most
+            </h2>
+            <p className="text-[#4a7060] text-sm leading-relaxed mb-6">
+              Whether you're saving for retirement, a home, or your children's future — NexaBank gives you the tools to get there.
+            </p>
+            <Link
+              href="/register"
+              className="inline-flex items-center gap-2 bg-[#0f4f2f] hover:bg-[#0a3d24] text-white font-semibold px-6 py-3 rounded-xl transition-all text-sm shadow-md"
+            >
+              Start saving today
+              <ArrowRight className="w-4 h-4" />
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* ── How it works ── */}
+      <section className="bg-white border-y border-[#d4ebe0]">
+        <div className="max-w-5xl mx-auto px-6 py-20">
+          <div className="text-center mb-14">
+            <h2
+              className="text-3xl font-bold text-[#0f2419] mb-3"
+              style={{ fontFamily: "'Playfair Display', Georgia, serif" }}
+            >
+              Get started in minutes
+            </h2>
+            <p className="text-[#4a7060] text-sm">Three simple steps to your new account.</p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {[
+              { step: "01", title: "Create your account", desc: "Sign up with your email and set a secure password. Takes less than 2 minutes." },
+              { step: "02", title: "Verify your identity", desc: "Submit your ID and personal details. Our team reviews and approves within 24 hours." },
+              { step: "03", title: "Start banking", desc: "Your account number is ready. Send, receive, and manage funds instantly." },
+            ].map(({ step, title, desc }) => (
+              <div key={step} className="relative p-7 rounded-2xl bg-[#f9fdfa] border border-[#d4ebe0] shadow-sm">
+                <span
+                  className="block text-6xl font-bold text-[#e4f2ec] mb-4 leading-none"
+                  style={{ fontFamily: "'Playfair Display', Georgia, serif" }}
+                >
+                  {step}
+                </span>
+                <h3 className="text-[15px] font-semibold text-[#0f2419] mb-2">{title}</h3>
+                <p className="text-[12px] text-[#6a8c7a] leading-relaxed">{desc}</p>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
       {/* ── CTA Banner ── */}
-      <section className="max-w-5xl mx-auto px-6 pb-20">
+      <section className="max-w-5xl mx-auto px-6 py-20">
         <div className="relative overflow-hidden rounded-3xl bg-[#0f4f2f] p-10 text-center">
           <div className="absolute inset-0 opacity-10"
             style={{
@@ -267,11 +343,8 @@ export default function HomePage() {
       {/* ── Footer ── */}
       <footer className="border-t border-[#d4ebe0] bg-white">
         <div className="max-w-5xl mx-auto px-6 py-8 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded-md bg-[#0f4f2f] flex items-center justify-center">
-              <span className="text-white font-bold text-[10px]">N</span>
-            </div>
-            <span className="text-[13px] text-[#4a7060] font-medium">NexaBank</span>
+          <div className="flex items-center">
+            <Image src="/nexabank-logo.svg" alt="NexaBank" width={90} height={24} />
           </div>
           <p className="text-[12px] text-[#6a8c7a]">
             © {new Date().getFullYear()} NexaBank. All rights reserved.

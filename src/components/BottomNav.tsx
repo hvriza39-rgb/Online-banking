@@ -14,7 +14,13 @@ export default function BottomNav({ isVerified }: { isVerified: boolean }) {
     { label: "Card",      icon: CreditCard,   href: "/card"          },
     { label: "Transfer",  icon: ArrowUpRight, href: isVerified ? "/withdraw" : null },
     { label: "Analytics", icon: BarChart2,    href: "/transactions"  },
-    { label: "Profile",   icon: User,         href: "/profile"       },
+    // Change the grid to render MoreSheet as the last item
+<div className="grid grid-cols-5 pb-safe">
+  {items.slice(0, 4).map(({ label, icon: Icon, href }) => {
+    // ... your existing map logic
+  })}
+  <MoreSheet />
+</div>
   ];
 
   return (

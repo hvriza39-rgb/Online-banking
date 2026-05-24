@@ -93,7 +93,7 @@ model User {
   card               Card?
   withdrawalCode     WithdrawalCode?
   notifications  Notification[]
-
+  loans Loan[]
   @@map("users")
 }
 
@@ -123,7 +123,7 @@ model Account {
   updatedAt     DateTime @updatedAt
 
   transactions Transaction[]
-
+  loans Loan[]
   @@map("accounts")
 }
 

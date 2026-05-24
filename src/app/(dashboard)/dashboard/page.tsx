@@ -9,7 +9,7 @@ import {
   CreditCard,
 } from "lucide-react";
 import ReceiveSheet from "./ReceiveSheet";
-import MoreSheet from "./MoreSheet";
+import LoanSheet from "./LoanSheet";
 import { TransactionType } from "@prisma/client";
 import Link from "next/link";
 

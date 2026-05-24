@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { formatMoney, formatDateTime, cn } from "@/lib/utils";
 import {
   ArrowDownLeft, ArrowUpRight, ShieldAlert, ArrowRight,
-  Wallet, BarChart2, Landmark, Bell, Send, ClipboardList,
+  Wallet, BarChart2, Currency, Landmark, Bell, Send, ClipboardList,
   CreditCard,
 } from "lucide-react";
 import ReceiveSheet from "./ReceiveSheet";

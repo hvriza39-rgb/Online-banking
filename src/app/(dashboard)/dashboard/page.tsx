@@ -213,7 +213,7 @@ export default async function DashboardPage() {
 
             {/* Loan — disabled if not verified */}
 {isVerified ? (
-  <LoanSheet />
+  <LoanSheet currency={account.currency} />
 ) : (
   <span className="flex flex-col items-center gap-2 py-3 px-1 rounded-[12px] bg-[#e4f2ec] border border-[#c8dfd5] shadow-sm cursor-not-allowed opacity-40 select-none">
     <div className="w-9 h-9 rounded-full bg-[#d8ede6] flex items-center justify-center">

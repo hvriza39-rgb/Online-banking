@@ -211,8 +211,17 @@ export default async function DashboardPage() {
               <span className="text-[9px] font-semibold tracking-[0.08em] uppercase text-[#2d5042]">History</span>
             </Link>
 
-            {/*Loan*/}
-            <LoanSheet/>
+            {/* Loan — disabled if not verified */}
+{isVerified ? (
+  <LoanSheet />
+) : (
+  <span className="flex flex-col items-center gap-2 py-3 px-1 rounded-[12px] bg-[#e4f2ec] border border-[#c8dfd5] shadow-sm cursor-not-allowed opacity-40 select-none">
+    <div className="w-9 h-9 rounded-full bg-[#d8ede6] flex items-center justify-center">
+      <Landmark className="w-4 h-4 text-[#1e7a52]" strokeWidth={1.8} />
+    </div>
+    <span className="text-[9px] font-semibold tracking-[0.08em] uppercase text-[#2d5042]">Loan</span>
+  </span>
+)}
 
           </div>
 

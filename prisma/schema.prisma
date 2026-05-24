@@ -156,7 +156,7 @@ model WithdrawalRequest {
   sendType               SendType         @default(LOCAL)
   recipientAccountNumber String
   recipientName          String
-  recipientBankName      String
+  recipientBankName      String          @default("") 
   recipientCountry       String?
   routingCode            String
   status                 WithdrawalStatus @default(PENDING)

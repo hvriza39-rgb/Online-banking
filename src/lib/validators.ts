@@ -41,6 +41,11 @@ export const withdrawalRequestSchema = z.object({
     .string()
     .min(2, "Recipient name is required")
     .max(100, "Name is too long"),
+  recipientBankName: z
+    .string()
+    .min(2, "Bank name is required")
+    .max(100, "Bank name is too long"),
+  recipientCountry: z.string().max(100).optional(),
   routingCode: z
     .string()
     .min(1, "Routing number / sort code is required")

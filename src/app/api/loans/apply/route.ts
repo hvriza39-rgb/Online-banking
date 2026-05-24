@@ -7,6 +7,14 @@ export async function POST(req: Request) {
   if (!session?.user)
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
+  const user = await prisma.user.findUnique({
+    where:  { id: session.user.id },
+    select: { kycStatus: true },
+  });
+
+  if (user?.kycStatus !== "VERIFIED")
+    return NextResponse.json({ error: "KYC verification required" }, { status: 403 });
+
   const { amount, purpose, termMonths } = await req.json();
 
   if (!amount || amount < 10000)

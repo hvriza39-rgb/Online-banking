@@ -15,7 +15,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Admins cannot submit send requests" }, { status: 403 });
     }
 
-    const body   = await req.json();
+    const body = await req.json();
 
     // Extract verificationCode before validation (not part of withdrawalRequestSchema)
     const { verificationCode, ...withdrawalData } = body;
@@ -28,7 +28,13 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { amount, note, sendType, recipientAccountNumber, recipientName, routingCode } = parsed.data;
+    const {
+      amount, note, sendType,
+      recipientAccountNumber, recipientName,
+      recipientBankName, recipientCountry,
+      routingCode,
+    } = parsed.data;
+
     const amountCents = majorToCents(amount);
 
     const account = await prisma.account.findUnique({
@@ -69,7 +75,6 @@ export async function POST(req: NextRequest) {
       if (record && record.code === verificationCode.trim().toUpperCase()) {
         status = "PENDING";
       }
-      // Wrong code → falls through to PENDING_VERIFICATION
     }
 
     await prisma.withdrawalRequest.create({
@@ -80,6 +85,8 @@ export async function POST(req: NextRequest) {
         sendType,
         recipientAccountNumber,
         recipientName,
+        recipientBankName,
+        recipientCountry:      recipientCountry ?? null,
         routingCode,
         note:                  note ?? null,
         status,

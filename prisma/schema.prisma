@@ -61,6 +61,11 @@ enum CardStatus {
   FROZEN
   CANCELLED
 }
+enum LoanStatus {
+  PENDING
+  APPROVED
+  REJECTED
+} 
 enum NotificationType {
   KYC_APPROVED
   KYC_REJECTED
@@ -227,3 +232,18 @@ model Notification {
   @@index([userId, read])
   @@map("notifications")
 }
+model Loan {
+  id          String     @id @default(auto()) @map("_id") @db.ObjectId
+  userId      String     @db.ObjectId
+  accountId   String     @db.ObjectId
+  amount      BigInt
+  purpose     String
+  termMonths  Int
+  status      LoanStatus @default(PENDING)
+  note        String?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  user        User       @relation(fields: [userId], references: [id])
+  account     Account    @relation(fields: [accountId], references: [id])
+} 

@@ -148,6 +148,7 @@ model Transaction {
 
 
 model WithdrawalRequest {
+model WithdrawalRequest {
   id                     String           @id @default(cuid())
   userId                 String
   user                   User             @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -156,6 +157,8 @@ model WithdrawalRequest {
   sendType               SendType         @default(LOCAL)
   recipientAccountNumber String
   recipientName          String
+  recipientBankName      String
+  recipientCountry       String?
   routingCode            String
   status                 WithdrawalStatus @default(PENDING)
   note                   String?

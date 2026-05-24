@@ -9,6 +9,7 @@ import {
   Loader2, AlertCircle, Clock, ArrowUpRight,
   Globe, MapPin, HelpCircle, MessageCircle,
   ShieldCheck, ShieldAlert, X, KeyRound, CheckCircle2,
+  Building2,
 } from "lucide-react";
 import { cn, currencySymbol } from "@/lib/utils";
 import { Currency } from "@prisma/client";
@@ -283,6 +284,44 @@ export function WithdrawForm({
             </p>
           )}
         </div>
+
+        {/* Bank name — shown for both LOCAL and INTERNATIONAL */}
+        <div>
+          <label className={labelClass}>Recipient Bank Name</label>
+          <div className="relative">
+            <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+            <input
+              {...register("recipientBankName")}
+              placeholder="e.g. Chase Bank"
+              className={cn(inputClass(!!errors.recipientBankName), "pl-9")}
+            />
+          </div>
+          {errors.recipientBankName && (
+            <p className="mt-1.5 text-xs text-rose-500 flex items-center gap-1">
+              <AlertCircle className="w-3 h-3" />{errors.recipientBankName.message}
+            </p>
+          )}
+        </div>
+
+        {/* Recipient country — only for INTERNATIONAL */}
+        {sendType === "INTERNATIONAL" && (
+          <div>
+            <label className={labelClass}>Recipient Country</label>
+            <div className="relative">
+              <Globe className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+              <input
+                {...register("recipientCountry")}
+                placeholder="e.g. United Kingdom"
+                className={cn(inputClass(!!errors.recipientCountry), "pl-9")}
+              />
+            </div>
+            {errors.recipientCountry && (
+              <p className="mt-1.5 text-xs text-rose-500 flex items-center gap-1">
+                <AlertCircle className="w-3 h-3" />{errors.recipientCountry.message}
+              </p>
+            )}
+          </div>
+        )}
 
         {/* Routing / Sort code */}
         <div>

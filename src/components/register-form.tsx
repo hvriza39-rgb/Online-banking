@@ -7,11 +7,13 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { registerSchema, type RegisterInput } from "@/lib/validators";
 import { Eye, EyeOff, Loader2, AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
+import TermsModal from "@/components/TermsModal";
 
 export function RegisterForm() {
-  const router              = useRouter();
-  const [showPw, setShowPw] = useState(false);
-  const [error, setError]   = useState<string | null>(null);
+  const router                          = useRouter();
+  const [showPw, setShowPw]             = useState(false);
+  const [error, setError]               = useState<string | null>(null);
+  const [agreedToTerms, setAgreedToTerms] = useState(false);
 
   const { register, handleSubmit, formState: { errors, isSubmitting } } =
     useForm<RegisterInput>({ resolver: zodResolver(registerSchema) });
@@ -117,6 +119,21 @@ export function RegisterForm() {
         )}
       </div>
 
+      {/* Terms & Conditions */}
+      <div className="flex items-center gap-2.5 pt-1">
+        <input
+          type="checkbox"
+          id="terms"
+          checked={agreedToTerms}
+          onChange={e => setAgreedToTerms(e.target.checked)}
+          className="w-4 h-4 rounded border-[#c8dfd5] accent-[#1e7a52] flex-shrink-0 cursor-pointer"
+        />
+        <label htmlFor="terms" className="text-[12px] text-[#6a8c7a] leading-relaxed cursor-pointer">
+          I have read and agree to the{" "}
+          <TermsModal onAccept={() => setAgreedToTerms(true)} />
+        </label>
+      </div>
+
       {/* Server error */}
       {error && (
         <div className="flex items-center gap-2.5 p-3 rounded-xl bg-[#fdf3f2] border border-[#f5c0bb] text-[#c0392b] text-[13px]">
@@ -128,19 +145,12 @@ export function RegisterForm() {
       {/* Submit */}
       <button
         type="submit"
-        disabled={isSubmitting}
-        className="w-full py-3 mt-1 bg-[#1e7a52] hover:bg-[#185f40] active:bg-[#1e7a52] text-white text-[14px] font-bold rounded-xl transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+        disabled={isSubmitting || !agreedToTerms}
+        className="w-full py-3 mt-1 bg-[#1e7a52] hover:bg-[#185f40] active:bg-[#1e7a52] text-white text-[14px] font-bold rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
       >
         {isSubmitting && <Loader2 className="w-4 h-4 animate-spin" />}
         {isSubmitting ? "Creating account…" : "Create account"}
       </button>
-
-      <p className="text-[11.5px] text-[#6a8c7a] text-center leading-relaxed pt-1">
-        By creating an account you agree to our{" "}
-        <span className="underline underline-offset-2 cursor-pointer hover:text-[#2d5042] transition-colors">Terms of Service</span>
-        {" "}and{" "}
-        <span className="underline underline-offset-2 cursor-pointer hover:text-[#2d5042] transition-colors">Privacy Policy</span>.
-      </p>
 
     </form>
   );

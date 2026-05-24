@@ -5,6 +5,7 @@ import {
   Users, MessageSquare, Send, X, ChevronRight,
   CheckCircle, XCircle, ArrowUpToLine, Search,
   Edit, Loader2, Bell, Activity, ShieldAlert, Landmark,
+  Clock, KeyRound, InboxIcon,
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -28,6 +29,18 @@ interface Loan {
   user: { name?: string; email?: string };
 }
 
+interface Withdrawal {
+  id: string;
+  amount: number;
+  currency: string;
+  status: string;
+  note?: string;
+  adminNote?: string;
+  createdAt: string;
+  updatedAt: string;
+  user: { name?: string; email?: string };
+}
+
 function countUnreadMessages(tickets: Ticket[]): number {
   let total = 0;
   for (const ticket of tickets) {
@@ -45,111 +58,153 @@ function cn(...classes: (string | boolean | undefined)[]) {
 
 // ── Withdrawal actions ────────────────────────────────────────────────────────
 function WithdrawalActionsInline({
-{/* ── Withdrawals Tab ── */}
-{activeTab === 'withdrawals' && (
-  <div className="space-y-5">
+  requestId,
+  onSuccess,
+}: {
+  requestId: string;
+  onSuccess: () => void;
+}) {
+  const [note, setNote]       = useState('');
+  const [loading, setLoading] = useState<'APPROVED' | 'REJECTED' | null>(null);
+  const [error, setError]     = useState<string | null>(null);
+  const [done, setDone]       = useState(false);
 
-    {/* Pending Verification */}
-    {withdrawals.filter(tx => tx.status === 'PENDING_VERIFICATION').length > 0 && (
-      <div className="space-y-3">
-        <div className="flex items-center gap-2">
-          <ShieldAlert size={15} className="text-rose-500" />
-          <span className="text-[13px] font-semibold text-slate-700 uppercase tracking-wider">
-            Awaiting Verification
-          </span>
-          <span className="bg-rose-100 text-rose-700 text-[11px] font-bold px-2 py-0.5 rounded-full">
-            {withdrawals.filter(tx => tx.status === 'PENDING_VERIFICATION').length}
-          </span>
-        </div>
-        {withdrawals
-          .filter(tx => tx.status === 'PENDING_VERIFICATION')
-          .map((tx: any) => (
-            <div key={tx.id} className="bg-white border border-slate-100 rounded-2xl shadow-sm p-5">
-              <div className="flex items-start justify-between gap-4 mb-4">
-                <div>
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <p className="text-[13.5px] font-semibold text-slate-900">{tx.user?.name || 'Unknown'}</p>
-                    <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-rose-50 text-rose-600 border border-rose-100">
-                      <ShieldAlert size={10} />
-                      No Code
-                    </span>
-                  </div>
-                  <p className="text-[12px] text-slate-400 mt-0.5">{tx.user?.email}</p>
-                  {tx.note && (
-                    <p className="text-[12px] text-slate-500 italic mt-1.5 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-100">
-                      "{tx.note}"
-                    </p>
-                  )}
-                </div>
-                <div className="text-right flex-shrink-0">
-                  <p className="text-2xl font-bold text-slate-900">
-                    {tx.currency === 'USD' ? '$' : '€'}{(tx.amount / 100).toLocaleString('en-US', { minimumFractionDigits: 2 })}
-                  </p>
-                  <p className="text-xs text-slate-400 mt-0.5">{tx.currency}</p>
-                </div>
-              </div>
-              <div className="border-t border-slate-100 pt-4">
-                <WithdrawalActionsInline requestId={tx.id} onSuccess={fetchDashboard} />
-              </div>
-            </div>
-          ))}
+  const handle = async (action: 'APPROVED' | 'REJECTED') => {
+    setLoading(action); setError(null);
+    const res  = await fetch(`/api/admin/withdrawals/${requestId}`, {
+      method:  'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ action, adminNote: note || undefined }),
+    });
+    const json = await res.json();
+    setLoading(null);
+    if (!res.ok) { setError(json.error ?? 'Failed'); return; }
+    setDone(true);
+    onSuccess();
+  };
+
+  if (done) return (
+    <p className="text-xs text-emerald-600 font-semibold text-center py-1">✓ Processed</p>
+  );
+
+  return (
+    <div className="space-y-3">
+      <input
+        value={note}
+        onChange={e => setNote(e.target.value)}
+        placeholder="Admin note (optional — visible to user)"
+        maxLength={200}
+        className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-sm outline-none focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+      />
+      {error && <p className="text-xs text-rose-500">{error}</p>}
+      <div className="flex gap-2">
+        <button
+          onClick={() => handle('APPROVED')} disabled={!!loading}
+          className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold transition-all disabled:opacity-50 shadow-sm shadow-emerald-100"
+        >
+          {loading === 'APPROVED' ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle size={16} />}
+          Approve
+        </button>
+        <button
+          onClick={() => handle('REJECTED')} disabled={!!loading}
+          className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-white hover:bg-rose-50 text-rose-600 text-sm font-semibold border border-rose-200 transition-all disabled:opacity-50"
+        >
+          {loading === 'REJECTED' ? <Loader2 className="w-4 h-4 animate-spin" /> : <XCircle size={16} />}
+          Reject
+        </button>
       </div>
-    )}
+    </div>
+  );
+}
 
-    {/* Pending */}
+// ── Withdrawal code generator ─────────────────────────────────────────────────
+function WithdrawalCodeSection({ users }: { users: any[] }) {
+  const [selectedUserId, setSelectedUserId] = useState('');
+  const [code, setCode]                     = useState<string | null>(null);
+  const [loading, setLoading]               = useState(false);
+  const [error, setError]                   = useState('');
+  const [copied, setCopied]                 = useState(false);
+
+  const generate = async () => {
+    if (!selectedUserId) return;
+    setLoading(true); setError(''); setCode(null);
+    try {
+      const res  = await fetch('/api/admin/withdrawal-code', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ userId: selectedUserId }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed');
+      setCode(data.code);
+    } catch (e: any) {
+      setError(e.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const copy = () => {
+    if (!code) return;
+    navigator.clipboard.writeText(code);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  return (
     <div className="space-y-3">
       <div className="flex items-center gap-2">
-        <Clock size={15} className="text-amber-500" />
-        <span className="text-[13px] font-semibold text-slate-700 uppercase tracking-wider">Pending</span>
-        {withdrawals.filter(tx => tx.status === 'PENDING').length > 0 && (
-          <span className="bg-amber-100 text-amber-700 text-[11px] font-bold px-2 py-0.5 rounded-full">
-            {withdrawals.filter(tx => tx.status === 'PENDING').length}
-          </span>
-        )}
+        <KeyRound size={15} className="text-slate-500" />
+        <span className="text-[13px] font-semibold text-slate-700 uppercase tracking-wider">
+          Withdrawal Code Generator
+        </span>
       </div>
-      {withdrawals.filter(tx => tx.status === 'PENDING').length === 0 ? (
-        <div className="bg-white border border-slate-100 rounded-2xl shadow-sm flex flex-col items-center justify-center py-12 text-slate-400 gap-2">
-          <CheckCircle size={28} className="opacity-30" />
-          <p className="text-sm">No pending withdrawals</p>
-        </div>
-      ) : (
-        withdrawals
-          .filter(tx => tx.status === 'PENDING')
-          .map((tx: any) => (
-            <div key={tx.id} className="bg-white border border-slate-100 rounded-2xl shadow-sm p-5">
-              <div className="flex items-start justify-between gap-4 mb-4">
-                <div>
-                  <p className="text-[13.5px] font-semibold text-slate-900">{tx.user?.name || 'Unknown'}</p>
-                  <p className="text-[12px] text-slate-400 mt-0.5">{tx.user?.email}</p>
-                  {tx.note && (
-                    <p className="text-[12px] text-slate-500 italic mt-1.5 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-100">
-                      "{tx.note}"
-                    </p>
-                  )}
-                </div>
-                <div className="text-right flex-shrink-0">
-                  <p className="text-2xl font-bold text-slate-900">
-                    {tx.currency === 'USD' ? '$' : '€'}{(tx.amount / 100).toLocaleString('en-US', { minimumFractionDigits: 2 })}
-                  </p>
-                  <p className="text-xs text-slate-400 mt-0.5">{tx.currency}</p>
-                </div>
-              </div>
-              <div className="border-t border-slate-100 pt-4">
-                <WithdrawalActionsInline requestId={tx.id} onSuccess={fetchDashboard} />
-              </div>
+      <div className="bg-white border border-slate-100 rounded-2xl shadow-sm p-5">
+        <p className="text-[12px] text-slate-500 mb-4 leading-relaxed">
+          Generate a unique security code for a user. They must enter this code when submitting
+          a withdrawal for it to be processed immediately.
+        </p>
+        <div className="space-y-3">
+          <select
+            value={selectedUserId}
+            onChange={e => { setSelectedUserId(e.target.value); setCode(null); setError(''); }}
+            className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-sm text-slate-800 outline-none focus:bg-white focus:border-blue-400 transition-all"
+          >
+            <option value="">Select a user…</option>
+            {users.map((u: any) => (
+              <option key={u.id} value={u.id}>
+                {u.name} — {u.email}
+              </option>
+            ))}
+          </select>
+
+          {error && <p className="text-xs text-rose-500">{error}</p>}
+
+          {code && (
+            <div
+              onClick={copy}
+              className="flex items-center justify-between bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 cursor-pointer hover:bg-slate-100 transition-colors group"
+            >
+              <span className="font-mono text-lg font-bold text-slate-900 tracking-[0.2em]">{code}</span>
+              <span className="text-[11px] font-semibold text-slate-400 group-hover:text-slate-600 transition-colors">
+                {copied ? '✓ Copied' : 'Copy'}
+              </span>
             </div>
-          ))
-      )}
+          )}
+
+          <button
+            onClick={generate}
+            disabled={!selectedUserId || loading}
+            className="w-full py-2.5 rounded-xl bg-slate-900 hover:bg-slate-700 text-white text-sm font-semibold transition-all disabled:opacity-40 flex items-center justify-center gap-2"
+          >
+            {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <KeyRound size={15} />}
+            {code ? 'Regenerate Code' : 'Generate Code'}
+          </button>
+        </div>
+      </div>
     </div>
-
-    {/* Withdrawal Code Generator */}
-    <WithdrawalCodeSection users={users} />
-
-    {/* Recently Processed */}
-    <ProcessedWithdrawals />
-
-  </div>
-)} 
+  );
+}
 
 // ── Loan actions ──────────────────────────────────────────────────────────────
 function LoanActionsInline({
@@ -193,7 +248,7 @@ function LoanActionsInline({
     <div className="space-y-3">
       <input
         value={note}
-        onChange={(e) => setNote(e.target.value)}
+        onChange={e => setNote(e.target.value)}
         placeholder="Admin note (optional — visible to user)"
         maxLength={200}
         className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-sm outline-none focus:bg-white focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all"
@@ -222,7 +277,9 @@ function LoanActionsInline({
 // ── Main dashboard ────────────────────────────────────────────────────────────
 export default function AdminDashboard() {
   const [activeTab, setActiveTab]           = useState<'chat' | 'users' | 'withdrawals' | 'loans'>('chat');
-  const [withdrawals, setWithdrawals]       = useState<any[]>([]);
+  const [pendingVerification, setPendingVerification] = useState<Withdrawal[]>([]);
+  const [pending, setPending]               = useState<Withdrawal[]>([]);
+  const [processed, setProcessed]           = useState<Withdrawal[]>([]);
   const [loans, setLoans]                   = useState<Loan[]>([]);
   const [tickets, setTickets]               = useState<Ticket[]>([]);
   const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
@@ -230,13 +287,14 @@ export default function AdminDashboard() {
   const [sending, setSending]               = useState(false);
   const [loadingTickets, setLoadingTickets] = useState(true);
   const [loadingLoans, setLoadingLoans]     = useState(true);
+  const [loadingWithdrawals, setLoadingWithdrawals] = useState(true);
   const [users, setUsers]                   = useState<any[]>([]);
   const [search, setSearch]                 = useState('');
   const [loadingUsers, setLoadingUsers]     = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    fetchDashboard();
+    fetchWithdrawals();
     fetchTickets();
     fetchUsers();
     fetchLoans();
@@ -248,14 +306,18 @@ export default function AdminDashboard() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [selectedTicket]);
 
-  const fetchDashboard = async () => {
+  const fetchWithdrawals = async () => {
     try {
       const res = await fetch('/api/admin/withdrawals');
       if (res.ok) {
         const data = await res.json();
-        setWithdrawals(data.withdrawals || []);
+        const all: Withdrawal[] = data.withdrawals || [];
+        setPendingVerification(all.filter(w => w.status === 'PENDING_VERIFICATION'));
+        setPending(all.filter(w => w.status === 'PENDING'));
+        setProcessed(all.filter(w => w.status === 'APPROVED' || w.status === 'REJECTED'));
       }
     } catch (e) {}
+    finally { setLoadingWithdrawals(false); }
   };
 
   const fetchLoans = async () => {
@@ -308,20 +370,57 @@ export default function AdminDashboard() {
     finally { setSending(false); }
   };
 
-  const openTickets    = tickets.filter(t => t.status !== 'CLOSED');
-  const unreadCount    = countUnreadMessages(tickets);
-  const pendingLoans   = loans.filter(l => l.status === 'PENDING');
-  const filteredUsers  = users.filter((u: any) =>
+  const openTickets   = tickets.filter(t => t.status !== 'CLOSED');
+  const unreadCount   = countUnreadMessages(tickets);
+  const pendingLoans  = loans.filter(l => l.status === 'PENDING');
+  const actionableWithdrawals = pendingVerification.length + pending.length;
+  const filteredUsers = users.filter((u: any) =>
     u.email?.toLowerCase().includes(search.toLowerCase()) ||
     u.name?.toLowerCase().includes(search.toLowerCase())
   );
 
   const tabs = [
-    { id: 'chat',        label: 'Support',     icon: MessageSquare, badge: unreadCount,           activeBg: 'bg-blue-500',    badgeBg: 'bg-blue-500'    },
-    { id: 'users',       label: 'Users',       icon: Users,         badge: users.length,          activeBg: 'bg-violet-500',  badgeBg: 'bg-violet-500'  },
-    { id: 'withdrawals', label: 'Withdrawals', icon: ArrowUpToLine, badge: withdrawals.length,    activeBg: 'bg-orange-400',  badgeBg: 'bg-orange-400'  },
-    { id: 'loans',       label: 'Loans',       icon: Landmark,      badge: pendingLoans.length,   activeBg: 'bg-emerald-600', badgeBg: 'bg-emerald-600' },
+    { id: 'chat',        label: 'Support',     icon: MessageSquare, badge: unreadCount,             activeBg: 'bg-blue-500',    badgeBg: 'bg-blue-500'    },
+    { id: 'users',       label: 'Users',       icon: Users,         badge: users.length,            activeBg: 'bg-violet-500',  badgeBg: 'bg-violet-500'  },
+    { id: 'withdrawals', label: 'Withdrawals', icon: ArrowUpToLine, badge: actionableWithdrawals,   activeBg: 'bg-orange-400',  badgeBg: 'bg-orange-400'  },
+    { id: 'loans',       label: 'Loans',       icon: Landmark,      badge: pendingLoans.length,     activeBg: 'bg-emerald-600', badgeBg: 'bg-emerald-600' },
   ];
+
+  // ── Withdrawal card ──
+  const WithdrawalCard = ({ tx }: { tx: Withdrawal }) => (
+    <div className="bg-white border border-slate-100 rounded-2xl shadow-sm p-5">
+      <div className="flex items-start justify-between gap-4 mb-4">
+        <div>
+          <div className="flex items-center gap-2 flex-wrap">
+            <p className="text-[13.5px] font-semibold text-slate-900">{tx.user?.name || 'Unknown'}</p>
+            {tx.status === 'PENDING_VERIFICATION' && (
+              <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-rose-50 text-rose-600 border border-rose-100">
+                <ShieldAlert size={10} /> No Code
+              </span>
+            )}
+          </div>
+          <p className="text-[12px] text-slate-400 mt-0.5">{tx.user?.email}</p>
+          {tx.note && (
+            <p className="text-[12px] text-slate-500 italic mt-1.5 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-100">
+              "{tx.note}"
+            </p>
+          )}
+          <p className="text-[11px] text-slate-400 mt-1.5">
+            {new Date(tx.createdAt).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+          </p>
+        </div>
+        <div className="text-right flex-shrink-0">
+          <p className="text-2xl font-bold text-slate-900">
+            {tx.currency === 'USD' ? '$' : '€'}{(tx.amount / 100).toLocaleString('en-US', { minimumFractionDigits: 2 })}
+          </p>
+          <p className="text-xs text-slate-400 mt-0.5">{tx.currency}</p>
+        </div>
+      </div>
+      <div className="border-t border-slate-100 pt-4">
+        <WithdrawalActionsInline requestId={tx.id} onSuccess={fetchWithdrawals} />
+      </div>
+    </div>
+  );
 
   return (
     <div className="min-h-screen bg-gray-50 p-4 lg:p-8">
@@ -345,7 +444,7 @@ export default function AdminDashboard() {
           )}
         </div>
 
-        {/* Tab nav — 4 cols */}
+        {/* Tab nav */}
         <div className="grid grid-cols-4 gap-2">
           {tabs.map(({ id, label, icon: Icon, badge, activeBg, badgeBg }) => {
             const isActive = activeTab === id;
@@ -405,11 +504,11 @@ export default function AdminDashboard() {
                     <p className="text-sm">No open support tickets</p>
                   </div>
                 ) : openTickets.map(ticket => {
-                  const msgs = ticket.messages ?? [];
+                  const msgs         = ticket.messages ?? [];
                   const lastAdminIdx = msgs.map(m => m.sender).lastIndexOf('ADMIN');
                   const ticketUnread = msgs.filter((m, i) => m.sender === 'USER' && i > lastAdminIdx).length;
-                  const last    = msgs[msgs.length - 1];
-                  const initial = (ticket.user?.name || ticket.user?.email || '?').charAt(0).toUpperCase();
+                  const last         = msgs[msgs.length - 1];
+                  const initial      = (ticket.user?.name || ticket.user?.email || '?').charAt(0).toUpperCase();
                   return (
                     <button key={ticket.id} onClick={() => setSelectedTicket(ticket)}
                       className="w-full px-5 py-4 hover:bg-slate-50 transition-colors text-left flex items-center gap-3">
@@ -551,55 +650,97 @@ export default function AdminDashboard() {
 
         {/* ── Withdrawals Tab ── */}
         {activeTab === 'withdrawals' && (
-          <div className="space-y-4">
-            <div className="flex items-center gap-2">
-              <ArrowUpToLine size={16} className="text-orange-400" />
-              <span className="text-slate-800 font-semibold text-sm">Withdrawal Requests</span>
-              {withdrawals.length > 0 && (
-                <span className="bg-orange-400 text-white text-xs font-bold px-2 py-0.5 rounded-full">
-                  {withdrawals.length}
-                </span>
-              )}
-            </div>
-            {withdrawals.length === 0 ? (
-              <div className="bg-white border border-slate-100 rounded-2xl shadow-sm flex flex-col items-center justify-center py-16 text-slate-400 gap-2">
-                <CheckCircle size={32} className="opacity-30" />
-                <p className="text-sm">No pending withdrawals</p>
-              </div>
-            ) : (
+          <div className="space-y-5">
+
+            {/* Pending Verification */}
+            {pendingVerification.length > 0 && (
               <div className="space-y-3">
-                {withdrawals.map((tx: any) => (
-                  <div key={tx.id} className="bg-white border border-slate-100 rounded-2xl shadow-sm p-5">
-                    <div className="flex items-start justify-between gap-4 mb-4">
-                      <div>
-                        <p className="text-[13.5px] font-semibold text-slate-900">{tx.user?.name || 'Unknown'}</p>
-                        <p className="text-[12px] text-slate-400 mt-0.5">{tx.user?.email}</p>
-                        {tx.note && (
-                          <p className="text-[12px] text-slate-500 italic mt-1.5 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-100">
-                            "{tx.note}"
-                          </p>
-                        )}
-                        {tx.status === 'PENDING_VERIFICATION' && (
-                          <span className="inline-flex items-center gap-1 mt-2 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-rose-50 text-rose-600 border border-rose-100">
-                            <ShieldAlert size={10} />
-                            No Code
-                          </span>
-                        )}
-                      </div>
-                      <div className="text-right flex-shrink-0">
-                        <p className="text-2xl font-bold text-slate-900">
-                          {tx.currency === 'USD' ? '$' : '€'}{(tx.amount / 100).toLocaleString('en-US', { minimumFractionDigits: 2 })}
-                        </p>
-                        <p className="text-xs text-slate-400 mt-0.5">{tx.currency}</p>
-                      </div>
-                    </div>
-                    <div className="border-t border-slate-100 pt-4">
-                      <WithdrawalActionsInline requestId={tx.id} onSuccess={fetchDashboard} />
-                    </div>
-                  </div>
-                ))}
+                <div className="flex items-center gap-2">
+                  <ShieldAlert size={15} className="text-rose-500" />
+                  <span className="text-[13px] font-semibold text-slate-700 uppercase tracking-wider">
+                    Awaiting Verification
+                  </span>
+                  <span className="bg-rose-100 text-rose-700 text-[11px] font-bold px-2 py-0.5 rounded-full">
+                    {pendingVerification.length}
+                  </span>
+                </div>
+                {pendingVerification.map(tx => <WithdrawalCard key={tx.id} tx={tx} />)}
               </div>
             )}
+
+            {/* Pending */}
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <Clock size={15} className="text-amber-500" />
+                <span className="text-[13px] font-semibold text-slate-700 uppercase tracking-wider">Pending</span>
+                {pending.length > 0 && (
+                  <span className="bg-amber-100 text-amber-700 text-[11px] font-bold px-2 py-0.5 rounded-full">
+                    {pending.length}
+                  </span>
+                )}
+              </div>
+              {loadingWithdrawals ? (
+                <div className="bg-white border border-slate-100 rounded-2xl shadow-sm flex justify-center items-center gap-2 py-12 text-slate-400">
+                  <Loader2 className="animate-spin" size={18} /> Loading...
+                </div>
+              ) : pending.length === 0 ? (
+                <div className="bg-white border border-slate-100 rounded-2xl shadow-sm flex flex-col items-center justify-center py-12 text-slate-400 gap-2">
+                  <InboxIcon size={28} className="opacity-30" />
+                  <p className="text-sm">No pending withdrawals</p>
+                </div>
+              ) : (
+                pending.map(tx => <WithdrawalCard key={tx.id} tx={tx} />)
+              )}
+            </div>
+
+            {/* Withdrawal Code Generator */}
+            <WithdrawalCodeSection users={users} />
+
+            {/* Recently Processed */}
+            {processed.length > 0 && (
+              <div className="space-y-3">
+                <span className="text-[13px] font-semibold text-slate-700 uppercase tracking-wider">
+                  Recently Processed
+                </span>
+                <div className="bg-white border border-slate-100 rounded-2xl shadow-sm divide-y divide-slate-50 overflow-hidden">
+                  {processed.slice(0, 20).map(r => {
+                    const isApproved = r.status === 'APPROVED';
+                    const Icon = isApproved ? CheckCircle : XCircle;
+                    return (
+                      <div key={r.id} className="flex items-center gap-4 px-5 py-4">
+                        <div className={cn(
+                          'w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0',
+                          isApproved ? 'bg-emerald-50' : 'bg-rose-50'
+                        )}>
+                          <Icon className={cn('w-4 h-4', isApproved ? 'text-emerald-600' : 'text-rose-500')} strokeWidth={2} />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-[13px] font-medium text-slate-800 truncate">{r.user?.name}</p>
+                          <p className="text-[11px] text-slate-400 mt-0.5">
+                            {new Date(r.updatedAt).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                          </p>
+                          {r.adminNote && (
+                            <p className="text-[11px] text-slate-500 italic mt-0.5">"{r.adminNote}"</p>
+                          )}
+                        </div>
+                        <div className="text-right flex-shrink-0">
+                          <p className="text-[13px] font-semibold text-slate-800">
+                            {r.currency === 'USD' ? '$' : '€'}{(r.amount / 100).toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                          </p>
+                          <span className={cn(
+                            'text-[10px] font-semibold px-2 py-0.5 rounded-full mt-1 inline-block',
+                            isApproved ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-600'
+                          )}>
+                            {r.status}
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
           </div>
         )}
 
@@ -627,7 +768,7 @@ export default function AdminDashboard() {
               </div>
             ) : (
               <div className="space-y-3">
-                {loans.map((loan) => (
+                {loans.map(loan => (
                   <div key={loan.id} className="bg-white border border-slate-100 rounded-2xl shadow-sm p-5">
                     <div className="flex items-start justify-between gap-4 mb-4">
                       <div className="flex items-center gap-3 min-w-0">

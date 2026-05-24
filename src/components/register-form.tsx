@@ -120,18 +120,18 @@ export function RegisterForm() {
       </div>
 
       {/* Terms & Conditions */}
-      <div className="flex items-center gap-2.5 pt-1">
+      <div className="flex items-start gap-2.5 pt-1">
         <input
           type="checkbox"
           id="terms"
           checked={agreedToTerms}
           onChange={e => setAgreedToTerms(e.target.checked)}
-          className="w-4 h-4 rounded border-[#c8dfd5] accent-[#1e7a52] flex-shrink-0 cursor-pointer"
+          className="w-4 h-4 rounded border-[#c8dfd5] accent-[#1e7a52] flex-shrink-0 cursor-pointer mt-0.5"
         />
-        <label htmlFor="terms" className="text-[12px] text-[#6a8c7a] leading-relaxed cursor-pointer">
+        <div className="text-[12px] text-[#6a8c7a] leading-relaxed">
           I have read and agree to the{" "}
           <TermsModal onAccept={() => setAgreedToTerms(true)} />
-        </label>
+        </div>
       </div>
 
       {/* Server error */}

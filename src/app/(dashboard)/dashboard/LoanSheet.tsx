@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { X, Landmark, ChevronRight, CheckCircle2, Clock, AlertCircle } from "lucide-react";
+import { Currency } from "@prisma/client";
 
 const PURPOSES = [
   "Personal",
@@ -16,7 +17,11 @@ const TERMS = [3, 6, 12, 24, 36];
 
 type Step = "form" | "review" | "success";
 
-export default function LoanSheet() {
+interface LoanSheetProps {
+  currency: Currency;
+}
+
+export default function LoanSheet({ currency }: LoanSheetProps) {
   const [open, setOpen]       = useState(false);
   const [step, setStep]       = useState<Step>("form");
   const [amount, setAmount]   = useState("");
@@ -25,8 +30,9 @@ export default function LoanSheet() {
   const [loading, setLoading] = useState(false);
   const [error, setError]     = useState("");
 
+  const sym = currency === "EUR" ? "€" : "$";
   const amountCents = Math.round(parseFloat(amount || "0") * 100);
-  const valid = amountCents >= 10000 && purpose && term; // min $100
+  const valid = amountCents >= 10000 && purpose && term; // min 100
 
   async function submit() {
     setLoading(true);
@@ -35,7 +41,7 @@ export default function LoanSheet() {
       const res = await fetch("/api/loans/apply", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ amount: amountCents, purpose, termMonths: term }),
+        body: JSON.stringify({ amount: amountCents, purpose, termMonths: term, currency }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed to apply");
@@ -58,7 +64,7 @@ export default function LoanSheet() {
 
   return (
     <>
-      {/* Trigger — same style as the old MoreSheet button */}
+      {/* Trigger */}
       <button
         onClick={() => setOpen(true)}
         className="flex flex-col items-center gap-2 py-3 px-1 rounded-[12px] bg-[#e4f2ec] border border-[#c8dfd5] shadow-sm hover:border-[#4daa80] transition-all active:scale-[0.97]"
@@ -117,10 +123,10 @@ export default function LoanSheet() {
               {/* Amount */}
               <div>
                 <label className="text-[10px] font-semibold tracking-[0.18em] uppercase text-[#6a8c7a] mb-1.5 block">
-                  Loan Amount (USD)
+                  Loan Amount ({currency})
                 </label>
                 <div className="flex items-center gap-2 bg-[#e4f2ec] border border-[#c8dfd5] rounded-[12px] px-4 py-3 focus-within:border-[#1e7a52] transition-colors">
-                  <span className="font-mono text-[15px] font-semibold text-[#6a8c7a]">$</span>
+                  <span className="font-mono text-[15px] font-semibold text-[#6a8c7a]">{sym}</span>
                   <input
                     type="number"
                     min="100"
@@ -132,7 +138,7 @@ export default function LoanSheet() {
                   />
                 </div>
                 {amountCents > 0 && amountCents < 10000 && (
-                  <p className="text-[10px] text-rose-500 mt-1">Minimum loan amount is $100.00</p>
+                  <p className="text-[10px] text-rose-500 mt-1">Minimum loan amount is {sym}100.00</p>
                 )}
               </div>
 
@@ -207,10 +213,10 @@ export default function LoanSheet() {
 
               <div className="bg-[#e4f2ec] rounded-[14px] border border-[#c8dfd5] divide-y divide-[#d8ede6] overflow-hidden">
                 {[
-                  { label: "Amount",  value: `$${(amountCents / 100).toFixed(2)}` },
-                  { label: "Purpose", value: purpose },
-                  { label: "Term",    value: `${term} months` },
-                  { label: "Status",  value: "Pending Review" },
+                  { label: "Amount",   value: `${sym}${(amountCents / 100).toFixed(2)} ${currency}` },
+                  { label: "Purpose",  value: purpose },
+                  { label: "Term",     value: `${term} months` },
+                  { label: "Status",   value: "Pending Review" },
                 ].map(({ label, value }) => (
                   <div key={label} className="flex items-center justify-between px-4 py-3">
                     <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#6a8c7a]">{label}</span>

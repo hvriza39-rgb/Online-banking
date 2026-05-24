@@ -211,8 +211,8 @@ export default async function DashboardPage() {
               <span className="text-[9px] font-semibold tracking-[0.08em] uppercase text-[#2d5042]">History</span>
             </Link>
 
-            {/* More */}
-            <MoreSheet />
+            {/*Loan*/}
+            <LoanSheet/>
 
           </div>
 

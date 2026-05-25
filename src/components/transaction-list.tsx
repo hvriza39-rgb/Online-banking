@@ -50,37 +50,47 @@ export function TransactionList({ transactions, currency }: Props) {
             <button
               key={tx.id}
               onClick={() => setSelected(tx)}
-              className="w-full text-left grid grid-cols-[44px_1fr_130px_110px] gap-4 items-center px-6 py-4 hover:bg-[#e4f2ec] active:bg-[#d6ece3] transition-colors cursor-pointer"
+              className="w-full text-left flex items-center gap-3 px-4 py-4 hover:bg-[#e4f2ec] active:bg-[#d6ece3] transition-colors cursor-pointer sm:grid sm:grid-cols-[44px_1fr_130px_110px] sm:gap-4 sm:px-6"
             >
               {/* Icon */}
-              <div className={cn("w-9 h-9 rounded-xl border flex items-center justify-center", cfg.bg, cfg.border)}>
+              <div className={cn(
+                "w-9 h-9 rounded-xl border flex items-center justify-center flex-shrink-0",
+                cfg.bg, cfg.border
+              )}>
                 <Icon className={cn("w-4 h-4", cfg.text)} strokeWidth={2.5} />
               </div>
 
-              {/* Details */}
-              <div className="min-w-0">
+              {/* Details — takes all space on mobile */}
+              <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-0.5">
-                  <span className={cn("text-[11px] font-semibold px-2 py-0.5 rounded-full", cfg.chipBg, cfg.chipText)}>
+                  <span className={cn(
+                    "text-[11px] font-semibold px-2 py-0.5 rounded-full",
+                    cfg.chipBg, cfg.chipText
+                  )}>
                     {cfg.label}
                   </span>
                 </div>
                 <p className="text-[12px] text-[#6a8c7a] truncate">
                   {tx.note ?? "No description"}
                 </p>
+                {/* Date shown inside details on mobile, hidden on desktop */}
+                <p className="text-[11px] text-[#2d5042] mt-0.5 sm:hidden">
+                  {formatDateTime(tx.createdAt)}
+                </p>
                 <p className="text-[11px] text-[#a8c8b8] mt-0.5 font-mono">
                   After: {formatMoney(tx.balanceAfter, currency as any)}
                 </p>
               </div>
 
-              {/* Date */}
-              <div>
+              {/* Date — desktop only */}
+              <div className="hidden sm:block">
                 <p className="text-[12px] text-[#2d5042]">{formatDateTime(tx.createdAt)}</p>
               </div>
 
-              {/* Amount */}
-              <div className="text-right">
+              {/* Amount — always visible, right aligned */}
+              <div className="text-right flex-shrink-0 sm:col-start-4">
                 <p className={cn(
-                  "text-[14px] font-semibold font-mono",
+                  "text-[13px] font-semibold font-mono",
                   tx.type === "CREDIT" ? "text-[#0f7a6e]" : "text-[#b52b3a]"
                 )}>
                   {cfg.sign}{formatMoney(tx.amount, currency as any)}

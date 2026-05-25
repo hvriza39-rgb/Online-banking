@@ -228,29 +228,29 @@ export function WithdrawForm({
           <div className="grid grid-cols-2 gap-2">
             {SEND_TYPES.map(({ value, label, sub, icon: Icon }) => (
               <button
-                key={value}
-                type="button"
-                onClick={() => setValue("sendType", value as "LOCAL" | "INTERNATIONAL", { shouldValidate: true })}
-                className={cn(
-                  "flex items-center gap-3 px-4 py-3 rounded-xl border text-left transition-all",
-                  sendType === value
-                    ? "border-green-600 bg-green-50"
-                    : "border-slate-200 bg-white hover:border-slate-300"
-                )}
-              >
-                <div className={cn(
-                  "w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0",
-                  sendType === value ? "bg-green-100" : "bg-slate-100"
-                )}>
-                  <Icon className={cn("w-4 h-4", sendType === value ? "text-green-700" : "text-slate-400")} />
-                </div>
-                <div>
-                  <p className={cn("text-[13px] font-semibold", sendType === value ? "text-green-700" : "text-slate-700")}>
-                    {label}
-                  </p>
-                  <p className="text-[11px] text-slate-400">{sub}</p>
-                </div>
-              </button>
+  key={value}
+  type="button"
+  onClick={() => setValue("sendType", value as "LOCAL" | "INTERNATIONAL", { shouldValidate: true })}
+  className={cn(
+    "flex items-center gap-2 px-3 py-3 rounded-xl border text-left transition-all",
+    sendType === value
+      ? "border-green-600 bg-green-50"
+      : "border-slate-200 bg-white hover:border-slate-300"
+  )}
+>
+  <div className={cn(
+    "w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0",
+    sendType === value ? "bg-green-100" : "bg-slate-100"
+  )}>
+    <Icon className={cn("w-4 h-4", sendType === value ? "text-green-700" : "text-slate-400")} />
+  </div>
+  <div className="min-w-0">
+    <p className={cn("text-[13px] font-semibold leading-tight", sendType === value ? "text-green-700" : "text-slate-700")}>
+      {label}
+    </p>
+    <p className="text-[11px] text-slate-400 leading-tight mt-0.5">{sub}</p>
+  </div>
+</button>
             ))}
           </div>
         </div>

@@ -257,7 +257,7 @@ export function WithdrawForm({
 
         {/* Recipient account number */}
         <div>
-          <label className={labelClass}>Recipient Account Number</label>
+          <label className={labelClass}>  Account Number</label>
           <input
             {...register("recipientAccountNumber")}
             placeholder="e.g. 12345678"
@@ -272,7 +272,7 @@ export function WithdrawForm({
 
         {/* Recipient full name */}
         <div>
-          <label className={labelClass}>Recipient Full Name</label>
+          <label className={labelClass}> Full Name</label>
           <input
             {...register("recipientName")}
             placeholder="As it appears on their account"
@@ -287,7 +287,7 @@ export function WithdrawForm({
 
         {/* Bank name — shown for both LOCAL and INTERNATIONAL */}
         <div>
-          <label className={labelClass}>Recipient Bank Name</label>
+          <label className={labelClass}>  Bank Name</label>
           <div className="relative">
             <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
             <input
@@ -303,10 +303,10 @@ export function WithdrawForm({
           )}
         </div>
 
-        {/* Recipient country — only for INTERNATIONAL */}
+        {/* country — only for INTERNATIONAL */}
         {sendType === "INTERNATIONAL" && (
           <div>
-            <label className={labelClass}>Recipient Country</label>
+            <label className={labelClass}>  Country</label>
             <div className="relative">
               <Globe className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
               <input

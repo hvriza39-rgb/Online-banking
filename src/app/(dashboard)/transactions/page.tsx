@@ -71,11 +71,11 @@ export default async function TransactionsPage() {
           ) : (
             <>
               {/* Column headers */}
-              <div className="grid grid-cols-[44px_1fr_130px_110px] gap-4 px-6 py-3 border-b border-[#d8ede6]">
-                {["", "Details", "Date", "Amount"].map((h) => (
-                  <span key={h} className="text-[11px] font-semibold uppercase tracking-wider text-[#6a8c7a]">{h}</span>
-                ))}
-              </div>
+<div className="hidden sm:grid grid-cols-[44px_1fr_130px_110px] gap-4 px-6 py-3 border-b border-[#d8ede6]">
+  {["", "Details", "Date", "Amount"].map((h) => (
+    <span key={h} className="text-[11px] font-semibold uppercase tracking-wider text-[#6a8c7a]">{h}</span>
+  ))}
+</div>
 
               <TransactionList
                 transactions={account.transactions}

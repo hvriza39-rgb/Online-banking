@@ -66,22 +66,32 @@ export default function SupportPage() {
   const bottomRef               = useRef<HTMLDivElement>(null);
   const textareaRef             = useRef<HTMLTextAreaElement>(null);
 
-  const fetchThread = async () => {
+  const fetchThread = async (silent = false) => {
     try {
       const res  = await fetch("/api/support/thread", { cache: "no-store" });
       const data = await res.json().catch(() => ({}));
-      if (!res.ok) { setError(data.error || "Failed to load support thread."); return; }
+      if (!res.ok) { if (!silent) setError(data.error || "Failed to load support thread."); return; }
       setTicketId(data.ticketId ?? null);
       setStatus(data.status ?? null);
       setMessages(Array.isArray(data.messages) ? data.messages : []);
     } catch {
-      setError("Network error. Please try again.");
+      if (!silent) setError("Network error. Please try again.");
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   };
 
-  useEffect(() => { fetchThread(); }, []);
+  // Initial load
+  useEffect(() => {
+    fetchThread().then(() => setLoading(false));
+  }, []);
+
+  // Poll every 10s; restart interval if ticketId changes
+  useEffect(() => {
+    const interval = setInterval(() => fetchThread(true), 10_000);
+    return () => clearInterval(interval);
+  }, [ticketId]);
+
   useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {

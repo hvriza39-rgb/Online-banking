@@ -75,8 +75,8 @@ export default function AdminSupportPage() {
     [tickets, selectedId],
   );
 
-  const fetchTickets = useCallback(async (filter: "OPEN" | "CLOSED" = statusFilter) => {
-    setLoading(true);
+  const fetchTickets = useCallback(async (filter: "OPEN" | "CLOSED" = statusFilter, silent = false) => {
+    if (!silent) setLoading(true);
     setError("");
     try {
       const res  = await fetch(`/api/admin/support/tickets?status=${filter}`, { cache: "no-store" });
@@ -86,12 +86,12 @@ export default function AdminSupportPage() {
     } catch {
       setError("Network error. Please try again.");
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   }, [statusFilter]);
 
-  const fetchTicketDetail = useCallback(async (id: string) => {
-    setDetailLoading(true);
+  const fetchTicketDetail = useCallback(async (id: string, silent = false) => {
+    if (!silent) setDetailLoading(true);
     setDetailError("");
     try {
       const res  = await fetch(`/api/admin/support/tickets/${id}`, { cache: "no-store" });
@@ -103,11 +103,25 @@ export default function AdminSupportPage() {
     } catch {
       setDetailError("Network error. Please try again.");
     } finally {
-      setDetailLoading(false);
+      if (!silent) setDetailLoading(false);
     }
   }, []);
 
+  // Initial load
   useEffect(() => { fetchTickets(statusFilter); }, [fetchTickets, statusFilter]);
+
+  // Poll ticket list every 10s
+  useEffect(() => {
+    const interval = setInterval(() => fetchTickets(statusFilter, true), 10_000);
+    return () => clearInterval(interval);
+  }, [fetchTickets, statusFilter]);
+
+  // Poll selected ticket messages every 5s
+  useEffect(() => {
+    if (!selectedId) return;
+    const interval = setInterval(() => fetchTicketDetail(selectedId, true), 5_000);
+    return () => clearInterval(interval);
+  }, [fetchTicketDetail, selectedId]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });

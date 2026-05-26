@@ -167,11 +167,11 @@ export default function HomePage() {
               Banking you can actually enjoy
             </h2>
             <p className="text-[#4a7060] text-sm leading-relaxed mb-6">
-              Our customers love the simplicity and power of NexaBank. From instant transfers to real-time notifications, everything is designed around you.
+              Our customers love the simplicity and power of NexaBank. From instant transfers to real-time alerts made for you.
             </p>
             <div className="space-y-3">
               {[
-                "Instant transfer notifications",
+                "Instant transfer",
                 "24/7 customer support",
                 "Zero hidden fees",
                 "Full transaction history",

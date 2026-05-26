@@ -70,7 +70,7 @@ export default function HomePage() {
 
             <p className="text-white/80 text-lg leading-relaxed mb-10 max-w-lg">
               Open a NexaBank account in minutes. Send money globally, manage your
-              finances, and stay in control — all from your phone.
+              finances, and stay in control. 
             </p>
 
             <div className="flex flex-wrap gap-3">

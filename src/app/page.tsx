@@ -117,7 +117,7 @@ export default function HomePage() {
               Whatever you need
             </h2>
             <p className="text-[#4a7060] text-sm max-w-md mx-auto">
-              NexaBank gives you powerful tools to manage your money — securely and effortlessly.
+              NexaBank gives you powerful tools to manage your money securely and effortlessly.
             </p>
           </div>
 
@@ -202,7 +202,7 @@ export default function HomePage() {
                 One card for everything
               </h2>
               <p className="text-white/70 text-sm leading-relaxed mb-6">
-                Pay anywhere in the world with your NexaBank debit card. Shop online, withdraw cash, or tap to pay — all with real-time balance updates.
+                Pay anywhere in the world with your NexaBank debit card. Shop online, withdraw cash, or tap to pay in real-time
               </p>
               <div className="space-y-3">
                 {[

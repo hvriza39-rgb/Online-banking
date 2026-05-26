@@ -4,6 +4,7 @@ import "./globals.css";
 import { Toaster } from "sonner";
 import { Providers } from "@/components/providers";
 import SWRegister from "./sw-register";
+import InstallPrompt from "@/components/InstallPrompt";
 
 const sora = Sora({ subsets: ["latin"], variable: "--font-sans", display: "swap" });
 
@@ -20,7 +21,7 @@ export const metadata: Metadata = {
     telephone: false,
   },
   icons: {
-    apple: "/icons/icon-192.png",
+    apple: "/icon-192.png",
   },
 };
 
@@ -39,6 +40,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <Providers>
           {children}
           <Toaster position="top-right" richColors />
+          <InstallPrompt />
         </Providers>
         <SWRegister />
       </body>

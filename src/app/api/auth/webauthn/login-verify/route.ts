@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { verifyAuthenticationResponse } from "@simplewebauthn/server";
-import { SignJWT } from "jose";
 
 export async function POST(req: NextRequest) {
   const { email, credential } = await req.json();
@@ -30,9 +29,9 @@ export async function POST(req: NextRequest) {
       expectedOrigin: process.env.NEXTAUTH_URL!,
       expectedRPID: new URL(process.env.NEXTAUTH_URL!).hostname,
       requireUserVerification: true,
-      credential: {
-        id: dbCredential.credentialId,
-        publicKey: new Uint8Array(dbCredential.publicKey),
+      authenticator: {
+        credentialID: new TextEncoder().encode(dbCredential.credentialId),
+        credentialPublicKey: new Uint8Array(dbCredential.publicKey),
         counter: dbCredential.counter,
       },
     });
@@ -41,7 +40,6 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Verification failed" }, { status: 400 });
     }
 
-    // Update counter (replay attack protection)
     await prisma.webAuthnCredential.update({
       where: { id: dbCredential.id },
       data: { counter: verification.authenticationInfo.newCounter },
@@ -52,8 +50,6 @@ export async function POST(req: NextRequest) {
       data: { webAuthnChallenge: null },
     });
 
-    // Return user info — client will call signIn("credentials") is NOT ideal here
-    // Instead return a short-lived token the client exchanges for a session
     return NextResponse.json({
       success: true,
       user: {

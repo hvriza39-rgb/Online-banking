@@ -4,9 +4,10 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   User, Mail, MapPin, FileText, Lock,
-  Eye, EyeOff, Loader2, CheckCircle2, AlertCircle, ShieldCheck,
+  Eye, EyeOff, Loader2, CheckCircle2, AlertCircle, ShieldCheck, Fingerprint,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { BiometricSetup } from "@/components/BiometricSetup";
 
 interface Props {
   isVerified: boolean;
@@ -258,7 +259,7 @@ export function SettingsForm({ isVerified, user, kyc }: Props) {
         </div>
       )}
 
-      {/* ══ SECTION 4: Change Password (always available) ══ */}
+      {/* ══ SECTION 4: Change Password ══ */}
       <div className="bg-[#f2f9f6] rounded-2xl border border-[#c8dfd5] shadow-sm overflow-hidden">
         <div className="flex items-center gap-3 px-5 py-4 border-b border-[#d8ede6]">
           <div className="w-8 h-8 rounded-[10px] bg-[#e4f2ec] border border-[#c8dfd5] flex items-center justify-center">
@@ -365,6 +366,22 @@ export function SettingsForm({ isVerified, user, kyc }: Props) {
               : passwordStatus === "success" ? "Password Updated!"
               : "Update Password"}
           </button>
+        </div>
+      </div>
+
+      {/* ══ SECTION 5: Biometric Login ══ */}
+      <div className="bg-[#f2f9f6] rounded-2xl border border-[#c8dfd5] shadow-sm overflow-hidden">
+        <div className="flex items-center gap-3 px-5 py-4 border-b border-[#d8ede6]">
+          <div className="w-8 h-8 rounded-[10px] bg-[#e4f2ec] border border-[#c8dfd5] flex items-center justify-center">
+            <Fingerprint className="w-3.5 h-3.5 text-[#1e7a52]" strokeWidth={1.8} />
+          </div>
+          <p className="text-[13px] font-semibold text-[#0f2419]"
+             style={{ fontFamily: "'Playfair Display', serif" }}>
+            Biometric Login
+          </p>
+        </div>
+        <div className="p-5">
+          <BiometricSetup />
         </div>
       </div>
 

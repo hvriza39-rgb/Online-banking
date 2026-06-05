@@ -39,40 +39,36 @@ export function LoginForm() {
   };
 
   const handleBiometric = async () => {
-  const handleBiometric = async () => {
-  setError(null);
-  try {
-    setBiometricLoading(true);
-    await loginWithBiometric();
-    router.push("/dashboard");
-    router.refresh();
-  } catch (e: any) {
-    const msg = e.message ?? "";
+    setError(null);
+    try {
+      setBiometricLoading(true);
+      await loginWithBiometric();
+      router.push("/dashboard");
+      router.refresh();
+    } catch (e: any) {
+      const msg = e.message ?? "";
 
-    // User cancelled or dismissed the prompt
-    if (
-      msg.includes("cancelled") ||
-      msg.includes("canceled") ||
-      msg.includes("not allowed") ||
-      msg.includes("timed out") ||
-      msg.includes("User cancelled")
-    ) {
-      setError(null); // show nothing — user intentionally dismissed
-      return;
+      if (
+        msg.includes("cancelled") ||
+        msg.includes("canceled") ||
+        msg.includes("not allowed") ||
+        msg.includes("timed out") ||
+        msg.includes("User cancelled")
+      ) {
+        setError(null);
+        return;
+      }
+
+      if (msg.includes("No passkey") || msg.includes("no credentials")) {
+        setError("No passkey found. Please sign in with your password first.");
+        return;
+      }
+
+      setError("Biometric sign-in failed. Please use your password instead.");
+    } finally {
+      setBiometricLoading(false);
     }
-
-    // No passkey registered on this device
-    if (msg.includes("No passkey") || msg.includes("no credentials")) {
-      setError("No passkey found. Please sign in with your password first.");
-      return;
-    }
-
-    // Generic fallback
-    setError("Biometric sign-in failed. Please use your password instead.");
-  } finally {
-    setBiometricLoading(false);
-  }
-};
+  };
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">

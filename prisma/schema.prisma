@@ -85,7 +85,7 @@ model User {
   kycStatus    KycStatus @default(NONE)
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
-
+  webAuthnChallenge    String? 
   account            Account?
   kyc                Kyc?
   withdrawalRequests WithdrawalRequest[]

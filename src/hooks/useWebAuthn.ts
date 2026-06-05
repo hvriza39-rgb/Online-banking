@@ -1,32 +1,55 @@
-async function loginWithBiometric() {
-  // No email needed — get options without user hint
-  const optRes = await fetch("/api/auth/webauthn/login-options", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({}), // empty body
-  });
+"use client";
 
-  if (!optRes.ok) throw new Error("Failed to get login options");
-  const options = await optRes.json();
+import { startRegistration, startAuthentication } from "@simplewebauthn/browser";
+import { signIn } from "next-auth/react";
 
-  // Browser shows biometric prompt, passkey reveals who the user is
-  const credential = await startAuthentication(options);
+export function useWebAuthn() {
+  async function registerBiometric(deviceName?: string) {
+    const optRes = await fetch("/api/auth/webauthn/register-options");
+    if (!optRes.ok) throw new Error("Failed to get registration options");
+    const options = await optRes.json();
 
-  // credential.response.userHandle contains the user ID
-  const verRes = await fetch("/api/auth/webauthn/login-verify", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ credential }), // no email
-  });
+    const credential = await startRegistration(options);
 
-  if (!verRes.ok) throw new Error("Biometric login failed");
+    const verRes = await fetch("/api/auth/webauthn/register-verify", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ credential, deviceName }),
+    });
 
-  const { user } = await verRes.json();
-  await signIn("credentials", {
-    email: user.email,
-    biometricUserId: user.id,
-    redirect: false,
-  });
+    if (!verRes.ok) throw new Error("Registration failed");
+    return true;
+  }
 
-  return true;
+  async function loginWithBiometric() {
+    const optRes = await fetch("/api/auth/webauthn/login-options", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({}),
+    });
+
+    if (!optRes.ok) throw new Error("Failed to get login options");
+    const options = await optRes.json();
+
+    const credential = await startAuthentication(options);
+
+    const verRes = await fetch("/api/auth/webauthn/login-verify", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ credential }),
+    });
+
+    if (!verRes.ok) throw new Error("Biometric login failed");
+
+    const { user } = await verRes.json();
+    await signIn("credentials", {
+      email: user.email,
+      biometricUserId: user.id,
+      redirect: false,
+    });
+
+    return true;
+  }
+
+  return { registerBiometric, loginWithBiometric };
 }

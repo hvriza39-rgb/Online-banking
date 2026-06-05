@@ -32,17 +32,17 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Verification failed" }, { status: 400 });
     }
 
-    const { credential } = verification.registrationInfo;
+    const { credentialID, credentialPublicKey, counter } = verification.registrationInfo;
 
-    await prisma.webAuthnCredential.create({
-      data: {
-        userId: user.id,
-        credentialId: credential.id,
-        publicKey: Buffer.from(credential.publicKey),
-        counter: credential.counter,
-        deviceName: body.deviceName ?? "My Device",
-      },
-    });
+await prisma.webAuthnCredential.create({
+  data: {
+    userId: user.id,
+    credentialId: Buffer.from(credentialID).toString("base64url"),
+    publicKey: Buffer.from(credentialPublicKey),
+    counter: counter,
+    deviceName: body.deviceName ?? "My Device",
+  },
+});
 
     // Clear challenge
     await prisma.user.update({

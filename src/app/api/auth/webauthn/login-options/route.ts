@@ -18,9 +18,10 @@ export async function POST(req: NextRequest) {
     rpID: new URL(process.env.NEXTAUTH_URL!).hostname,
     userVerification: "required",
     allowCredentials: user.webAuthnCredentials.map((c) => ({
-  id: new TextEncoder().encode(c.credentialId),
-  type: "public-key" as const,
-})),
+      id: new TextEncoder().encode(c.credentialId),
+      type: "public-key" as const,
+    })),
+  });
 
   await prisma.user.update({
     where: { id: user.id },
@@ -28,4 +29,4 @@ export async function POST(req: NextRequest) {
   });
 
   return NextResponse.json(options);
-    }
+}

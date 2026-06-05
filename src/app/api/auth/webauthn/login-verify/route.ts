@@ -5,13 +5,45 @@ import { verifyAuthenticationResponse } from "@simplewebauthn/server";
 export async function POST(req: NextRequest) {
   const { email, credential } = await req.json();
 
-  const user = await prisma.user.findUnique({
-    where: { email: email.trim().toLowerCase() },
-    include: { webAuthnCredentials: true },
-  });
+  const rpID = new URL(process.env.NEXTAUTH_URL!).hostname;
+  const origin = process.env.NEXTAUTH_URL!;
 
-  if (!user?.webAuthnChallenge) {
-    return NextResponse.json({ error: "No challenge" }, { status: 400 });
+  let user;
+
+  if (email) {
+    // Email-scoped flow (user typed email then used biometric)
+    user = await prisma.user.findUnique({
+      where: { email: email.trim().toLowerCase() },
+      include: { webAuthnCredentials: true },
+    });
+  } else {
+    // Discoverable flow — userHandle in the credential response is the user ID
+    const userHandle = credential.response.userHandle;
+    if (!userHandle) {
+      return NextResponse.json({ error: "No user identity in credential" }, { status: 400 });
+    }
+
+    // userHandle is base64url encoded — decode to get the user ID string
+    const userId = Buffer.from(userHandle, "base64url").toString("utf8");
+    user = await prisma.user.findUnique({
+      where: { id: userId },
+      include: { webAuthnCredentials: true },
+    });
+  }
+
+  if (!user) {
+    return NextResponse.json({ error: "User not found" }, { status: 404 });
+  }
+
+  // Get challenge — from user record or cookie (discoverable fallback)
+  let expectedChallenge = user.webAuthnChallenge;
+
+  if (!expectedChallenge) {
+    const cookieChallenge = req.cookies.get("webauthn_challenge")?.value;
+    if (!cookieChallenge) {
+      return NextResponse.json({ error: "No challenge found" }, { status: 400 });
+    }
+    expectedChallenge = cookieChallenge;
   }
 
   const dbCredential = user.webAuthnCredentials.find(
@@ -25,9 +57,9 @@ export async function POST(req: NextRequest) {
   try {
     const verification = await verifyAuthenticationResponse({
       response: credential,
-      expectedChallenge: user.webAuthnChallenge,
-      expectedOrigin: process.env.NEXTAUTH_URL!,
-      expectedRPID: new URL(process.env.NEXTAUTH_URL!).hostname,
+      expectedChallenge,
+      expectedOrigin: origin,
+      expectedRPID: rpID,
       requireUserVerification: true,
       authenticator: {
         credentialID: new TextEncoder().encode(dbCredential.credentialId),
@@ -40,17 +72,20 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Verification failed" }, { status: 400 });
     }
 
+    // Update counter
     await prisma.webAuthnCredential.update({
       where: { id: dbCredential.id },
       data: { counter: verification.authenticationInfo.newCounter },
     });
 
+    // Clear challenge
     await prisma.user.update({
       where: { id: user.id },
       data: { webAuthnChallenge: null },
     });
 
-    return NextResponse.json({
+    // Clear challenge cookie if it was used
+    const response = NextResponse.json({
       success: true,
       user: {
         id: user.id,
@@ -59,8 +94,11 @@ export async function POST(req: NextRequest) {
         role: user.role,
       },
     });
+    response.cookies.delete("webauthn_challenge");
+    return response;
+
   } catch (err) {
     console.error(err);
     return NextResponse.json({ error: "Auth error" }, { status: 500 });
   }
-}
+  } 

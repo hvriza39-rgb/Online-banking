@@ -6,15 +6,18 @@ import { signIn } from "next-auth/react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { loginSchema, type LoginInput } from "@/lib/validators";
-import { Eye, EyeOff, Loader2, AlertCircle } from "lucide-react";
+import { Eye, EyeOff, Loader2, AlertCircle, Fingerprint } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useWebAuthn } from "@/hooks/useWebAuthn";
 
 export function LoginForm() {
-  const router              = useRouter();
-  const [showPw, setShowPw] = useState(false);
-  const [error, setError]   = useState<string | null>(null);
+  const router                        = useRouter();
+  const [showPw, setShowPw]           = useState(false);
+  const [error, setError]             = useState<string | null>(null);
+  const [biometricLoading, setBiometricLoading] = useState(false);
+  const { loginWithBiometric }        = useWebAuthn();
 
-  const { register, handleSubmit, formState: { errors, isSubmitting } } =
+  const { register, handleSubmit, getValues, formState: { errors, isSubmitting } } =
     useForm<LoginInput>({ resolver: zodResolver(loginSchema) });
 
   const onSubmit = async (data: LoginInput) => {
@@ -33,6 +36,25 @@ export function LoginForm() {
       router.push("/dashboard");
     }
     router.refresh();
+  };
+
+  const handleBiometric = async () => {
+    setError(null);
+    const email = getValues("email");
+    if (!email) {
+      setError("Please enter your email address first.");
+      return;
+    }
+    try {
+      setBiometricLoading(true);
+      await loginWithBiometric(email);
+      router.push("/dashboard");
+      router.refresh();
+    } catch (e: any) {
+      setError(e.message ?? "Biometric login failed. Please try again.");
+    } finally {
+      setBiometricLoading(false);
+    }
   };
 
   return (
@@ -101,7 +123,7 @@ export function LoginForm() {
         )}
       </div>
 
-      {/* Server error */}
+      {/* Server / biometric error */}
       {error && (
         <div className="flex items-center gap-2.5 p-3 rounded-xl bg-[#fdf3f2] border border-[#f5c0bb] text-[#c0392b] text-[13px]">
           <AlertCircle className="w-4 h-4 flex-shrink-0" />
@@ -112,11 +134,32 @@ export function LoginForm() {
       {/* Submit */}
       <button
         type="submit"
-        disabled={isSubmitting}
+        disabled={isSubmitting || biometricLoading}
         className="w-full py-3 mt-1 bg-[#1e7a52] hover:bg-[#185f40] active:bg-[#1e7a52] text-white text-[14px] font-bold rounded-xl transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
       >
         {isSubmitting && <Loader2 className="w-4 h-4 animate-spin" />}
         {isSubmitting ? "Signing in…" : "Sign in"}
+      </button>
+
+      {/* Divider */}
+      <div className="relative flex items-center gap-3 py-1">
+        <div className="flex-1 h-px bg-[#c8dfd5]" />
+        <span className="text-[12px] text-[#6a8c7a] font-medium">or</span>
+        <div className="flex-1 h-px bg-[#c8dfd5]" />
+      </div>
+
+      {/* Biometric */}
+      <button
+        type="button"
+        onClick={handleBiometric}
+        disabled={isSubmitting || biometricLoading}
+        className="w-full flex items-center justify-center gap-2 py-3 rounded-xl border border-[#1e7a52]/30 text-[#1e7a52] text-[14px] font-medium hover:bg-[#f0f7f4] transition-colors disabled:opacity-50"
+      >
+        {biometricLoading
+          ? <Loader2 className="w-4 h-4 animate-spin" />
+          : <Fingerprint className="w-4 h-4" />
+        }
+        {biometricLoading ? "Verifying…" : "Sign in with Face ID / Fingerprint"}
       </button>
 
     </form>

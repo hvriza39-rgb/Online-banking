@@ -17,7 +17,7 @@ export function LoginForm() {
   const [biometricLoading, setBiometricLoading] = useState(false);
   const { loginWithBiometric }        = useWebAuthn();
 
-  const { register, handleSubmit, getValues, formState: { errors, isSubmitting } } =
+  const { register, handleSubmit, formState: { errors, isSubmitting } } =
     useForm<LoginInput>({ resolver: zodResolver(loginSchema) });
 
   const onSubmit = async (data: LoginInput) => {
@@ -40,14 +40,9 @@ export function LoginForm() {
 
   const handleBiometric = async () => {
     setError(null);
-    const email = getValues("email");
-    if (!email) {
-      setError("Please enter your email address first.");
-      return;
-    }
     try {
       setBiometricLoading(true);
-      await loginWithBiometric(email);
+      await loginWithBiometric();
       router.push("/dashboard");
       router.refresh();
     } catch (e: any) {

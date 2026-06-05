@@ -14,7 +14,7 @@ export function useWebAuthn() {
     const options = await optRes.json();
 
     // Trigger biometric prompt
-    const credential = await startRegistration({ optionsJSON: options });
+    const credential = await startRegistration(options);
 
     // Verify with server
     const verRes = await fetch("/api/auth/webauthn/register-verify", {
@@ -39,7 +39,7 @@ export function useWebAuthn() {
     const options = await optRes.json();
 
     // Trigger biometric prompt
-    const credential = await startAuthentication({ optionsJSON: options });
+    const credential = await startAuthentication(options);
 
     // Verify
     const verRes = await fetch("/api/auth/webauthn/login-verify", {

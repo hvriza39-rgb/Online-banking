@@ -19,7 +19,7 @@ export async function GET(req: NextRequest) {
   const options = await generateRegistrationOptions({
     rpName: "NexaBank",
     rpID: new URL(process.env.NEXTAUTH_URL!).hostname,
-    userID: new TextEncoder().encode(user.id),
+    userID: user.id, 
     userName: user.email,
     userDisplayName: user.name ?? user.email,
     attestationType: "none",

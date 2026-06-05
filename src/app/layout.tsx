@@ -3,6 +3,7 @@ import { Sora } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "sonner";
 import { Providers } from "@/components/providers";
+import { SessionGuard } from "@/components/session-guard";
 import SWRegister from "./sw-register";
 import InstallPrompt from "@/components/InstallPrompt";
 
@@ -38,9 +39,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en">
       <body className={sora.variable}>
         <Providers>
-          {children}
-          <Toaster position="top-right" richColors />
-          <InstallPrompt />
+          <SessionGuard>
+            {children}
+            <Toaster position="top-right" richColors />
+            <InstallPrompt />
+          </SessionGuard>
         </Providers>
         <SWRegister />
       </body>

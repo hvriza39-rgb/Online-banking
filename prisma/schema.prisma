@@ -94,6 +94,7 @@ model User {
   withdrawalCode     WithdrawalCode?
   notifications  Notification[]
   loans Loan[]
+  webAuthnCredentials WebAuthnCredential[]
   @@map("users")
 }
 
@@ -250,3 +251,15 @@ model Loan {
 
   @@map("loans")
 } 
+model WebAuthnCredential {
+  id           String   @id @default(cuid())
+  userId       String
+  credentialId String   @unique
+  publicKey    Bytes
+  counter      Int      @default(0)
+  deviceName   String?
+  createdAt    DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+@@map("WebAuthnCredential") 
+}

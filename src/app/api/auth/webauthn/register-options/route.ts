@@ -24,9 +24,9 @@ export async function GET(req: NextRequest) {
     userDisplayName: user.name ?? user.email,
     attestationType: "none",
     excludeCredentials: user.webAuthnCredentials.map((c) => ({
-      id: c.credentialId,
-      type: "public-key",
-    })),
+  id: new TextEncoder().encode(c.credentialId),
+  type: "public-key" as const,
+})),
     authenticatorSelection: {
       residentKey: "preferred",
       userVerification: "required", // forces biometric

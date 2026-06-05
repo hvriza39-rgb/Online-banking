@@ -4,6 +4,7 @@ import { PrismaAdapter } from "@auth/prisma-adapter";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { loginSchema } from "@/lib/validators";
+import type { JWT } from "next-auth/jwt";
 
 const IDLE_TIMEOUT = 30 * 60 * 1000; // 30 minutes
 
@@ -12,8 +13,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
   session: {
     strategy: "jwt",
-    maxAge: 7 * 24 * 60 * 60,   // 7 days absolute max
-    updateAge: 24 * 60 * 60,     // refresh token once per day
+    maxAge: 7 * 24 * 60 * 60,
+    updateAge: 24 * 60 * 60,
   },
 
   pages: {
@@ -32,8 +33,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
       async authorize(credentials) {
         // ── Biometric path ──────────────────────────────────────────
-        // User already verified by WebAuthn API route before reaching here.
-        // We just look up the user by ID and return them.
         if (credentials?.biometricUserId) {
           const user = await prisma.user.findUnique({
             where: { id: credentials.biometricUserId as string },
@@ -77,7 +76,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   ],
 
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user }): Promise<JWT | null> {
       // ── On first sign-in, populate token from user object ────────
       if (user) {
         token.id = (user as any).id;
@@ -91,9 +90,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       const lastActivity = token.lastActivity as number | undefined;
 
       if (!lastActivity || Date.now() - lastActivity > IDLE_TIMEOUT) {
-        // Returning an empty token forces NextAuth to treat the
-        // session as expired and sign the user out.
-        return {};
+        // Returning null forces NextAuth to treat the session as expired
+        return null;
       }
 
       // Still active — refresh the activity timestamp
@@ -102,7 +100,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     },
 
     async session({ session, token }) {
-      // Empty token means session was invalidated by idle timeout
+      // Null/empty token means session was invalidated by idle timeout
       if (!token.id) {
         return {
           ...session,

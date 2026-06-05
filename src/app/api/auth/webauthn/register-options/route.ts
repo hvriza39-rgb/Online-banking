@@ -28,7 +28,7 @@ export async function GET(req: NextRequest) {
   type: "public-key" as const,
 })),
     authenticatorSelection: {
-      residentKey: "preferred",
+      residentKey: "required",
       userVerification: "required", // forces biometric
     },
   });

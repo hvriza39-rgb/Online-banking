@@ -21,7 +21,6 @@ const user = await prisma.user.findUnique({
 });
 
 const hasPasskey = (user?.webAuthnCredentials?.length ?? 0) > 0;
-
 const TX_CONFIG: Record<TransactionType, {
   label: string; icon: React.ElementType;
   bg: string; text: string; sign: string; border: string;

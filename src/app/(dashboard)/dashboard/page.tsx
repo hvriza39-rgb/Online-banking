@@ -17,7 +17,7 @@ import Link from "next/link";
 export const metadata: Metadata = { title: "Account Overview — NexaBank" };
 const user = await prisma.user.findUnique({
   where:  { id: session.user.id },
-  select: { kycStatus: true, webAuthnCredentials: true }, // add webAuthnCredentials
+  select: { kycStatus: true, webAuthnCredentials: true },
 });
 
 const hasPasskey = (user?.webAuthnCredentials?.length ?? 0) > 0;

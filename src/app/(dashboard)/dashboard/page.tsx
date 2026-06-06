@@ -15,12 +15,7 @@ import { TransactionType } from "@prisma/client";
 import Link from "next/link";
 
 export const metadata: Metadata = { title: "Account Overview — NexaBank" };
-const user = await prisma.user.findUnique({
-  where:  { id: session.user.id },
-  select: { kycStatus: true, webAuthnCredentials: true },
-});
 
-const hasPasskey = (user?.webAuthnCredentials?.length ?? 0) > 0;
 const TX_CONFIG: Record<TransactionType, {
   label: string; icon: React.ElementType;
   bg: string; text: string; sign: string; border: string;
@@ -36,8 +31,10 @@ export default async function DashboardPage() {
 
   const user = await prisma.user.findUnique({
     where:  { id: session.user.id },
-    select: { kycStatus: true },
+    select: { kycStatus: true, webAuthnCredentials: true },
   });
+
+  const hasPasskey = (user?.webAuthnCredentials?.length ?? 0) > 0;
 
   const account = await prisma.account.findUnique({
     where:   { userId: session.user.id },
@@ -91,7 +88,6 @@ export default async function DashboardPage() {
           </h1>
         </div>
         <div className="flex items-center gap-3 mt-1">
-          {/* Bell */}
           <Link
             href="/dashboard/notifications"
             className="relative w-9 h-9 rounded-full bg-[#f0f7f4] border border-[#c8dfd5] flex items-center justify-center shadow-sm hover:bg-[#e4f2ec] transition-colors"
@@ -105,7 +101,6 @@ export default async function DashboardPage() {
               </span>
             )}
           </Link>
-          {/* Avatar */}
           <div className="w-9 h-9 rounded-full flex items-center justify-center border border-[#1a6648] shadow-sm"
                style={{ background: "linear-gradient(135deg, #1a6648, #3daa7a)" }}>
             <span className="text-[13px] font-semibold text-white tracking-wide">{initials}</span>
@@ -118,7 +113,6 @@ export default async function DashboardPage() {
         {/* ══ COLUMN 1 ══════════════════════════════════ */}
         <div className="flex flex-col gap-3">
 
-          {/* ── KYC banner ── */}
           {!isVerified && (
             <Link
               href="/kyc"
@@ -137,7 +131,6 @@ export default async function DashboardPage() {
             </Link>
           )}
 
-          {/* ── Balance card ── */}
           <div className="relative rounded-[14px] p-6 overflow-hidden border border-[#c8dfd5] shadow-sm bg-[#e4f2ec]">
             <p className="text-[10px] font-semibold tracking-[0.2em] uppercase text-[#6a8c7a] mb-2">
               Main Balance
@@ -145,9 +138,7 @@ export default async function DashboardPage() {
             <p className="font-mono text-[34px] font-semibold text-[#0f2419] leading-none tracking-tight mb-5">
               {formatMoney(account.balance, account.currency)}
             </p>
-
             <div className="h-px bg-[#d8ede6] mb-4" />
-
             <div className="flex items-end justify-between">
               <div>
                 <p className="text-[13px] font-semibold text-[#0f2419] leading-none"
@@ -174,10 +165,7 @@ export default async function DashboardPage() {
             </div>
           </div>
 
-          {/* ── Quick actions ── */}
           <div className="grid grid-cols-4 gap-2.5">
-
-            {/* Send */}
             {isVerified ? (
               <Link
                 href="/withdraw"
@@ -197,7 +185,6 @@ export default async function DashboardPage() {
               </span>
             )}
 
-            {/* Receive */}
             <ReceiveSheet
               name={session.user.name}
               accountNumber={isVerified && account.accountNumber ? fmtAcctNum(account.accountNumber) : null}
@@ -206,7 +193,6 @@ export default async function DashboardPage() {
               isVerified={isVerified}
             />
 
-            {/* History */}
             <Link
               href="/transactions"
               className="flex flex-col items-center gap-2 py-3 px-1 rounded-[12px] bg-[#e4f2ec] border border-[#c8dfd5] shadow-sm hover:border-[#4daa80] transition-all active:scale-[0.97]"
@@ -217,21 +203,18 @@ export default async function DashboardPage() {
               <span className="text-[9px] font-semibold tracking-[0.08em] uppercase text-[#2d5042]">History</span>
             </Link>
 
-            {/* Loan — disabled if not verified */}
-{isVerified ? (
-  <LoanSheet currency={account.currency} />
-) : (
-  <span className="flex flex-col items-center gap-2 py-3 px-1 rounded-[12px] bg-[#e4f2ec] border border-[#c8dfd5] shadow-sm cursor-not-allowed opacity-40 select-none">
-    <div className="w-9 h-9 rounded-full bg-[#d8ede6] flex items-center justify-center">
-      <Landmark className="w-4 h-4 text-[#1e7a52]" strokeWidth={1.8} />
-    </div>
-    <span className="text-[9px] font-semibold tracking-[0.08em] uppercase text-[#2d5042]">Loan</span>
-  </span>
-)}
-
+            {isVerified ? (
+              <LoanSheet currency={account.currency} />
+            ) : (
+              <span className="flex flex-col items-center gap-2 py-3 px-1 rounded-[12px] bg-[#e4f2ec] border border-[#c8dfd5] shadow-sm cursor-not-allowed opacity-40 select-none">
+                <div className="w-9 h-9 rounded-full bg-[#d8ede6] flex items-center justify-center">
+                  <Landmark className="w-4 h-4 text-[#1e7a52]" strokeWidth={1.8} />
+                </div>
+                <span className="text-[9px] font-semibold tracking-[0.08em] uppercase text-[#2d5042]">Loan</span>
+              </span>
+            )}
           </div>
 
-          {/* ── Account details ── */}
           <div className="bg-[#f2f9f6] rounded-2xl border border-[#c8dfd5] shadow-sm p-5">
             <div className="flex items-center justify-between mb-4">
               <p className="text-[14px] font-semibold text-[#0f2419]"
@@ -239,8 +222,6 @@ export default async function DashboardPage() {
                 Account Details
               </p>
             </div>
-
-            {/* Account number */}
             <div className="bg-[#e4f2ec] rounded-[12px] px-4 py-3 mb-3">
               <p className="text-[9px] font-semibold tracking-[0.2em] uppercase text-[#6a8c7a] mb-1.5">
                 Account Number
@@ -253,8 +234,6 @@ export default async function DashboardPage() {
                 <p className="font-mono text-[13px] text-[#6a8c7a]">— Pending KYC —</p>
               )}
             </div>
-
-            {/* Account type row */}
             <div className="flex items-center justify-between px-1 mb-3">
               <div>
                 <p className="text-[9px] font-semibold tracking-[0.15em] uppercase text-[#6a8c7a] mb-1">Account Type</p>
@@ -262,8 +241,6 @@ export default async function DashboardPage() {
               </div>
               <span className="text-[10px] text-[#6a8c7a]">Personal</span>
             </div>
-
-            {/* Pills */}
             <div className="flex items-center gap-2">
               <div className="flex items-center gap-1.5 bg-[#eaf5f0] border border-[#a8d8c8] rounded-lg px-3 py-1.5">
                 <Wallet className="w-3 h-3 text-[#1e7a52]" />
@@ -288,7 +265,6 @@ export default async function DashboardPage() {
         {/* ══ COLUMN 2 ══════════════════════════════════ */}
         <div className="flex flex-col gap-3">
 
-          {/* ── Transaction summary ── */}
           <Link
             href="/transactions"
             className="bg-[#f2f9f6] rounded-2xl border border-[#c8dfd5] shadow-sm p-5 flex items-center justify-between hover:border-[#4daa80] hover:shadow-md transition-all active:scale-[0.99] group"
@@ -319,7 +295,6 @@ export default async function DashboardPage() {
             <ArrowRight className="w-4 h-4 text-[#c8dfd5] group-hover:text-[#1e7a52] transition-colors flex-shrink-0" />
           </Link>
 
-          {/* ── Spending overview ── */}
           <div className="bg-[#f2f9f6] rounded-2xl border border-[#c8dfd5] shadow-sm overflow-hidden">
             <div className="flex items-center justify-between px-5 py-4 border-b border-[#d8ede6]">
               <p className="text-[13px] font-semibold text-[#0f2419]"
@@ -331,7 +306,6 @@ export default async function DashboardPage() {
               </Link>
             </div>
             <div className="flex items-center gap-5 p-5">
-              {/* Donut */}
               <svg width="90" height="90" viewBox="0 0 90 90" className="flex-shrink-0">
                 <circle cx="45" cy="45" r="32" fill="none" stroke="#d8ede6" strokeWidth="12" />
                 {totalCredited > 0 && (
@@ -354,8 +328,6 @@ export default async function DashboardPage() {
                 </text>
                 <text x="45" y="52" textAnchor="middle" fontSize="8" fill="#6a8c7a">balance</text>
               </svg>
-
-              {/* Legend */}
               <div className="flex flex-col gap-3 flex-1">
                 {[
                   { color: "#0f7a6e", label: "Credits", val: totalCredited },
@@ -373,7 +345,6 @@ export default async function DashboardPage() {
             </div>
           </div>
 
-          {/* ── Recent activity (mobile / col-2 on desktop) ── */}
           <div className="bg-[#f2f9f6] rounded-2xl border border-[#c8dfd5] shadow-sm overflow-hidden lg:hidden">
             <div className="flex items-center justify-between px-5 py-4 border-b border-[#d8ede6]">
               <p className="text-[13px] font-semibold text-[#0f2419]"
@@ -475,7 +446,6 @@ export default async function DashboardPage() {
 
       </div>
 
-      {/* ── Full-width transactions table (desktop only) ── */}
       {account.transactions.length > 0 && (
         <div className="hidden lg:block bg-[#f2f9f6] rounded-2xl border border-[#c8dfd5] shadow-sm overflow-hidden mx-8 mb-10">
           <div className="flex items-center justify-between px-6 py-4 border-b border-[#d8ede6]">
@@ -526,7 +496,9 @@ export default async function DashboardPage() {
           </div>
         </div>
       )}
+
       {!hasPasskey && <BiometricPrompt />}
+
     </div>
   );
 }

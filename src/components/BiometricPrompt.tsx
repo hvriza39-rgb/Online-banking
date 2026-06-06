@@ -68,7 +68,7 @@ export function BiometricPrompt() {
               Enable Face ID / Fingerprint?
             </p>
             <p className="text-[12px] text-[#6a8c7a] mt-1 mb-4 leading-relaxed">
-              Sign in faster next time with biometric authentication — no password needed.
+              Sign in faster next time with biometric authentication. 
             </p>
             <div className="flex gap-2.5">
               <button

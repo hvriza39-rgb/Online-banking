@@ -2,6 +2,7 @@ import { Metadata } from "next";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
+import { BiometricPrompt } from "@/components/BiometricPrompt";
 import { formatMoney, formatDateTime, cn } from "@/lib/utils";
 import {
   ArrowDownLeft, ArrowUpRight, ShieldAlert, ArrowRight,
@@ -14,6 +15,12 @@ import { TransactionType } from "@prisma/client";
 import Link from "next/link";
 
 export const metadata: Metadata = { title: "Account Overview — NexaBank" };
+const user = await prisma.user.findUnique({
+  where:  { id: session.user.id },
+  select: { kycStatus: true, webAuthnCredentials: true }, // add webAuthnCredentials
+});
+
+const hasPasskey = (user?.webAuthnCredentials?.length ?? 0) > 0;
 
 const TX_CONFIG: Record<TransactionType, {
   label: string; icon: React.ElementType;
@@ -520,6 +527,7 @@ export default async function DashboardPage() {
           </div>
         </div>
       )}
+      {!hasPasskey && <BiometricPrompt />}
     </div>
   );
 }

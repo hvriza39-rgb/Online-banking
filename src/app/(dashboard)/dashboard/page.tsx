@@ -31,7 +31,7 @@ export default async function DashboardPage() {
 
   const user = await prisma.user.findUnique({
     where:  { id: session.user.id },
-    select: { kycStatus: true, webAuthnCredentials: true },
+    include: { kycStatus: true, webAuthnCredentials: true },
   });
 
   const hasPasskey = (user?.webAuthnCredentials?.length ?? 0) > 0;

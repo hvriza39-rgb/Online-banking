@@ -30,10 +30,10 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "No user identity in credential" }, { status: 400 });
     }
 
-    const userId = Buffer.from(userHandle, "base64url").toString("utf8");
-    console.log("[login-verify] decoded userId:", userId);
+    // userHandle is stored as plain user ID — use directly
+    console.log("[login-verify] looking up user by id:", userHandle);
     user = await prisma.user.findUnique({
-      where: { id: userId },
+      where: { id: userHandle },
       include: { webAuthnCredentials: true },
     });
   }
@@ -112,4 +112,4 @@ export async function POST(req: NextRequest) {
     console.error("[login-verify] error:", err);
     return NextResponse.json({ error: "Auth error" }, { status: 500 });
   }
-      }
+}

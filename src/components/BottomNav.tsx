@@ -4,9 +4,25 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Home, CreditCard, ArrowUpRight, BarChart2 } from "lucide-react";
 import MoreSheet from "@/components/MoreSheet";
+import { useEffect, useState } from "react";
 
 export default function BottomNav({ isVerified }: { isVerified: boolean }) {
   const pathname = usePathname();
+  const [keyboardOpen, setKeyboardOpen] = useState(false);
+
+  useEffect(() => {
+    const listener = () => {
+      const isOpen = window.visualViewport
+        ? window.visualViewport.height < window.innerHeight * 0.85
+        : false;
+      setKeyboardOpen(isOpen);
+    };
+
+    window.visualViewport?.addEventListener("resize", listener);
+    return () => window.visualViewport?.removeEventListener("resize", listener);
+  }, []);
+
+  if (keyboardOpen) return null;
 
   const items = [
     { label: "Overview",  icon: Home,         href: "/dashboard"    },

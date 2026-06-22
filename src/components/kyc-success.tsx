@@ -43,8 +43,8 @@ export function KycSuccess({ accountNumber, onContinue }: KycSuccessProps) {
         Submission Received!
       </h2>
       <p className="text-slate-400 text-sm mb-8 max-w-xs leading-relaxed">
-        Your account number has been generated and your details are under review.
-        You'll get full access once an admin approves your verification.
+        Your account number is ready and your details are under review.
+        You'll get full access once system approves your verification.
       </p>
 
       {/* Account number display */}
@@ -84,7 +84,7 @@ export function KycSuccess({ accountNumber, onContinue }: KycSuccessProps) {
       <div className="w-full max-w-xs flex items-center gap-2.5 bg-amber-50 border border-amber-200 rounded-2xl px-4 py-3 mb-6">
         <ShieldAlert className="w-4 h-4 text-amber-500 flex-shrink-0" />
         <p className="text-xs font-semibold text-amber-700 text-left">
-          Pending admin verification — withdrawals and sends are locked until approved.
+          Pending  verification — withdrawals and sends are locked until approved.
         </p>
       </div>
 
@@ -93,7 +93,7 @@ export function KycSuccess({ accountNumber, onContinue }: KycSuccessProps) {
         <p className="text-xs font-semibold text-blue-700 mb-2">What happens next?</p>
         <ul className="space-y-1.5">
           {[
-            "Your details are queued for admin review",
+            "Your details are queued for review",
             "You'll be notified once your account is approved",
             "Sends and withdrawals unlock after approval",
             "You can already receive credits to your account number",

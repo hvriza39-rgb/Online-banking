@@ -35,7 +35,7 @@ export default function ReceiveSheet({
         onClick={() => setOpen(true)}
         className="flex flex-col items-center gap-2 group"
       >
-        <div className="w-14 h-14 rounded-2xl bg-sky-70 border border-sky-120 flex items-center justify-center group-hover:bg-sky-100 group-hover:scale-105 transition-all shadow-sm">
+        <div className="w-14 h-14 rounded-2xl bg-sky-50 border border-sky-100 flex items-center justify-center group-hover:bg-sky-100 group-hover:scale-105 transition-all shadow-sm">
           <ArrowDownLeft className="w-5 h-5 text-sky-700" strokeWidth={2} />
         </div>
         <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-600">

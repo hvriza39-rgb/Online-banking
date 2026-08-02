@@ -117,20 +117,76 @@ export function TransactionReceiptModal({ tx, currency, onClose }: Props) {
     ...(tx.reference ? [{ label: "Reference", value: tx.reference, mono: true }] : []),
   ];
 
-  const handleDownload = () => {
+  const handleDownload = async () => {
     const scale = 3;
     const W = 420;
     const PAD = 32;
     const ROW_H = 42;
     const HEADER_H = 240;
-    const FOOTER_H = 140;
+    const FOOTER_H = 190;
     const H = HEADER_H + detailRows.length * ROW_H + FOOTER_H;
+
+    const isIOS =
+      /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+      (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+
+    let iosWindow: Window | null = null;
+
+    if (isIOS) {
+      iosWindow = window.open("", "_blank");
+      if (iosWindow) {
+        iosWindow.document.write(`
+          <!DOCTYPE html>
+          <html>
+            <head>
+              <title>NexaBank Receipt</title>
+              <meta name="viewport" content="width=device-width, initial-scale=1.0">
+              <style>
+                body { margin: 0; min-height: 100vh; display: flex; align-items: center; justify-content: center; background: #f1f5f9; font-family: -apple-system, BlinkMacSystemFont, sans-serif; }
+                .loading { text-align: center; color: #64748b; font-size: 14px; }
+                .spinner { width: 28px; height: 28px; border: 3px solid #e2e8f0; border-top-color: #0f172a; border-radius: 50%; animation: spin .7s linear infinite; margin: 0 auto 12px; }
+                @keyframes spin { to { transform: rotate(360deg); } }
+              </style>
+            </head>
+            <body>
+              <div class="loading"><div class="spinner"></div>Preparing receipt...</div>
+            </body>
+          </html>
+        `);
+        iosWindow.document.close();
+      }
+    }
 
     const canvas = document.createElement("canvas");
     canvas.width = W * scale;
     canvas.height = H * scale;
-    const ctx = canvas.getContext("2d")!;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) { iosWindow?.close(); return; }
+
     ctx.scale(scale, scale);
+
+    const roundedRect = (x: number, y: number, width: number, height: number, radius: number) => {
+      ctx.beginPath();
+      ctx.roundRect(x, y, width, height, radius);
+    };
+
+    const drawSvgOnCanvas = async (svg: SVGSVGElement, x: number, y: number, width: number, height: number) => {
+      const serializer = new XMLSerializer();
+      const svgString = serializer.serializeToString(svg);
+      const svgBlob = new Blob([svgString], { type: "image/svg+xml;charset=utf-8" });
+      const svgUrl = URL.createObjectURL(svgBlob);
+      try {
+        const img = new Image();
+        await new Promise<void>((resolve, reject) => {
+          img.onload = () => resolve();
+          img.onerror = () => reject(new Error("Unable to load SVG"));
+          img.src = svgUrl;
+        });
+        ctx.drawImage(img, x, y, width, height);
+      } finally {
+        URL.revokeObjectURL(svgUrl);
+      }
+    };
 
     // Background
     ctx.fillStyle = "#ffffff";
@@ -140,7 +196,7 @@ export function TransactionReceiptModal({ tx, currency, onClose }: Props) {
     ctx.fillStyle = isCredit ? "#059669" : "#e11d48";
     ctx.fillRect(0, 0, W, 5);
 
-    // Logo container
+    // Logo
     const cx = W / 2;
     const cy = 58;
     ctx.fillStyle = "#0f2419";
@@ -148,7 +204,6 @@ export function TransactionReceiptModal({ tx, currency, onClose }: Props) {
     ctx.arc(cx, cy, 32, 0, Math.PI * 2);
     ctx.fill();
 
-    // Hexagon
     ctx.fillStyle = "#1a6648";
     ctx.beginPath();
     const r = 20;
@@ -162,14 +217,12 @@ export function TransactionReceiptModal({ tx, currency, onClose }: Props) {
     ctx.closePath();
     ctx.fill();
 
-    // N
     ctx.fillStyle = "#ffffff";
     ctx.font = "bold 20px sans-serif";
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
     ctx.fillText("N", cx, cy);
 
-    // Brand
     ctx.fillStyle = "#0f2419";
     ctx.font = "bold 16px sans-serif";
     ctx.fillText("NexaBank", cx, cy + 44);
@@ -180,16 +233,19 @@ export function TransactionReceiptModal({ tx, currency, onClose }: Props) {
     // Amount
     ctx.fillStyle = "#0f172a";
     ctx.font = "bold 32px monospace";
+    ctx.textAlign = "center";
     ctx.fillText(`${cfg.sign}${formatMoney(tx.amount, currency as any)}`, cx, 158);
     ctx.fillStyle = "#64748b";
     ctx.font = "13px sans-serif";
     ctx.fillText(cfg.label, cx, 180);
 
     // Status pill
-    const pillW = 120, pillH = 28, pillX = (W - pillW) / 2, pillY = 192;
+    const pillW = 120;
+    const pillH = 28;
+    const pillX = (W - pillW) / 2;
+    const pillY = 192;
     ctx.fillStyle = "#ecfdf5";
-    ctx.beginPath();
-    ctx.roundRect(pillX, pillY, pillW, pillH, 14);
+    roundedRect(pillX, pillY, pillW, pillH, 14);
     ctx.fill();
     ctx.strokeStyle = "#a7f3d0";
     ctx.lineWidth = 1;
@@ -206,18 +262,24 @@ export function TransactionReceiptModal({ tx, currency, onClose }: Props) {
     ctx.lineTo(W - PAD, 238);
     ctx.stroke();
 
-    // Rows
+    // Detail rows
     let y = 262;
     detailRows.forEach(({ label, value }) => {
+      ctx.textAlign = "left";
       ctx.fillStyle = "#94a3b8";
       ctx.font = "11px sans-serif";
-      ctx.textAlign = "left";
       ctx.fillText(label, PAD, y);
 
+      ctx.textAlign = "right";
       ctx.fillStyle = "#0f172a";
       ctx.font = "12px monospace";
-      ctx.textAlign = "right";
-      ctx.fillText(value, W - PAD, y);
+      let displayValue = value;
+      const maxWidth = W - PAD * 2 - 100;
+      while (ctx.measureText(displayValue).width > maxWidth && displayValue.length > 10) {
+        displayValue = displayValue.slice(0, -1);
+      }
+      if (displayValue !== value) displayValue = displayValue.slice(0, -1) + "…";
+      ctx.fillText(displayValue, W - PAD, y);
 
       ctx.strokeStyle = "#f1f5f9";
       ctx.beginPath();
@@ -228,80 +290,100 @@ export function TransactionReceiptModal({ tx, currency, onClose }: Props) {
       y += ROW_H;
     });
 
-    // Canvas barcode (thin, realistic)
-    const barcodeY = y + 16;
-    const code = tx.id.slice(0, 24).toUpperCase();
-    let bx = PAD + 20;
-    const barHeight = 55;
-    for (let i = 0; i < code.length; i++) {
-      const char = code.charCodeAt(i);
-      const w = (char % 3) + 1;
-      const gap = char % 2 === 0;
-      if (!gap && bx < W - PAD - 20) {
+    // Real barcode SVG
+    const barcodeY = y + 18;
+    if (barcodeRef.current) {
+      try {
+        await drawSvgOnCanvas(barcodeRef.current, PAD, barcodeY, 220, 65);
+      } catch {
         ctx.fillStyle = "#0f172a";
-        ctx.fillRect(bx, barcodeY + (barHeight - 50), w, 50);
+        ctx.font = "bold 11px monospace";
+        ctx.textAlign = "center";
+        ctx.fillText(tx.id.slice(0, 24).toUpperCase(), PAD + 110, barcodeY + 30);
       }
-      bx += w + 1;
     }
 
-    // Barcode text
-    ctx.fillStyle = "#64748b";
-    ctx.font = "bold 11px monospace";
-    ctx.textAlign = "center";
-    ctx.fillText(code, cx, barcodeY + barHeight + 14);
-
-    // Canvas QR pattern
-    const qrSize = 80;
+    // Real QR Code SVG
+    const qrSize = 90;
     const qrX = W - PAD - qrSize;
     const qrY = barcodeY - 10;
-    const qrCells = 16;
-    const cellSize = qrSize / qrCells;
     ctx.fillStyle = "#ffffff";
-    ctx.fillRect(qrX, qrY, qrSize, qrSize);
-    for (let row = 0; row < qrCells; row++) {
-      for (let col = 0; col < qrCells; col++) {
-        const idx = (row * qrCells + col) % code.length;
-        const val = code.charCodeAt(idx);
-        if (val % 3 !== 0) {
-          ctx.fillStyle = "#0f172a";
-          ctx.fillRect(qrX + col * cellSize, qrY + row * cellSize, cellSize, cellSize);
-        }
-      }
+    ctx.fillRect(qrX - 5, qrY - 5, qrSize + 10, qrSize + 10);
+
+    const qrSvg = document.querySelector('[data-receipt-qr="true"]') as SVGSVGElement | null;
+    if (qrSvg) {
+      try {
+        await drawSvgOnCanvas(qrSvg, qrX, qrY, qrSize, qrSize);
+      } catch { /* leave blank */ }
     }
-    // QR finder patterns (corners)
-    ctx.fillStyle = "#0f172a";
-    [0, qrCells - 7].forEach((ox) => {
-      [0, qrCells - 7].forEach((oy) => {
-        if (ox === 0 && oy === qrCells - 7) return; // skip one corner for style
-        ctx.fillRect(qrX + ox * cellSize, qrY + oy * cellSize, 7 * cellSize, 7 * cellSize);
-        ctx.fillStyle = "#ffffff";
-        ctx.fillRect(qrX + (ox + 1) * cellSize, qrY + (oy + 1) * cellSize, 5 * cellSize, 5 * cellSize);
-        ctx.fillStyle = "#0f172a";
-        ctx.fillRect(qrX + (ox + 2) * cellSize, qrY + (oy + 2) * cellSize, 3 * cellSize, 3 * cellSize);
-      });
-    });
+
+    // Labels
+    ctx.textAlign = "center";
+    ctx.fillStyle = "#64748b";
+    ctx.font = "bold 9px sans-serif";
+    ctx.fillText("SCAN TO VERIFY", qrX + qrSize / 2, qrY + qrSize + 16);
 
     // Footer
-    ctx.fillStyle = "#cbd5e1";
+    ctx.fillStyle = "#e2e8f0";
+    ctx.beginPath();
+    ctx.moveTo(PAD, H - 55);
+    ctx.lineTo(W - PAD, H - 55);
+    ctx.stroke();
+
+    ctx.fillStyle = "#94a3b8";
     ctx.font = "10px sans-serif";
     ctx.textAlign = "center";
-    ctx.fillText("NexaBank · Secure Banking", cx, H - 24);
+    ctx.fillText("NexaBank · Secure Banking", cx, H - 30);
+    ctx.fillStyle = "#cbd5e1";
+    ctx.font = "9px sans-serif";
+    ctx.fillText("Keep this receipt for your records", cx, H - 15);
 
-    // Blob download (iOS fix)
+    // Export
     const fileName = `nexabank-receipt-${tx.id.slice(0, 8)}.png`;
+
     canvas.toBlob((blob) => {
-      if (!blob) return;
+      if (!blob) { iosWindow?.close(); return; }
       const url = URL.createObjectURL(blob);
+
+      if (isIOS) {
+        if (iosWindow && !iosWindow.closed) {
+          iosWindow.document.open();
+          iosWindow.document.write(`
+            <!DOCTYPE html>
+            <html>
+              <head>
+                <title>NexaBank Receipt</title>
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <style>
+                  html, body { margin: 0; padding: 0; background: #f1f5f9; }
+                  body { min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+                  img { display: block; width: 100%; height: auto; max-width: 600px; }
+                  .toolbar { position: fixed; top: 0; left: 0; right: 0; padding: 12px 16px; background: rgba(255,255,255,.96); border-bottom: 1px solid #e2e8f0; text-align: center; font-family: -apple-system, BlinkMacSystemFont, sans-serif; font-size: 13px; color: #475569; z-index: 10; }
+                  .receipt { padding-top: 48px; padding-bottom: 20px; }
+                </style>
+              </head>
+              <body>
+                <div class="toolbar">Tap the Share button to save or send this receipt.</div>
+                <div class="receipt"><img src="${url}" alt="NexaBank Transaction Receipt" /></div>
+              </body>
+            </html>
+          `);
+          iosWindow.document.close();
+          setTimeout(() => URL.revokeObjectURL(url), 60000);
+        } else {
+          window.location.href = url;
+        }
+        return;
+      }
+
       const link = document.createElement("a");
       link.href = url;
       link.download = fileName;
       link.style.display = "none";
       document.body.appendChild(link);
       link.click();
-      setTimeout(() => {
-        document.body.removeChild(link);
-        URL.revokeObjectURL(url);
-      }, 1000);
+      document.body.removeChild(link);
+      setTimeout(() => URL.revokeObjectURL(url), 5000);
     }, "image/png");
   };
 
@@ -428,6 +510,7 @@ export function TransactionReceiptModal({ tx, currency, onClose }: Props) {
                 QR Code
               </span>
               <QRCodeSVG
+                data-receipt-qr="true"
                 value={receiptUrl}
                 size={90}
                 bgColor="#ffffff"

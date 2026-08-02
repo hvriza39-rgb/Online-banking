@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import { Sidebar } from "@/components/sidebar";
 import BottomNav from "@/components/BottomNav";
+import InstallPrompt from "@/components/InstallPrompt";
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const session = await auth();
@@ -22,6 +23,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
         {children}
       </main>
       <BottomNav isVerified={isVerified} />
+      <InstallPrompt />
     </div>
   );
 }

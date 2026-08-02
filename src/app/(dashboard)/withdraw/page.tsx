@@ -48,7 +48,7 @@ const STATUS_CONFIG: Record<
     dot: "bg-rose-500",
   },
   APPROVED: {
-    label: "Approved",
+    label: "Completed",        // ← changed from "Approved"
     icon: CheckCircle2,
     bg: "bg-emerald-50",
     border: "border-emerald-100",
@@ -64,6 +64,7 @@ const STATUS_CONFIG: Record<
     dot: "bg-rose-500",
   },
 };
+
 
 export default async function WithdrawPage() {
   const session = await auth();

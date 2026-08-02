@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { X, ArrowDownLeft, ArrowUpRight, CheckCircle2, Download } from "lucide-react";
 import { cn, formatMoney, formatDateTime } from "@/lib/utils";
 import { TransactionType } from "@prisma/client";
 import Image from "next/image";
+import { QRCodeSVG } from "qrcode.react";
 
 const TX_CONFIG: Record<TransactionType, {
   label: string;
@@ -61,45 +62,29 @@ interface Props {
   onClose: () => void;
 }
 
-/* Generate a dense barcode pattern from transaction ID */
-function Barcode({ value, className }: { value: string; className?: string }) {
-  // Create more bars by combining pairs of chars
-  const pairs = [];
-  for (let i = 0; i < value.length - 1; i += 2) {
-    pairs.push(value.slice(i, i + 2));
-  }
-
-  const bars = pairs.map((pair, i) => {
-    const sum = pair.split("").reduce((s, c) => s + c.charCodeAt(0), 0);
-    const width = (sum % 4) + 1;
-    const height = 60 + (sum % 20); // varying heights like real barcodes
-    const isGap = sum % 5 === 0;
-    return { width: isGap ? 2 : width, isGap, height, key: i };
-  });
-
-  return (
-    <div className={cn("flex items-end gap-0 h-16 justify-center", className)}>
-      {bars.map((bar) =>
-        bar.isGap ? (
-          <div key={bar.key} style={{ width: bar.width, height: bar.height }} className="bg-transparent" />
-        ) : (
-          <div
-            key={bar.key}
-            style={{ width: bar.width, height: bar.height }}
-            className="bg-slate-900"
-          />
-        )
-      )}
-    </div>
-  );
-}
-
 export function TransactionReceiptModal({ tx, currency, onClose }: Props) {
+  const barcodeRef = useRef<SVGSVGElement>(null);
+
+  useEffect(() => {
+    if (!tx || !barcodeRef.current) return;
+    import("jsbarcode").then(({ default: JsBarcode }) => {
+      JsBarcode(barcodeRef.current!, tx.id.slice(0, 20).toUpperCase(), {
+        format:       "CODE128",
+        width:        2,
+        height:       50,
+        displayValue: true,
+        fontSize:     12,
+        margin:       8,
+        background:   "#ffffff",
+        lineColor:    "#0f172a",
+        fontOptions:  "bold",
+      });
+    });
+  }, [tx?.id]);
+
   useEffect(() => {
     if (!tx) return;
-    const handler = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-    };
+    const handler = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
   }, [tx, onClose]);
@@ -109,8 +94,10 @@ export function TransactionReceiptModal({ tx, currency, onClose }: Props) {
   const cfg = TX_CONFIG[tx.type];
   const Icon = cfg.icon;
   const isCredit = tx.type === "CREDIT";
+  const receiptUrl = typeof window !== "undefined"
+    ? `${window.location.origin}/transactions?id=${tx.id}`
+    : "";
 
-  // Balance After REMOVED from here
   const detailRows: { label: string; value: string; mono?: boolean }[] = [
     { label: "Transaction ID", value: tx.id.slice(0, 18) + "…", mono: true },
     { label: "Date & Time", value: formatDateTime(tx.createdAt) },
@@ -135,8 +122,8 @@ export function TransactionReceiptModal({ tx, currency, onClose }: Props) {
     const W = 420;
     const PAD = 32;
     const ROW_H = 42;
-    const HEADER_H = 230;
-    const FOOTER_H = 120;
+    const HEADER_H = 240;
+    const FOOTER_H = 140;
     const H = HEADER_H + detailRows.length * ROW_H + FOOTER_H;
 
     const canvas = document.createElement("canvas");
@@ -153,18 +140,18 @@ export function TransactionReceiptModal({ tx, currency, onClose }: Props) {
     ctx.fillStyle = isCredit ? "#059669" : "#e11d48";
     ctx.fillRect(0, 0, W, 5);
 
-    // Logo container circle
+    // Logo container
     const cx = W / 2;
-    const cy = 55;
+    const cy = 58;
     ctx.fillStyle = "#0f2419";
     ctx.beginPath();
-    ctx.arc(cx, cy, 28, 0, Math.PI * 2);
+    ctx.arc(cx, cy, 32, 0, Math.PI * 2);
     ctx.fill();
 
-    // Hexagon inside circle
+    // Hexagon
     ctx.fillStyle = "#1a6648";
     ctx.beginPath();
-    const r = 18;
+    const r = 20;
     for (let i = 0; i < 6; i++) {
       const angle = (Math.PI / 3) * i - Math.PI / 2;
       const x = cx + r * Math.cos(angle);
@@ -175,203 +162,148 @@ export function TransactionReceiptModal({ tx, currency, onClose }: Props) {
     ctx.closePath();
     ctx.fill();
 
-    // N letter
+    // N
     ctx.fillStyle = "#ffffff";
-    ctx.font = "bold 18px sans-serif";
+    ctx.font = "bold 20px sans-serif";
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
     ctx.fillText("N", cx, cy);
 
-    // Brand name
+    // Brand
     ctx.fillStyle = "#0f2419";
-    ctx.font = "bold 15px sans-serif";
-    ctx.fillText("NexaBank", cx, cy + 38);
-
-    // Official Receipt
+    ctx.font = "bold 16px sans-serif";
+    ctx.fillText("NexaBank", cx, cy + 44);
     ctx.fillStyle = "#94a3b8";
     ctx.font = "10px sans-serif";
-    ctx.fillText("OFFICIAL RECEIPT", cx, cy + 54);
+    ctx.fillText("OFFICIAL RECEIPT", cx, cy + 60);
 
     // Amount
     ctx.fillStyle = "#0f172a";
     ctx.font = "bold 32px monospace";
-    ctx.fillText(
-      `${cfg.sign}${formatMoney(tx.amount, currency as any)}`,
-      cx,
-      148
-    );
-
-    // Type
+    ctx.fillText(`${cfg.sign}${formatMoney(tx.amount, currency as any)}`, cx, 158);
     ctx.fillStyle = "#64748b";
     ctx.font = "13px sans-serif";
-    ctx.fillText(cfg.label, cx, 170);
+    ctx.fillText(cfg.label, cx, 180);
 
     // Status pill
-    const pillW = 120;
-    const pillH = 28;
-const handleDownload = () => {
-  const scale = 3;
-  const W = 420;
-  const PAD = 32;
-  const ROW_H = 42;
-  const HEADER_H = 230;
-  const FOOTER_H = 120;
-  const H = HEADER_H + detailRows.length * ROW_H + FOOTER_H;
-
-  const canvas = document.createElement("canvas");
-  canvas.width = W * scale;
-  canvas.height = H * scale;
-  const ctx = canvas.getContext("2d")!;
-  ctx.scale(scale, scale);
-
-  // ── Background ──
-  ctx.fillStyle = "#ffffff";
-  ctx.fillRect(0, 0, W, H);
-
-  // ── Top accent ──
-  ctx.fillStyle = isCredit ? "#059669" : "#e11d48";
-  ctx.fillRect(0, 0, W, 5);
-
-  // ── Logo container ──
-  const cx = W / 2;
-  const cy = 55;
-  ctx.fillStyle = "#0f2419";
-  ctx.beginPath();
-  ctx.arc(cx, cy, 28, 0, Math.PI * 2);
-  ctx.fill();
-
-  // Hexagon
-  ctx.fillStyle = "#1a6648";
-  ctx.beginPath();
-  const r = 18;
-  for (let i = 0; i < 6; i++) {
-    const angle = (Math.PI / 3) * i - Math.PI / 2;
-    const x = cx + r * Math.cos(angle);
-    const y = cy + r * Math.sin(angle);
-    if (i === 0) ctx.moveTo(x, y);
-    else ctx.lineTo(x, y);
-  }
-  ctx.closePath();
-  ctx.fill();
-
-  // N
-  ctx.fillStyle = "#ffffff";
-  ctx.font = "bold 18px sans-serif";
-  ctx.textAlign = "center";
-  ctx.textBaseline = "middle";
-  ctx.fillText("N", cx, cy);
-
-  // Brand
-  ctx.fillStyle = "#0f2419";
-  ctx.font = "bold 15px sans-serif";
-  ctx.fillText("NexaBank", cx, cy + 38);
-  ctx.fillStyle = "#94a3b8";
-  ctx.font = "10px sans-serif";
-  ctx.fillText("OFFICIAL RECEIPT", cx, cy + 54);
-
-  // ── Amount ──
-  ctx.fillStyle = "#0f172a";
-  ctx.font = "bold 32px monospace";
-  ctx.fillText(`${cfg.sign}${formatMoney(tx.amount, currency as any)}`, cx, 148);
-  ctx.fillStyle = "#64748b";
-  ctx.font = "13px sans-serif";
-  ctx.fillText(cfg.label, cx, 170);
-
-  // ── Status pill ──
-  const pillW = 120, pillH = 28, pillX = (W - pillW) / 2, pillY = 182;
-  ctx.fillStyle = "#ecfdf5";
-  ctx.beginPath();
-  ctx.roundRect(pillX, pillY, pillW, pillH, 14);
-  ctx.fill();
-  ctx.strokeStyle = "#a7f3d0";
-  ctx.lineWidth = 1;
-  ctx.stroke();
-  ctx.fillStyle = "#059669";
-  ctx.font = "bold 10px sans-serif";
-  ctx.fillText("✓  COMPLETED", cx, pillY + 18);
-
-  // ── Divider ──
-  ctx.strokeStyle = "#e2e8f0";
-  ctx.lineWidth = 1;
-  ctx.beginPath();
-  ctx.moveTo(PAD, 228);
-  ctx.lineTo(W - PAD, 228);
-  ctx.stroke();
-
-  // ── Detail rows ──
-  let y = 252;
-  detailRows.forEach(({ label, value }) => {
-    ctx.fillStyle = "#94a3b8";
-    ctx.font = "11px sans-serif";
-    ctx.textAlign = "left";
-    ctx.fillText(label, PAD, y);
-
-    ctx.fillStyle = "#0f172a";
-    ctx.font = "12px monospace";
-    ctx.textAlign = "right";
-    ctx.fillText(value, W - PAD, y);
-
-    ctx.strokeStyle = "#f1f5f9";
+    const pillW = 120, pillH = 28, pillX = (W - pillW) / 2, pillY = 192;
+    ctx.fillStyle = "#ecfdf5";
     ctx.beginPath();
-    ctx.moveTo(PAD, y + 12);
-    ctx.lineTo(W - PAD, y + 12);
+    ctx.roundRect(pillX, pillY, pillW, pillH, 14);
+    ctx.fill();
+    ctx.strokeStyle = "#a7f3d0";
+    ctx.lineWidth = 1;
+    ctx.stroke();
+    ctx.fillStyle = "#059669";
+    ctx.font = "bold 10px sans-serif";
+    ctx.fillText("✓  COMPLETED", cx, pillY + 18);
+
+    // Divider
+    ctx.strokeStyle = "#e2e8f0";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(PAD, 238);
+    ctx.lineTo(W - PAD, 238);
     ctx.stroke();
 
-    y += ROW_H;
-  });
+    // Rows
+    let y = 262;
+    detailRows.forEach(({ label, value }) => {
+      ctx.fillStyle = "#94a3b8";
+      ctx.font = "11px sans-serif";
+      ctx.textAlign = "left";
+      ctx.fillText(label, PAD, y);
 
-  // ── Barcode ──
-  const barcodeY = y + 20;
-  const pairs: string[] = [];
-  for (let i = 0; i < tx.id.length - 1; i += 2) {
-    pairs.push(tx.id.slice(i, i + 2));
-  }
-  let bx = PAD;
-  pairs.forEach((pair) => {
-    const sum = pair.split("").reduce((s, c) => s + c.charCodeAt(0), 0);
-    const width = (sum % 4) + 1;
-    const isGap = sum % 5 === 0;
-    const height = 50 + (sum % 20);
-    if (!isGap) {
       ctx.fillStyle = "#0f172a";
-      ctx.fillRect(bx, barcodeY + (60 - height), width, height);
+      ctx.font = "12px monospace";
+      ctx.textAlign = "right";
+      ctx.fillText(value, W - PAD, y);
+
+      ctx.strokeStyle = "#f1f5f9";
+      ctx.beginPath();
+      ctx.moveTo(PAD, y + 12);
+      ctx.lineTo(W - PAD, y + 12);
+      ctx.stroke();
+
+      y += ROW_H;
+    });
+
+    // Canvas barcode (thin, realistic)
+    const barcodeY = y + 16;
+    const code = tx.id.slice(0, 24).toUpperCase();
+    let bx = PAD + 20;
+    const barHeight = 55;
+    for (let i = 0; i < code.length; i++) {
+      const char = code.charCodeAt(i);
+      const w = (char % 3) + 1;
+      const gap = char % 2 === 0;
+      if (!gap && bx < W - PAD - 20) {
+        ctx.fillStyle = "#0f172a";
+        ctx.fillRect(bx, barcodeY + (barHeight - 50), w, 50);
+      }
+      bx += w + 1;
     }
-    bx += isGap ? 2 : width;
-  });
 
-  ctx.fillStyle = "#94a3b8";
-  ctx.font = "10px monospace";
-  ctx.textAlign = "center";
-  ctx.fillText(tx.id.slice(0, 24).toUpperCase(), cx, barcodeY + 72);
+    // Barcode text
+    ctx.fillStyle = "#64748b";
+    ctx.font = "bold 11px monospace";
+    ctx.textAlign = "center";
+    ctx.fillText(code, cx, barcodeY + barHeight + 14);
 
-  // ── Footer ──
-  ctx.fillStyle = "#cbd5e1";
-  ctx.font = "10px sans-serif";
-  ctx.fillText("NexaBank · Secure Banking", cx, H - 24);
+    // Canvas QR pattern
+    const qrSize = 80;
+    const qrX = W - PAD - qrSize;
+    const qrY = barcodeY - 10;
+    const qrCells = 16;
+    const cellSize = qrSize / qrCells;
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(qrX, qrY, qrSize, qrSize);
+    for (let row = 0; row < qrCells; row++) {
+      for (let col = 0; col < qrCells; col++) {
+        const idx = (row * qrCells + col) % code.length;
+        const val = code.charCodeAt(idx);
+        if (val % 3 !== 0) {
+          ctx.fillStyle = "#0f172a";
+          ctx.fillRect(qrX + col * cellSize, qrY + row * cellSize, cellSize, cellSize);
+        }
+      }
+    }
+    // QR finder patterns (corners)
+    ctx.fillStyle = "#0f172a";
+    [0, qrCells - 7].forEach((ox) => {
+      [0, qrCells - 7].forEach((oy) => {
+        if (ox === 0 && oy === qrCells - 7) return; // skip one corner for style
+        ctx.fillRect(qrX + ox * cellSize, qrY + oy * cellSize, 7 * cellSize, 7 * cellSize);
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(qrX + (ox + 1) * cellSize, qrY + (oy + 1) * cellSize, 5 * cellSize, 5 * cellSize);
+        ctx.fillStyle = "#0f172a";
+        ctx.fillRect(qrX + (ox + 2) * cellSize, qrY + (oy + 2) * cellSize, 3 * cellSize, 3 * cellSize);
+      });
+    });
 
-  // ── FIX: Use blob URL instead of data URL for iOS compatibility ──
-  const fileName = `nexabank-receipt-${tx.id.slice(0, 8)}.png`;
+    // Footer
+    ctx.fillStyle = "#cbd5e1";
+    ctx.font = "10px sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText("NexaBank · Secure Banking", cx, H - 24);
 
-  canvas.toBlob((blob) => {
-    if (!blob) return;
-
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = fileName;
-
-    // iOS Safari needs the link in the DOM
-    link.style.display = "none";
-    document.body.appendChild(link);
-    link.click();
-
-    // Cleanup
-    setTimeout(() => {
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
-    }, 1000);
-  }, "image/png");
-};
+    // Blob download (iOS fix)
+    const fileName = `nexabank-receipt-${tx.id.slice(0, 8)}.png`;
+    canvas.toBlob((blob) => {
+      if (!blob) return;
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = fileName;
+      link.style.display = "none";
+      document.body.appendChild(link);
+      link.click();
+      setTimeout(() => {
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+      }, 1000);
+    }, "image/png");
+  };
 
   return (
     <div
@@ -385,9 +317,7 @@ const handleDownload = () => {
         onClick={(e) => e.stopPropagation()}
       >
         {/* Top accent */}
-        <div
-          className={cn("h-1.5 w-full", isCredit ? "bg-emerald-600" : "bg-rose-500")}
-        />
+        <div className={cn("h-1.5 w-full", isCredit ? "bg-emerald-600" : "bg-rose-500")} />
 
         {/* Close */}
         <button
@@ -398,21 +328,20 @@ const handleDownload = () => {
         </button>
 
         {/* Header with logo */}
-        <div className="flex flex-col items-center px-6 pt-7 pb-3">
-          {/* Logo container */}
-          <div className="relative w-16 h-16 mb-3">
-            <div className="absolute inset-0 rounded-2xl bg-[#0f2419] flex items-center justify-center shadow-md">
+        <div className="flex flex-col items-center px-6 pt-8 pb-3">
+          <div className="relative w-[72px] h-[72px] mb-3">
+            <div className="absolute inset-0 rounded-2xl bg-[#0f2419] flex items-center justify-center shadow-lg">
               <Image
                 src="/nexabank-logo.svg"
                 alt="NexaBank"
-                width={40}
-                height={40}
+                width={44}
+                height={44}
                 className="object-contain brightness-0 invert"
                 priority
               />
             </div>
           </div>
-          <p className="text-[15px] font-bold text-slate-900 tracking-wide">
+          <p className="text-[16px] font-bold text-slate-900 tracking-wide">
             NexaBank
           </p>
           <p className="text-[10px] text-slate-400 uppercase tracking-[0.25em] mt-0.5 font-semibold">
@@ -480,15 +409,36 @@ const handleDownload = () => {
           ))}
         </div>
 
-        {/* Barcode */}
-        <div className="px-6 py-6 bg-slate-50/30 border-t border-slate-100">
-          <Barcode
-            value={tx.id}
-            className="w-full justify-center opacity-90"
-          />
-          <p className="text-center text-[10px] text-slate-400 font-mono tracking-[0.15em] mt-3 uppercase">
-            {tx.id.slice(0, 24)}
-          </p>
+        {/* Barcode + QR */}
+        <div className="px-6 py-5 bg-slate-50/30 border-t border-slate-100">
+          <div className="flex items-center justify-between gap-4">
+            {/* Barcode */}
+            <div className="flex-1 flex flex-col items-center gap-2">
+              <span className="text-[9px] font-bold uppercase tracking-[0.15em] text-slate-400">
+                Barcode
+              </span>
+              <svg ref={barcodeRef} className="w-full max-w-[220px]" />
+            </div>
+
+            <div className="w-px h-20 bg-slate-100" />
+
+            {/* QR Code */}
+            <div className="flex flex-col items-center gap-2 flex-shrink-0">
+              <span className="text-[9px] font-bold uppercase tracking-[0.15em] text-slate-400">
+                QR Code
+              </span>
+              <QRCodeSVG
+                value={receiptUrl}
+                size={90}
+                bgColor="#ffffff"
+                fgColor="#0f172a"
+                level="M"
+              />
+              <span className="text-[9px] text-slate-400 text-center max-w-[90px] leading-tight">
+                Scan to verify
+              </span>
+            </div>
+          </div>
         </div>
 
         {/* Footer actions */}

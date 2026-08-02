@@ -153,239 +153,241 @@ export function TransactionReceiptModal({ tx, currency, onClose }: Props) {
             </body>
           </html>
         `);
-        iosWindow.document.close();
       }
     }
 
-    const canvas = document.createElement("canvas");
-    canvas.width = W * scale;
-    canvas.height = H * scale;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) { iosWindow?.close(); return; }
+    try {
+      const canvas = document.createElement("canvas");
+      canvas.width = W * scale;
+      canvas.height = H * scale;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) {
+        iosWindow?.close();
+        return;
+      }
 
-    ctx.scale(scale, scale);
+      ctx.scale(scale, scale);
 
-    const roundedRect = (x: number, y: number, width: number, height: number, radius: number) => {
-      ctx.beginPath();
-      ctx.roundRect(x, y, width, height, radius);
-    };
+      const roundedRect = (x: number, y: number, width: number, height: number, radius: number) => {
+        ctx.beginPath();
+        ctx.roundRect(x, y, width, height, radius);
+      };
 
-    const drawSvgOnCanvas = async (svg: SVGSVGElement, x: number, y: number, width: number, height: number) => {
-      const serializer = new XMLSerializer();
-      const svgString = serializer.serializeToString(svg);
-      const svgBlob = new Blob([svgString], { type: "image/svg+xml;charset=utf-8" });
-      const svgUrl = URL.createObjectURL(svgBlob);
-      try {
-        const img = new window.Image();
+      // Safely load SVG into Canvas using Base64 Data URI (iOS Safari safe)
+      const drawSvgOnCanvas = (svg: SVGSVGElement, x: number, y: number, width: number, height: number): Promise<void> => {
+        return new Promise((resolve, reject) => {
+          try {
+            const serializer = new XMLSerializer();
+            const svgString = serializer.serializeToString(svg);
+            const encodedSvg = encodeURIComponent(svgString);
+            const dataUrl = `data:image/svg+xml;charset=utf-8,${encodedSvg}`;
 
-        await new Promise<void>((resolve, reject) => {
-          img.onload = () => resolve();
-          img.onerror = () => reject(new Error("Unable to load SVG"));
-          img.src = svgUrl;
+            const img = new window.Image();
+            img.crossOrigin = "anonymous";
+            
+            const timer = setTimeout(() => {
+              reject(new Error("SVG Load Timeout"));
+            }, 3000);
+
+            img.onload = () => {
+              clearTimeout(timer);
+              ctx.drawImage(img, x, y, width, height);
+              resolve();
+            };
+            img.onerror = (e) => {
+              clearTimeout(timer);
+              reject(e);
+            };
+            img.src = dataUrl;
+          } catch (e) {
+            reject(e);
+          }
         });
-        ctx.drawImage(img, x, y, width, height);
-      } finally {
-        URL.revokeObjectURL(svgUrl);
-      }
-    };
+      };
 
-    // Background
-    ctx.fillStyle = "#ffffff";
-    ctx.fillRect(0, 0, W, H);
+      // Background
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, W, H);
 
-    // Top accent
-    ctx.fillStyle = isCredit ? "#059669" : "#e11d48";
-    ctx.fillRect(0, 0, W, 5);
+      // Top accent
+      ctx.fillStyle = isCredit ? "#059669" : "#e11d48";
+      ctx.fillRect(0, 0, W, 5);
 
-    // Logo
-    const cx = W / 2;
-    const cy = 58;
-    ctx.fillStyle = "#0f2419";
-    ctx.beginPath();
-    ctx.arc(cx, cy, 32, 0, Math.PI * 2);
-    ctx.fill();
-
-    ctx.fillStyle = "#1a6648";
-    ctx.beginPath();
-    const r = 20;
-    for (let i = 0; i < 6; i++) {
-      const angle = (Math.PI / 3) * i - Math.PI / 2;
-      const x = cx + r * Math.cos(angle);
-      const y = cy + r * Math.sin(angle);
-      if (i === 0) ctx.moveTo(x, y);
-      else ctx.lineTo(x, y);
-    }
-    ctx.closePath();
-    ctx.fill();
-
-    ctx.fillStyle = "#ffffff";
-    ctx.font = "bold 20px sans-serif";
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
-    ctx.fillText("N", cx, cy);
-
-    ctx.fillStyle = "#0f2419";
-    ctx.font = "bold 16px sans-serif";
-    ctx.fillText("NexaBank", cx, cy + 44);
-    ctx.fillStyle = "#94a3b8";
-    ctx.font = "10px sans-serif";
-    ctx.fillText("TRANSACTION RECEIPT", cx, cy + 60);
-
-    // Amount
-    ctx.fillStyle = "#0f172a";
-    ctx.font = "bold 32px monospace";
-    ctx.textAlign = "center";
-    ctx.fillText(`${cfg.sign}${formatMoney(tx.amount, currency as any)}`, cx, 158);
-    ctx.fillStyle = "#64748b";
-    ctx.font = "13px sans-serif";
-    ctx.fillText(cfg.label, cx, 180);
-
-    // Status pill
-    const pillW = 120;
-    const pillH = 28;
-    const pillX = (W - pillW) / 2;
-    const pillY = 192;
-    ctx.fillStyle = "#ecfdf5";
-    roundedRect(pillX, pillY, pillW, pillH, 14);
-    ctx.fill();
-    ctx.strokeStyle = "#a7f3d0";
-    ctx.lineWidth = 1;
-    ctx.stroke();
-    ctx.fillStyle = "#059669";
-    ctx.font = "bold 10px sans-serif";
-    ctx.fillText("✓  COMPLETED", cx, pillY + 18);
-
-    // Divider
-    ctx.strokeStyle = "#e2e8f0";
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.moveTo(PAD, 238);
-    ctx.lineTo(W - PAD, 238);
-    ctx.stroke();
-
-    // Detail rows
-    let y = 262;
-    detailRows.forEach(({ label, value }) => {
-      ctx.textAlign = "left";
-      ctx.fillStyle = "#94a3b8";
-      ctx.font = "11px sans-serif";
-      ctx.fillText(label, PAD, y);
-
-      ctx.textAlign = "right";
-      ctx.fillStyle = "#0f172a";
-      ctx.font = "12px monospace";
-      let displayValue = value;
-      const maxWidth = W - PAD * 2 - 100;
-      while (ctx.measureText(displayValue).width > maxWidth && displayValue.length > 10) {
-        displayValue = displayValue.slice(0, -1);
-      }
-      if (displayValue !== value) displayValue = displayValue.slice(0, -1) + "…";
-      ctx.fillText(displayValue, W - PAD, y);
-
-      ctx.strokeStyle = "#f1f5f9";
+      // Logo
+      const cx = W / 2;
+      const cy = 58;
+      ctx.fillStyle = "#0f2419";
       ctx.beginPath();
-      ctx.moveTo(PAD, y + 12);
-      ctx.lineTo(W - PAD, y + 12);
+      ctx.arc(cx, cy, 32, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = "#1a6648";
+      ctx.beginPath();
+      const r = 20;
+      for (let i = 0; i < 6; i++) {
+        const angle = (Math.PI / 3) * i - Math.PI / 2;
+        const x = cx + r * Math.cos(angle);
+        const y = cy + r * Math.sin(angle);
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.fillStyle = "#ffffff";
+      ctx.font = "bold 20px sans-serif";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText("N", cx, cy);
+
+      ctx.fillStyle = "#0f2419";
+      ctx.font = "bold 16px sans-serif";
+      ctx.fillText("NexaBank", cx, cy + 44);
+      ctx.fillStyle = "#94a3b8";
+      ctx.font = "10px sans-serif";
+      ctx.fillText("TRANSACTION RECEIPT", cx, cy + 60);
+
+      // Amount
+      ctx.fillStyle = "#0f172a";
+      ctx.font = "bold 32px monospace";
+      ctx.textAlign = "center";
+      ctx.fillText(`${cfg.sign}${formatMoney(tx.amount, currency as any)}`, cx, 158);
+      ctx.fillStyle = "#64748b";
+      ctx.font = "13px sans-serif";
+      ctx.fillText(cfg.label, cx, 180);
+
+      // Status pill
+      const pillW = 120;
+      const pillH = 28;
+      const pillX = (W - pillW) / 2;
+      const pillY = 192;
+      ctx.fillStyle = "#ecfdf5";
+      roundedRect(pillX, pillY, pillW, pillH, 14);
+      ctx.fill();
+      ctx.strokeStyle = "#a7f3d0";
+      ctx.lineWidth = 1;
+      ctx.stroke();
+      ctx.fillStyle = "#059669";
+      ctx.font = "bold 10px sans-serif";
+      ctx.fillText("✓  COMPLETED", cx, pillY + 18);
+
+      // Divider
+      ctx.strokeStyle = "#e2e8f0";
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(PAD, 238);
+      ctx.lineTo(W - PAD, 238);
       ctx.stroke();
 
-      y += ROW_H;
-    });
+      // Detail rows
+      let y = 262;
+      detailRows.forEach(({ label, value }) => {
+        ctx.textAlign = "left";
+        ctx.fillStyle = "#94a3b8";
+        ctx.font = "11px sans-serif";
+        ctx.fillText(label, PAD, y);
 
-    // Real barcode SVG
-    const barcodeY = y + 18;
-    if (barcodeRef.current) {
-      try {
-        await drawSvgOnCanvas(barcodeRef.current, PAD, barcodeY, 220, 65);
-      } catch {
+        ctx.textAlign = "right";
         ctx.fillStyle = "#0f172a";
-        ctx.font = "bold 11px monospace";
-        ctx.textAlign = "center";
-        ctx.fillText(tx.id.slice(0, 24).toUpperCase(), PAD + 110, barcodeY + 30);
+        ctx.font = "12px monospace";
+        let displayValue = value;
+        const maxWidth = W - PAD * 2 - 100;
+        while (ctx.measureText(displayValue).width > maxWidth && displayValue.length > 10) {
+          displayValue = displayValue.slice(0, -1);
+        }
+        if (displayValue !== value) displayValue = displayValue.slice(0, -1) + "…";
+        ctx.fillText(displayValue, W - PAD, y);
+
+        ctx.strokeStyle = "#f1f5f9";
+        ctx.beginPath();
+        ctx.moveTo(PAD, y + 12);
+        ctx.lineTo(W - PAD, y + 12);
+        ctx.stroke();
+
+        y += ROW_H;
+      });
+
+      // Real barcode SVG
+      const barcodeY = y + 18;
+      if (barcodeRef.current) {
+        try {
+          await drawSvgOnCanvas(barcodeRef.current, PAD, barcodeY, 220, 65);
+        } catch {
+          ctx.fillStyle = "#0f172a";
+          ctx.font = "bold 11px monospace";
+          ctx.textAlign = "center";
+          ctx.fillText(tx.id.slice(0, 24).toUpperCase(), PAD + 110, barcodeY + 30);
+        }
       }
-    }
 
-    // Real QR Code SVG
-    const qrSize = 90;
-    const qrX = W - PAD - qrSize;
-    const qrY = barcodeY - 10;
-    ctx.fillStyle = "#ffffff";
-    ctx.fillRect(qrX - 5, qrY - 5, qrSize + 10, qrSize + 10);
+      // Real QR Code SVG
+      const qrSize = 90;
+      const qrX = W - PAD - qrSize;
+      const qrY = barcodeY - 10;
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(qrX - 5, qrY - 5, qrSize + 10, qrSize + 10);
 
-    const qrSvg = document.querySelector('[data-receipt-qr="true"]') as SVGSVGElement | null;
-    if (qrSvg) {
-      try {
-        await drawSvgOnCanvas(qrSvg, qrX, qrY, qrSize, qrSize);
-      } catch { /* leave blank */ }
-    }
+      const qrSvg = document.querySelector('[data-receipt-qr="true"]') as SVGSVGElement | null;
+      if (qrSvg) {
+        try {
+          await drawSvgOnCanvas(qrSvg, qrX, qrY, qrSize, qrSize);
+        } catch { /* leave blank */ }
+      }
 
-    // Labels
-    ctx.textAlign = "center";
-    ctx.fillStyle = "#64748b";
-    ctx.font = "bold 9px sans-serif";
-    ctx.fillText(".", qrX + qrSize / 2, qrY + qrSize + 16);
+      // Labels
+      ctx.textAlign = "center";
+      ctx.fillStyle = "#64748b";
+      ctx.font = "bold 9px sans-serif";
+      ctx.fillText(".", qrX + qrSize / 2, qrY + qrSize + 16);
 
-    // Footer
-    ctx.fillStyle = "#e2e8f0";
-    ctx.beginPath();
-    ctx.moveTo(PAD, H - 55);
-    ctx.lineTo(W - PAD, H - 55);
-    ctx.stroke();
+      // Footer
+      ctx.fillStyle = "#e2e8f0";
+      ctx.beginPath();
+      ctx.moveTo(PAD, H - 55);
+      ctx.lineTo(W - PAD, H - 55);
+      ctx.stroke();
 
-    ctx.fillStyle = "#94a3b8";
-    ctx.font = "10px sans-serif";
-    ctx.textAlign = "center";
-    ctx.fillText("NexaBank · Secure Banking", cx, H - 30);
-    ctx.fillStyle = "#cbd5e1";
-    ctx.font = "9px sans-serif";
-    ctx.fillText("Keep this receipt for your records", cx, H - 15);
+      ctx.fillStyle = "#94a3b8";
+      ctx.font = "10px sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillText("NexaBank · Secure Banking", cx, H - 30);
+      ctx.fillStyle = "#cbd5e1";
+      ctx.font = "9px sans-serif";
+      ctx.fillText("Keep this receipt for your records", cx, H - 15);
 
-    // Export
-    const fileName = `nexabank-receipt-${tx.id.slice(0, 8)}.png`;
-
-    canvas.toBlob((blob) => {
-      if (!blob) { iosWindow?.close(); return; }
-      const url = URL.createObjectURL(blob);
+      // Export Canvas to Base64 or Blob
+      const dataUrl = canvas.toDataURL("image/png");
 
       if (isIOS) {
         if (iosWindow && !iosWindow.closed) {
-          iosWindow.document.open();
-          iosWindow.document.write(`
-            <!DOCTYPE html>
-            <html>
-              <head>
-                <title>NexaBank Receipt</title>
-                <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                <style>
-                  html, body { margin: 0; padding: 0; background: #f1f5f9; }
-                  body { min-height: 100vh; display: flex; align-items: center; justify-content: center; }
-                  img { display: block; width: 100%; height: auto; max-width: 600px; }
-                  .toolbar { position: fixed; top: 0; left: 0; right: 0; padding: 12px 16px; background: rgba(255,255,255,.96); border-bottom: 1px solid #e2e8f0; text-align: center; font-family: -apple-system, BlinkMacSystemFont, sans-serif; font-size: 13px; color: #475569; z-index: 10; }
-                  .receipt { padding-top: 48px; padding-bottom: 20px; }
-                </style>
-              </head>
-              <body>
-                <div class="toolbar">Tap the Share button to save or send this receipt.</div>
-                <div class="receipt"><img src="${url}" alt="NexaBank Transaction Receipt" /></div>
-              </body>
-            </html>
-          `);
-          iosWindow.document.close();
-          setTimeout(() => URL.revokeObjectURL(url), 60000);
+          iosWindow.document.body.innerHTML = `
+            <div style="position: fixed; top: 0; left: 0; right: 0; padding: 12px 16px; background: rgba(255,255,255,.96); border-bottom: 1px solid #e2e8f0; text-align: center; font-family: -apple-system, BlinkMacSystemFont, sans-serif; font-size: 13px; color: #475569; z-index: 10;">
+              Long press image or tap Share to save receipt.
+            </div>
+            <div style="padding-top: 48px; padding-bottom: 20px; display: flex; justify-content: center; align-items: center; min-height: 100vh;">
+              <img src="${dataUrl}" alt="NexaBank Transaction Receipt" style="display: block; width: 100%; height: auto; max-width: 600px;" />
+            </div>
+          `;
         } else {
-          window.location.href = url;
+          window.location.href = dataUrl;
         }
         return;
       }
 
+      // Desktop / Android fallbacks
+      const fileName = `nexabank-receipt-${tx.id.slice(0, 8)}.png`;
       const link = document.createElement("a");
-      link.href = url;
+      link.href = dataUrl;
       link.download = fileName;
       link.style.display = "none";
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-      setTimeout(() => URL.revokeObjectURL(url), 5000);
-    }, "image/png");
+
+    } catch (err) {
+      console.error("Error generating receipt image:", err);
+      iosWindow?.close();
+    }
   };
 
   return (

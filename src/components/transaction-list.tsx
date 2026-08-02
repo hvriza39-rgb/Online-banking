@@ -2,31 +2,44 @@
 
 import { useState, useCallback } from "react";
 import { cn, formatMoney, formatDateTime } from "@/lib/utils";
-import { ArrowDownLeft, ArrowUpRight } from "lucide-react";
+import { ArrowDownLeft, ArrowUpRight, ChevronRight } from "lucide-react";
 import { TransactionType } from "@prisma/client";
 import { TransactionReceiptModal, type ReceiptTransaction } from "./transaction-receipt-modal";
 
 const TX_CONFIG: Record<TransactionType, {
-  label: string; icon: React.ElementType;
-  bg: string; text: string; border: string;
-  chipBg: string; chipText: string; sign: string;
+  label: string;
+  icon: React.ElementType;
+  bg: string;
+  text: string;
+  border: string;
+  amountColor: string;
+  sign: string;
 }> = {
   CREDIT: {
-    label: "Credit", icon: ArrowDownLeft,
-    bg: "bg-[#edf7f5]", text: "text-[#0f7a6e]", border: "border-[#a8dbd4]",
-    chipBg: "bg-[#edf7f5] border border-[#a8dbd4]", chipText: "text-[#0f7a6e]",
+    label: "Credit",
+    icon: ArrowDownLeft,
+    bg: "bg-emerald-50",
+    text: "text-emerald-700",
+    border: "border-emerald-100",
+    amountColor: "text-emerald-700",
     sign: "+",
   },
   DEBIT: {
-    label: "Debit", icon: ArrowUpRight,
-    bg: "bg-[#faeef0]", text: "text-[#b52b3a]", border: "border-[#e8b8be]",
-    chipBg: "bg-[#faeef0] border border-[#e8b8be]", chipText: "text-[#b52b3a]",
+    label: "Debit",
+    icon: ArrowUpRight,
+    bg: "bg-rose-50",
+    text: "text-rose-600",
+    border: "border-rose-100",
+    amountColor: "text-rose-600",
     sign: "−",
   },
   WITHDRAWAL: {
-    label: "Withdrawal", icon: ArrowUpRight,
-    bg: "bg-[#faeef0]", text: "text-[#b52b3a]", border: "border-[#e8b8be]",
-    chipBg: "bg-[#faeef0] border border-[#e8b8be]", chipText: "text-[#b52b3a]",
+    label: "Withdrawal",
+    icon: ArrowUpRight,
+    bg: "bg-rose-50",
+    text: "text-rose-600",
+    border: "border-rose-100",
+    amountColor: "text-rose-600",
     sign: "−",
   },
 };
@@ -40,61 +53,76 @@ export function TransactionList({ transactions, currency }: Props) {
   const [selected, setSelected] = useState<ReceiptTransaction | null>(null);
   const close = useCallback(() => setSelected(null), []);
 
+  if (transactions.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center py-16 px-6 text-center">
+        <div className="w-14 h-14 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-center mb-4">
+          <ArrowUpRight className="w-6 h-6 text-slate-300" />
+        </div>
+        <p className="text-[15px] font-bold text-slate-900 mb-1">No transactions yet</p>
+        <p className="text-[13px] text-slate-400 max-w-[240px] leading-relaxed">
+          Your transaction history will appear here once you start sending or receiving funds.
+        </p>
+      </div>
+    );
+  }
+
   return (
     <>
-      <div className="divide-y divide-[#f0f7f4]">
+      <div className="divide-y divide-slate-50">
         {transactions.map((tx) => {
-          const cfg  = TX_CONFIG[tx.type];
+          const cfg = TX_CONFIG[tx.type];
           const Icon = cfg.icon;
+
           return (
             <button
               key={tx.id}
               onClick={() => setSelected(tx)}
-              className="w-full text-left flex items-center gap-3 px-4 py-4 hover:bg-[#e4f2ec] active:bg-[#d6ece3] transition-colors cursor-pointer sm:grid sm:grid-cols-[44px_1fr_130px_110px] sm:gap-4 sm:px-6"
+              className="w-full text-left flex items-center gap-4 px-5 py-4 hover:bg-slate-50 active:bg-slate-100 transition-colors group"
             >
               {/* Icon */}
               <div className={cn(
-                "w-9 h-9 rounded-xl border flex items-center justify-center flex-shrink-0",
+                "w-11 h-11 rounded-xl border flex items-center justify-center flex-shrink-0 transition-transform group-hover:scale-105",
                 cfg.bg, cfg.border
               )}>
-                <Icon className={cn("w-4 h-4", cfg.text)} strokeWidth={2.5} />
+                <Icon className={cn("w-5 h-5", cfg.text)} strokeWidth={2.5} />
               </div>
 
-              {/* Details — takes all space on mobile */}
+              {/* Details */}
               <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-0.5">
+                <div className="flex items-center gap-2">
                   <span className={cn(
-                    "text-[11px] font-semibold px-2 py-0.5 rounded-full",
-                    cfg.chipBg, cfg.chipText
+                    "text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border",
+                    cfg.bg, cfg.border, cfg.text
                   )}>
                     {cfg.label}
                   </span>
                 </div>
-                <p className="text-[12px] text-[#6a8c7a] truncate">
-                  {tx.note ?? "No description"}
+                <p className="text-[13px] font-semibold text-slate-900 mt-1 truncate">
+                  {tx.note ?? "Transfer"}
                 </p>
-                {/* Date shown inside details on mobile, hidden on desktop */}
-                <p className="text-[11px] text-[#2d5042] mt-0.5 sm:hidden">
-                  {formatDateTime(tx.createdAt)}
-                </p>
-                <p className="text-[11px] text-[#a8c8b8] mt-0.5 font-mono">
-                  After: {formatMoney(tx.balanceAfter, currency as any)}
-                </p>
+                <div className="flex items-center gap-2 mt-0.5">
+                  <p className="text-[11px] text-slate-400 font-mono">
+                    {formatDateTime(tx.createdAt)}
+                  </p>
+                  <span className="text-slate-200">·</span>
+                  <p className="text-[11px] text-slate-400 font-mono">
+                    Bal {formatMoney(tx.balanceAfter, currency as any)}
+                  </p>
+                </div>
               </div>
 
-              {/* Date — desktop only */}
-              <div className="hidden sm:block">
-                <p className="text-[12px] text-[#2d5042]">{formatDateTime(tx.createdAt)}</p>
-              </div>
-
-              {/* Amount — always visible, right aligned */}
-              <div className="text-right flex-shrink-0 sm:col-start-4">
-                <p className={cn(
-                  "text-[13px] font-semibold font-mono",
-                  tx.type === "CREDIT" ? "text-[#0f7a6e]" : "text-[#b52b3a]"
-                )}>
-                  {cfg.sign}{formatMoney(tx.amount, currency as any)}
-                </p>
+              {/* Amount + chevron */}
+              <div className="flex items-center gap-3 flex-shrink-0">
+                <div className="text-right">
+                  <p className={cn(
+                    "text-[14px] font-bold font-mono tabular-nums",
+                    cfg.amountColor
+                  )}>
+                    {cfg.sign}{formatMoney(tx.amount, currency as any)}
+                  </p>
+                </div>
+                <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-slate-500 transition-colors flex-shrink-0" />
               </div>
             </button>
           );

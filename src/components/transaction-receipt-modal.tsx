@@ -176,7 +176,8 @@ export function TransactionReceiptModal({ tx, currency, onClose }: Props) {
       const svgBlob = new Blob([svgString], { type: "image/svg+xml;charset=utf-8" });
       const svgUrl = URL.createObjectURL(svgBlob);
       try {
-        const img = new Image();
+        const img = new window.Image();
+
         await new Promise<void>((resolve, reject) => {
           img.onload = () => resolve();
           img.onerror = () => reject(new Error("Unable to load SVG"));

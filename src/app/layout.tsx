@@ -5,7 +5,6 @@ import { Toaster } from "sonner";
 import { Providers } from "@/components/providers";
 import { SessionGuard } from "@/components/session-guard";
 import SWRegister from "./sw-register";
-import InstallPrompt from "@/components/InstallPrompt";
 
 const sora = Sora({ subsets: ["latin"], variable: "--font-sans", display: "swap" });
 
@@ -43,7 +42,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <SessionGuard>
             {children}
             <Toaster position="top-right" richColors />
-            <InstallPrompt />
+            {/* InstallPrompt removed from here */}
           </SessionGuard>
         </Providers>
         <SWRegister />

@@ -3,19 +3,19 @@
 import { useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
 import { formatMoney } from "@/lib/utils";
+import { Currency } from "@prisma/client";
 
 export function BalanceCard({
   balance,
   currency,
 }: {
   balance: number;
-  currency: string;
+  currency: Currency;
 }) {
   const [hidden, setHidden] = useState(false);
 
   return (
     <div className="relative rounded-[20px] p-6 overflow-hidden border border-[#1a6648]/30 shadow-lg bg-gradient-to-br from-[#1a6648] to-[#0f3d28]">
-      {/* subtle noise/texture overlay */}
       <div className="absolute inset-0 opacity-[0.03] bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] pointer-events-none" />
 
       <div className="relative">

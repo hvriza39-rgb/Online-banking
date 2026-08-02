@@ -118,20 +118,21 @@ export default async function DashboardPage() {
   return (
     <div className="min-h-screen bg-[#f0f7f4] font-sans pb-24 lg:pb-10">
       {/* ── Header ─────────────────────────────── */}
-      <header className="px-5 pt-10 pb-6 bg-[#f0f7f4]">
-        <div className="max-w-lg mx-auto lg:max-w-none flex items-start justify-between">
-          <div>
-            <h1
-              className="text-[26px] font-bold text-[#0f2419] leading-tight"
-              style={{ fontFamily: "'Playfair Display', serif" }}
-            >
-              {greeting}, {firstName}
-            </h1>
-            <p className="text-[13px] text-[#6a8c7a] mt-1">
-              Here&apos;s your financial overview
-            </p>
-          </div>
-          <div className="flex items-center gap-3 mt-1">
+      {/* ── Header ─────────────────────────────── */}
+<header className="px-5 pt-5 pb-3 bg-[#f0f7f4]">
+  <div className="max-w-lg mx-auto lg:max-w-none flex items-start justify-between">
+    <div>
+      <h1
+        className="text-[26px] font-bold text-[#0f2419] leading-tight"
+        style={{ fontFamily: "'Playfair Display', serif" }}
+      >
+        {greeting}, {firstName}
+      </h1>
+      {/* subtitle removed */}
+    </div>
+    <div className="flex items-center gap-3">
+      {/* bell + avatar unchanged */}
+
             <Link
               href="/dashboard/notifications"
               className="relative w-10 h-10 rounded-full bg-white border border-[#c8dfd5] flex items-center justify-center shadow-sm hover:shadow-md hover:border-[#4daa80] transition-all"

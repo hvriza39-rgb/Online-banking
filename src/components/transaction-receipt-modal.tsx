@@ -209,86 +209,169 @@ export function TransactionReceiptModal({ tx, currency, onClose }: Props) {
     // Status pill
     const pillW = 120;
     const pillH = 28;
-    const pillX = (W - pillW) / 2;
-    const pillY = 182;
-    ctx.fillStyle = "#ecfdf5";
-    ctx.beginPath();
-    ctx.roundRect(pillX, pillY, pillW, pillH, 14);
-    ctx.fill();
-    ctx.strokeStyle = "#a7f3d0";
-    ctx.lineWidth = 1;
-    ctx.stroke();
-    ctx.fillStyle = "#059669";
-    ctx.font = "bold 10px sans-serif";
-    ctx.fillText("✓  COMPLETED", cx, pillY + 18);
+const handleDownload = () => {
+  const scale = 3;
+  const W = 420;
+  const PAD = 32;
+  const ROW_H = 42;
+  const HEADER_H = 230;
+  const FOOTER_H = 120;
+  const H = HEADER_H + detailRows.length * ROW_H + FOOTER_H;
 
-    // Divider
-    ctx.strokeStyle = "#e2e8f0";
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.moveTo(PAD, 228);
-    ctx.lineTo(W - PAD, 228);
-    ctx.stroke();
+  const canvas = document.createElement("canvas");
+  canvas.width = W * scale;
+  canvas.height = H * scale;
+  const ctx = canvas.getContext("2d")!;
+  ctx.scale(scale, scale);
 
-    // Rows
-    let y = 252;
-    detailRows.forEach(({ label, value }) => {
-      ctx.fillStyle = "#94a3b8";
-      ctx.font = "11px sans-serif";
-      ctx.textAlign = "left";
-      ctx.fillText(label, PAD, y);
+  // ── Background ──
+  ctx.fillStyle = "#ffffff";
+  ctx.fillRect(0, 0, W, H);
 
-      ctx.fillStyle = "#0f172a";
-      ctx.font = "12px monospace";
-      ctx.textAlign = "right";
-      ctx.fillText(value, W - PAD, y);
+  // ── Top accent ──
+  ctx.fillStyle = isCredit ? "#059669" : "#e11d48";
+  ctx.fillRect(0, 0, W, 5);
 
-      ctx.strokeStyle = "#f1f5f9";
-      ctx.lineWidth = 1;
-      ctx.beginPath();
-      ctx.moveTo(PAD, y + 12);
-      ctx.lineTo(W - PAD, y + 12);
-      ctx.stroke();
+  // ── Logo container ──
+  const cx = W / 2;
+  const cy = 55;
+  ctx.fillStyle = "#0f2419";
+  ctx.beginPath();
+  ctx.arc(cx, cy, 28, 0, Math.PI * 2);
+  ctx.fill();
 
-      y += ROW_H;
-    });
+  // Hexagon
+  ctx.fillStyle = "#1a6648";
+  ctx.beginPath();
+  const r = 18;
+  for (let i = 0; i < 6; i++) {
+    const angle = (Math.PI / 3) * i - Math.PI / 2;
+    const x = cx + r * Math.cos(angle);
+    const y = cy + r * Math.sin(angle);
+    if (i === 0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
+  }
+  ctx.closePath();
+  ctx.fill();
 
-    // Barcode section
-    const barcodeY = y + 20;
-    const pairs = [];
-    const val = tx.id;
-    for (let i = 0; i < val.length - 1; i += 2) {
-      pairs.push(val.slice(i, i + 2));
-    }
-    let bx = PAD;
-    pairs.forEach((pair) => {
-      const sum = pair.split("").reduce((s, c) => s + c.charCodeAt(0), 0);
-      const width = (sum % 4) + 1;
-      const isGap = sum % 5 === 0;
-      const height = 50 + (sum % 20);
-      if (!isGap) {
-        ctx.fillStyle = "#0f172a";
-        ctx.fillRect(bx, barcodeY + (60 - height), width, height);
-      }
-      bx += isGap ? 2 : width;
-    });
+  // N
+  ctx.fillStyle = "#ffffff";
+  ctx.font = "bold 18px sans-serif";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillText("N", cx, cy);
 
-    // Barcode text
+  // Brand
+  ctx.fillStyle = "#0f2419";
+  ctx.font = "bold 15px sans-serif";
+  ctx.fillText("NexaBank", cx, cy + 38);
+  ctx.fillStyle = "#94a3b8";
+  ctx.font = "10px sans-serif";
+  ctx.fillText("OFFICIAL RECEIPT", cx, cy + 54);
+
+  // ── Amount ──
+  ctx.fillStyle = "#0f172a";
+  ctx.font = "bold 32px monospace";
+  ctx.fillText(`${cfg.sign}${formatMoney(tx.amount, currency as any)}`, cx, 148);
+  ctx.fillStyle = "#64748b";
+  ctx.font = "13px sans-serif";
+  ctx.fillText(cfg.label, cx, 170);
+
+  // ── Status pill ──
+  const pillW = 120, pillH = 28, pillX = (W - pillW) / 2, pillY = 182;
+  ctx.fillStyle = "#ecfdf5";
+  ctx.beginPath();
+  ctx.roundRect(pillX, pillY, pillW, pillH, 14);
+  ctx.fill();
+  ctx.strokeStyle = "#a7f3d0";
+  ctx.lineWidth = 1;
+  ctx.stroke();
+  ctx.fillStyle = "#059669";
+  ctx.font = "bold 10px sans-serif";
+  ctx.fillText("✓  COMPLETED", cx, pillY + 18);
+
+  // ── Divider ──
+  ctx.strokeStyle = "#e2e8f0";
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(PAD, 228);
+  ctx.lineTo(W - PAD, 228);
+  ctx.stroke();
+
+  // ── Detail rows ──
+  let y = 252;
+  detailRows.forEach(({ label, value }) => {
     ctx.fillStyle = "#94a3b8";
-    ctx.font = "10px monospace";
-    ctx.textAlign = "center";
-    ctx.fillText(tx.id.slice(0, 24).toUpperCase(), cx, barcodeY + 72);
+    ctx.font = "11px sans-serif";
+    ctx.textAlign = "left";
+    ctx.fillText(label, PAD, y);
 
-    // Footer
-    ctx.fillStyle = "#cbd5e1";
-    ctx.font = "10px sans-serif";
-    ctx.fillText("NexaBank · Secure Banking", cx, H - 24);
+    ctx.fillStyle = "#0f172a";
+    ctx.font = "12px monospace";
+    ctx.textAlign = "right";
+    ctx.fillText(value, W - PAD, y);
 
+    ctx.strokeStyle = "#f1f5f9";
+    ctx.beginPath();
+    ctx.moveTo(PAD, y + 12);
+    ctx.lineTo(W - PAD, y + 12);
+    ctx.stroke();
+
+    y += ROW_H;
+  });
+
+  // ── Barcode ──
+  const barcodeY = y + 20;
+  const pairs: string[] = [];
+  for (let i = 0; i < tx.id.length - 1; i += 2) {
+    pairs.push(tx.id.slice(i, i + 2));
+  }
+  let bx = PAD;
+  pairs.forEach((pair) => {
+    const sum = pair.split("").reduce((s, c) => s + c.charCodeAt(0), 0);
+    const width = (sum % 4) + 1;
+    const isGap = sum % 5 === 0;
+    const height = 50 + (sum % 20);
+    if (!isGap) {
+      ctx.fillStyle = "#0f172a";
+      ctx.fillRect(bx, barcodeY + (60 - height), width, height);
+    }
+    bx += isGap ? 2 : width;
+  });
+
+  ctx.fillStyle = "#94a3b8";
+  ctx.font = "10px monospace";
+  ctx.textAlign = "center";
+  ctx.fillText(tx.id.slice(0, 24).toUpperCase(), cx, barcodeY + 72);
+
+  // ── Footer ──
+  ctx.fillStyle = "#cbd5e1";
+  ctx.font = "10px sans-serif";
+  ctx.fillText("NexaBank · Secure Banking", cx, H - 24);
+
+  // ── FIX: Use blob URL instead of data URL for iOS compatibility ──
+  const fileName = `nexabank-receipt-${tx.id.slice(0, 8)}.png`;
+
+  canvas.toBlob((blob) => {
+    if (!blob) return;
+
+    const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
-    link.download = `nexabank-receipt-${tx.id.slice(0, 8)}.png`;
-    link.href = canvas.toDataURL("image/png");
+    link.href = url;
+    link.download = fileName;
+
+    // iOS Safari needs the link in the DOM
+    link.style.display = "none";
+    document.body.appendChild(link);
     link.click();
-  };
+
+    // Cleanup
+    setTimeout(() => {
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    }, 1000);
+  }, "image/png");
+};
 
   return (
     <div

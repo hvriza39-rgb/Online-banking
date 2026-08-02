@@ -229,7 +229,7 @@ export function TransactionReceiptModal({ tx, currency, onClose }: Props) {
     ctx.fillText("NexaBank", cx, cy + 44);
     ctx.fillStyle = "#94a3b8";
     ctx.font = "10px sans-serif";
-    ctx.fillText("OFFICIAL RECEIPT", cx, cy + 60);
+    ctx.fillText("TRANSACTION RECEIPT", cx, cy + 60);
 
     // Amount
     ctx.fillStyle = "#0f172a";
@@ -322,7 +322,7 @@ export function TransactionReceiptModal({ tx, currency, onClose }: Props) {
     ctx.textAlign = "center";
     ctx.fillStyle = "#64748b";
     ctx.font = "bold 9px sans-serif";
-    ctx.fillText("SCAN TO VERIFY", qrX + qrSize / 2, qrY + qrSize + 16);
+    ctx.fillText(".", qrX + qrSize / 2, qrY + qrSize + 16);
 
     // Footer
     ctx.fillStyle = "#e2e8f0";

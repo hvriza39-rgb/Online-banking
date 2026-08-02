@@ -44,7 +44,7 @@ export function BalanceCard({
           <span className="inline-flex items-center gap-1.5 bg-white/10 backdrop-blur-sm border border-white/10 px-2.5 py-1 rounded-full">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-300 animate-pulse" />
             <span className="text-[9px] font-semibold tracking-[0.15em] uppercase text-white/80">
-              Live
+              Active
             </span>
           </span>
           <span className="text-[10px] text-white/40 font-mono">{currency}</span>

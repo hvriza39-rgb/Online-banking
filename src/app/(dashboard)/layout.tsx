@@ -1,9 +1,19 @@
+import type { Metadata } from "next";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import { Sidebar } from "@/components/sidebar";
 import BottomNav from "@/components/BottomNav";
 import InstallPrompt from "@/components/InstallPrompt";
+
+export const metadata: Metadata = {
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "NexaBank",
+  },
+};
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const session = await auth();

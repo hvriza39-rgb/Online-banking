@@ -11,12 +11,6 @@ const sora = Sora({ subsets: ["latin"], variable: "--font-sans", display: "swap"
 export const metadata: Metadata = {
   title: { default: "NexaBank", template: "%s | NexaBank" },
   description: "Secure online banking",
-  manifest: "/manifest.json",
-  appleWebApp: {
-    capable: true,
-    statusBarStyle: "default",
-    title: "NexaBank",
-  },
   formatDetection: {
     telephone: false,
   },
@@ -42,7 +36,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <SessionGuard>
             {children}
             <Toaster position="top-right" richColors />
-            {/* InstallPrompt removed from here */}
           </SessionGuard>
         </Providers>
         <SWRegister />

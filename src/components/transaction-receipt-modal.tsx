@@ -61,25 +61,32 @@ interface Props {
   onClose: () => void;
 }
 
-/* Generate a visual barcode pattern from the transaction ID */
+/* Generate a dense barcode pattern from transaction ID */
 function Barcode({ value, className }: { value: string; className?: string }) {
-  const bars = Array.from(value).map((char, i) => {
-    const code = char.charCodeAt(0);
-    const width = (code % 3) + 1;
-    const isGap = code % 7 === 0;
-    return { width, isGap, key: i };
+  // Create more bars by combining pairs of chars
+  const pairs = [];
+  for (let i = 0; i < value.length - 1; i += 2) {
+    pairs.push(value.slice(i, i + 2));
+  }
+
+  const bars = pairs.map((pair, i) => {
+    const sum = pair.split("").reduce((s, c) => s + c.charCodeAt(0), 0);
+    const width = (sum % 4) + 1;
+    const height = 60 + (sum % 20); // varying heights like real barcodes
+    const isGap = sum % 5 === 0;
+    return { width: isGap ? 2 : width, isGap, height, key: i };
   });
 
   return (
-    <div className={cn("flex items-center h-10 gap-0", className)}>
+    <div className={cn("flex items-end gap-0 h-16 justify-center", className)}>
       {bars.map((bar) =>
         bar.isGap ? (
-          <div key={bar.key} style={{ width: bar.width }} className="h-full" />
+          <div key={bar.key} style={{ width: bar.width, height: bar.height }} className="bg-transparent" />
         ) : (
           <div
             key={bar.key}
-            style={{ width: bar.width }}
-            className="h-full bg-slate-900"
+            style={{ width: bar.width, height: bar.height }}
+            className="bg-slate-900"
           />
         )
       )}
@@ -103,6 +110,7 @@ export function TransactionReceiptModal({ tx, currency, onClose }: Props) {
   const Icon = cfg.icon;
   const isCredit = tx.type === "CREDIT";
 
+  // Balance After REMOVED from here
   const detailRows: { label: string; value: string; mono?: boolean }[] = [
     { label: "Transaction ID", value: tx.id.slice(0, 18) + "…", mono: true },
     { label: "Date & Time", value: formatDateTime(tx.createdAt) },
@@ -119,11 +127,6 @@ export function TransactionReceiptModal({ tx, currency, onClose }: Props) {
       ? [{ label: "Routing Code", value: tx.routingCode, mono: true }]
       : []),
     { label: "Description", value: tx.note ?? "—" },
-    {
-      label: "Balance After",
-      value: formatMoney(tx.balanceAfter, currency as any),
-      mono: true,
-    },
     ...(tx.reference ? [{ label: "Reference", value: tx.reference, mono: true }] : []),
   ];
 
@@ -132,8 +135,8 @@ export function TransactionReceiptModal({ tx, currency, onClose }: Props) {
     const W = 420;
     const PAD = 32;
     const ROW_H = 42;
-    const HEADER_H = 210;
-    const FOOTER_H = 100;
+    const HEADER_H = 230;
+    const FOOTER_H = 120;
     const H = HEADER_H + detailRows.length * ROW_H + FOOTER_H;
 
     const canvas = document.createElement("canvas");
@@ -150,11 +153,17 @@ export function TransactionReceiptModal({ tx, currency, onClose }: Props) {
     ctx.fillStyle = isCredit ? "#059669" : "#e11d48";
     ctx.fillRect(0, 0, W, 5);
 
-    // Logo mark (hexagon with N)
-    ctx.fillStyle = "#0f172a";
-    ctx.beginPath();
+    // Logo container circle
     const cx = W / 2;
-    const cy = 50;
+    const cy = 55;
+    ctx.fillStyle = "#0f2419";
+    ctx.beginPath();
+    ctx.arc(cx, cy, 28, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Hexagon inside circle
+    ctx.fillStyle = "#1a6648";
+    ctx.beginPath();
     const r = 18;
     for (let i = 0; i < 6; i++) {
       const angle = (Math.PI / 3) * i - Math.PI / 2;
@@ -168,15 +177,20 @@ export function TransactionReceiptModal({ tx, currency, onClose }: Props) {
 
     // N letter
     ctx.fillStyle = "#ffffff";
-    ctx.font = "bold 16px sans-serif";
+    ctx.font = "bold 18px sans-serif";
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
     ctx.fillText("N", cx, cy);
 
     // Brand name
-    ctx.fillStyle = "#0f172a";
-    ctx.font = "bold 14px sans-serif";
-    ctx.fillText("NexaBank", cx, cy + 28);
+    ctx.fillStyle = "#0f2419";
+    ctx.font = "bold 15px sans-serif";
+    ctx.fillText("NexaBank", cx, cy + 38);
+
+    // Official Receipt
+    ctx.fillStyle = "#94a3b8";
+    ctx.font = "10px sans-serif";
+    ctx.fillText("OFFICIAL RECEIPT", cx, cy + 54);
 
     // Amount
     ctx.fillStyle = "#0f172a";
@@ -184,19 +198,19 @@ export function TransactionReceiptModal({ tx, currency, onClose }: Props) {
     ctx.fillText(
       `${cfg.sign}${formatMoney(tx.amount, currency as any)}`,
       cx,
-      118
+      148
     );
 
     // Type
     ctx.fillStyle = "#64748b";
     ctx.font = "13px sans-serif";
-    ctx.fillText(cfg.label, cx, 140);
+    ctx.fillText(cfg.label, cx, 170);
 
     // Status pill
     const pillW = 120;
     const pillH = 28;
     const pillX = (W - pillW) / 2;
-    const pillY = 152;
+    const pillY = 182;
     ctx.fillStyle = "#ecfdf5";
     ctx.beginPath();
     ctx.roundRect(pillX, pillY, pillW, pillH, 14);
@@ -212,12 +226,12 @@ export function TransactionReceiptModal({ tx, currency, onClose }: Props) {
     ctx.strokeStyle = "#e2e8f0";
     ctx.lineWidth = 1;
     ctx.beginPath();
-    ctx.moveTo(PAD, 198);
-    ctx.lineTo(W - PAD, 198);
+    ctx.moveTo(PAD, 228);
+    ctx.lineTo(W - PAD, 228);
     ctx.stroke();
 
     // Rows
-    let y = 222;
+    let y = 252;
     detailRows.forEach(({ label, value }) => {
       ctx.fillStyle = "#94a3b8";
       ctx.font = "11px sans-serif";
@@ -239,32 +253,36 @@ export function TransactionReceiptModal({ tx, currency, onClose }: Props) {
       y += ROW_H;
     });
 
-    // Barcode
-    const barcodeY = y + 16;
-    const bars = Array.from(tx.id).map((char) => {
-      const code = char.charCodeAt(0);
-      return { width: (code % 3) + 1, isGap: code % 7 === 0 };
-    });
-
+    // Barcode section
+    const barcodeY = y + 20;
+    const pairs = [];
+    const val = tx.id;
+    for (let i = 0; i < val.length - 1; i += 2) {
+      pairs.push(val.slice(i, i + 2));
+    }
     let bx = PAD;
-    bars.forEach((bar) => {
-      if (!bar.isGap) {
+    pairs.forEach((pair) => {
+      const sum = pair.split("").reduce((s, c) => s + c.charCodeAt(0), 0);
+      const width = (sum % 4) + 1;
+      const isGap = sum % 5 === 0;
+      const height = 50 + (sum % 20);
+      if (!isGap) {
         ctx.fillStyle = "#0f172a";
-        ctx.fillRect(bx, barcodeY, bar.width, 36);
+        ctx.fillRect(bx, barcodeY + (60 - height), width, height);
       }
-      bx += bar.width;
+      bx += isGap ? 2 : width;
     });
 
     // Barcode text
     ctx.fillStyle = "#94a3b8";
     ctx.font = "10px monospace";
     ctx.textAlign = "center";
-    ctx.fillText(tx.id.slice(0, 24).toUpperCase(), cx, barcodeY + 50);
+    ctx.fillText(tx.id.slice(0, 24).toUpperCase(), cx, barcodeY + 72);
 
     // Footer
     ctx.fillStyle = "#cbd5e1";
     ctx.font = "10px sans-serif";
-    ctx.fillText("NexaBank · Secure Banking · nexabank.com", cx, H - 20);
+    ctx.fillText("NexaBank · Secure Banking", cx, H - 24);
 
     const link = document.createElement("a");
     link.download = `nexabank-receipt-${tx.id.slice(0, 8)}.png`;
@@ -297,21 +315,25 @@ export function TransactionReceiptModal({ tx, currency, onClose }: Props) {
         </button>
 
         {/* Header with logo */}
-        <div className="flex flex-col items-center px-6 pt-6 pb-2">
-          <div className="relative w-[52px] h-[52px] mb-3">
-            <Image
-              src="/nexabank-logo.svg"
-              alt="NexaBank"
-              fill
-              className="object-contain"
-              priority
-            />
+        <div className="flex flex-col items-center px-6 pt-7 pb-3">
+          {/* Logo container */}
+          <div className="relative w-16 h-16 mb-3">
+            <div className="absolute inset-0 rounded-2xl bg-[#0f2419] flex items-center justify-center shadow-md">
+              <Image
+                src="/nexabank-logo.svg"
+                alt="NexaBank"
+                width={40}
+                height={40}
+                className="object-contain brightness-0 invert"
+                priority
+              />
+            </div>
           </div>
-          <p className="text-[13px] font-bold text-slate-900 tracking-wide">
+          <p className="text-[15px] font-bold text-slate-900 tracking-wide">
             NexaBank
           </p>
-          <p className="text-[10px] text-slate-400 uppercase tracking-[0.2em] mt-0.5">
-            Transaction Receipt
+          <p className="text-[10px] text-slate-400 uppercase tracking-[0.25em] mt-0.5 font-semibold">
+            Official Receipt
           </p>
         </div>
 
@@ -376,12 +398,12 @@ export function TransactionReceiptModal({ tx, currency, onClose }: Props) {
         </div>
 
         {/* Barcode */}
-        <div className="px-6 py-5 bg-slate-50/30 border-t border-slate-100">
+        <div className="px-6 py-6 bg-slate-50/30 border-t border-slate-100">
           <Barcode
             value={tx.id}
-            className="w-full justify-center opacity-80"
+            className="w-full justify-center opacity-90"
           />
-          <p className="text-center text-[10px] text-slate-400 font-mono tracking-widest mt-2 uppercase">
+          <p className="text-center text-[10px] text-slate-400 font-mono tracking-[0.15em] mt-3 uppercase">
             {tx.id.slice(0, 24)}
           </p>
         </div>

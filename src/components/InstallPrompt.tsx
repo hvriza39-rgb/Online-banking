@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Download, X, Share } from "lucide-react";
+import { Download, X, Share, Loader2 } from "lucide-react";
 
 type Mode = "android" | "ios" | null;
 
@@ -11,6 +11,7 @@ export default function InstallPrompt() {
   const [dismissed, setDismissed]     = useState(false);
   const [installed, setInstalled]     = useState(false);
   const [iosExpanded, setIosExpanded] = useState(false);
+  const [swReady, setSwReady]         = useState(false);
 
   useEffect(() => {
     if (window.matchMedia("(display-mode: standalone)").matches) {
@@ -23,6 +24,11 @@ export default function InstallPrompt() {
 
     if (isIos && isSafari) {
       setMode("ios");
+      if ("serviceWorker" in navigator) {
+        navigator.serviceWorker.ready.then(() => setSwReady(true));
+      } else {
+        setSwReady(true);
+      }
       return;
     }
 
@@ -35,6 +41,13 @@ export default function InstallPrompt() {
 
     window.addEventListener("beforeinstallprompt", handler);
     window.addEventListener("appinstalled", () => setInstalled(true));
+
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.ready.then(() => setSwReady(true));
+    } else {
+      setSwReady(true);
+    }
+
     return () => window.removeEventListener("beforeinstallprompt", handler);
   }, []);
 
@@ -89,9 +102,19 @@ export default function InstallPrompt() {
             <p className="text-[11px] text-[#6a8c7a] mt-0.5">Add to your home screen</p>
           </div>
           <div className="flex items-center gap-2 flex-shrink-0">
-            <button onClick={() => setIosExpanded(v => !v)}
-              className="px-3 py-1.5 bg-[#1e7a52] hover:bg-[#2d9966] text-white text-[12px] font-bold rounded-xl transition-colors">
-              {iosExpanded ? "Hide" : "How?"}
+            <button 
+              onClick={() => setIosExpanded(v => !v)}
+              disabled={!swReady}
+              className="px-3 py-1.5 bg-[#1e7a52] hover:bg-[#2d9966] disabled:bg-[#1a2e22] disabled:text-[#6a8c7a] text-white text-[12px] font-bold rounded-xl transition-colors flex items-center gap-1.5"
+            >
+              {!swReady ? (
+                <>
+                  <Loader2 className="w-3 h-3 animate-spin" />
+                  <span>Wait...</span>
+                </>
+              ) : (
+                <span>{iosExpanded ? "Hide" : "How?"}</span>
+              )}
             </button>
             <button onClick={() => setDismissed(true)}
               className="w-7 h-7 rounded-full bg-[#1a2e22] flex items-center justify-center hover:bg-[#243d2c] transition-colors">
@@ -100,7 +123,7 @@ export default function InstallPrompt() {
           </div>
         </div>
 
-        {iosExpanded && (
+        {iosExpanded && swReady && (
           <div className="border-t border-[#1a2e22] px-5 py-4 space-y-3">
             <p className="text-[11px] text-[#6a8c7a] leading-relaxed">
               Safari on iOS doesn't support automatic install prompts. Follow these steps:

@@ -311,7 +311,7 @@ export function TransactionReceiptModal({ tx, currency, onClose }: Props) {
             NexaBank
           </p>
           <p className="text-[10px] text-slate-400 uppercase tracking-[0.2em] mt-0.5">
-            Official Receipt
+            Transaction Receipt
           </p>
         </div>
 
